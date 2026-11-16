@@ -126,6 +126,14 @@ body.chatonly .ch-sheet .ch-body{flex:1;overflow-y:auto}
 #fcs .eyebrow{color:#efe7d4;opacity:.6}#fcs .fc-set{margin-top:28px}#fcs .fc-go{margin-top:auto;text-align:center}.fc-start{width:100%;min-height:60px;border-radius:30px;background:#d2bb90;color:#121826;font-size:18px;font-weight:600}
 #fcs .tb-pad{flex:1;display:grid;place-items:center;position:relative}#fcs .tb-pad svg{width:min(78vw,340px);height:min(78vw,340px);transform:rotate(-90deg)}#fcs .tb-bg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:12}#fcs .tb-fg{fill:none;stroke:#d2bb90;stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset .5s linear}
 #fcs .tb-mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}#fcs .tb-c{font-size:72px;font-weight:500;font-variant-numeric:tabular-nums}#fcs .tb-s{margin-top:8px;opacity:.7}#fcs .tb-hint{font-size:13px;opacity:.55}
+.seg{display:inline-flex;background:var(--acc2);border-radius:10px;padding:3px;gap:2px}
+.seg button{padding:6px 12px;border-radius:8px;font-size:13px;color:var(--mute);white-space:nowrap}
+.seg button.on{background:var(--card);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.seg.full{display:flex;width:100%;margin-top:14px}.seg.full button{flex:1;padding:9px 6px;font-size:14px}
+span.st{display:grid;place-items:center}.st-cur{border-color:var(--acc);color:var(--acc);font-weight:700}
+.fl{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}.fl:first-child{margin-top:0}
+.timer{font-size:48px;font-weight:600;text-align:center;margin:18px 0 14px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+#app::after{content:"";display:block;height:72px}
 svg.i.ii{display:inline-block;width:1.05em;height:1.05em;vertical-align:-.16em;margin-right:4px;stroke-width:2}.ih{display:inline-flex;align-items:center;gap:6px}
 svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
 .chk::after,.dot::after{content:"";position:absolute;inset:-9px}.dot{position:relative}
@@ -631,6 +639,7 @@ function parseCmd(raw){
  if(/^(yardım|ne yapabilirsin|neler yapabilirsin|komutlar|nasıl kullanılır)/.test(t))return'Örnekler: "her sabah 7\'de yürüyüş", "hafta içi akşam 9\'da kitap okuyacağım", "kitap okudum", "öğle kıldım", "yarın 10\'da toplantı", "kitap listeme Suç ve Ceza ekle", "sağlık alanına hedef ekle yürüyüş", "alışkanlık ekle erken kalkmak", "33 sübhanallah", "kaza sabah 2 ekle", "haftanın ayeti: …", "niyetim: …", "ne kaldı?"';
  if(/ne kaldı|ne var|kalan|durum/.test(t)){var op=L.big.filter(function(b){return!b.done&&!b.moved}).map(function(b){return b.t}),oh=S.habits.filter(function(x){return!L.h[x.id]}).map(function(x){return x.name});return op.length||oh.length?"Kalanlar: "+op.concat(oh).join(", ")+".":"Bugün her şey tamam"+hi()+"! 🎉"}
  var kq=t.match(/(kuran|kur an|mushaf|cüz)\D*(\d+)\s*sayfa|(\d+)\s*sayfa\s*(kuran|kur an)/);if(kq){var np=parseInt(kq[2]||kq[3],10);if(!S.hatim)S.hatim={page:0,daily:20,count:0,start:key(today()),log:{}};hatimAdd(np);return"Hatmine "+np+" sayfa ekledim. Şu an "+S.hatim.page+". sayfadasın (%"+Math.round(S.hatim.page/604*100)+")."}
+ var kk2=t.match(/külliyat\D*(\d+)\s*sayfa|(\d+)\s*sayfa\D*külliyat/);if(kk2&&klOn()){var np2=parseInt(kk2[1]||kk2[2],10),KLs=KL(),tk2=key(today()),bef=KLs.daily[tk2]||0;KLs.daily[tk2]=bef+np2;return"Külliyat okumana "+np2+" sayfa ekledim. Bugün "+KLs.daily[tk2]+"/"+KLs.target+" sayfa"+(bef<KLs.target&&KLs.daily[tk2]>=KLs.target?", günlük hedef tamam! 📖":".")}
  if(/odak|odaklan|pomodoro/.test(t)){var fm=(t.match(/(\d+)\s*(dk|dakika)/)||[])[1];setTimeout(function(){openFocus(fm?+fm:25);if(FC){FC._cat=/kuran|kur an/.test(t)?"Kur'an":/ders|çalış/.test(t)?"Ders":/iş/.test(t)?"İş":"Kitap";paintFocus()}},500);return"Odak sayacını açıyorum. Hazır olunca Başla'ya bas."}
  if(/tesbih|zikir çek|zikre başla/.test(t)&&!/\d/.test(t)){setTimeout(openTesbih,600);return"Tesbihi açıyorum. Ekrana ya da ses tuşlarına basarak say."}
  if(isChatty(t,raw)){if(PARSE_AI&&aiOn())return null;var stk=smallTalk(t);if(stk)return stk}
@@ -683,6 +692,7 @@ function aiContext(){var k=key(today()),L=peek(k),nx=hasLoc()?nextPrayer():null,
   if(S.habits.length)out.push("Alışkanlık durumu: "+S.habits.map(function(h){return h.name+" (bu hafta "+weekCount(h.id,k)+"/"+hfreq(h)+", seri "+streak(h.id)+" gün"+(h.time?", "+rutinTxt(h):"")+")"}).join("; "));
   var z=(S.log[k]||{}).z||{},zt=Object.keys(z).filter(function(n){return z[n]});if(zt.length)out.push("Bugünkü zikir: "+zt.map(function(n){return n+" "+z[n]}).join(", "))}
  if(cx.stats){var fs2=focusStats();out.push("Odak: bugün "+fs2.d+" dk, bu hafta "+fs2.w+" dk, bu yıl "+fs2.y+" Nur Puanı.");if(S.hatim)out.push("Hatim: "+S.hatim.page+"/604 sayfa (%"+Math.round(S.hatim.page/604*100)+"), günlük hedef "+S.hatim.daily+" sayfa, bugün "+((S.hatim.log||{})[k]||0)+" sayfa.");var bd=getList("bad");if(bd.length)out.push("Bırakılan alışkanlıklar: "+bd.map(function(x){return x.t+" ("+cleanDays(x)+" temiz gün)"}).join("; "));if(frozen(k))out.push("Alışkanlık serileri şu an donduruldu (hastalık/yolculuk).");if(muaf(k))out.push("Kullanıcı şu an muafiyet modunda; namaz takibini sorma ve hatırlatma.")}
+ if(klOn()){var cm=curMonth();out.push("Külliyat okuma programı: "+(cm>24?"tamamlandı":cm+". ay ("+kurOf(cm)+". kur), bu ayın eserleri: "+KP[cm][0].map(function(w){return bookLbl(w[0])}).join("; "))+". Bugün "+todayPages()+"/"+KL().target+" sayfa, seri "+klStreak()+" gün.")}
  if(cx.goals)out.push("Hayat alanları ve hedefler: "+S.areas.map(function(a){return a.name+" %"+areaPct(a)+(a.goals.length?" ["+a.goals.map(function(g){return g.t+(g.target>0?" "+(g.cur||0)+"/"+g.target:"")+(g.durum==="tamam"?" (tamam)":"")}).join("; ")+"]":"")}).join(" | "));
  if(cx.books){var bk=getList("books").filter(function(b){return b.durum!=="tamam"}).slice(0,5);if(bk.length)out.push("Okunan/okunacak kitaplar: "+bk.map(function(b){return b.title+(b.pages?" ("+(b.read||0)+"/"+b.pages+" sayfa)":"")}).join("; "))}
  if(cx.me){if(S.me.niyet)out.push("Bu yılın niyeti: "+S.me.niyet);["degerler","guc","basari"].forEach(function(f,ix){var arr=(S.me[f]||[]).map(function(x){return x.t}).filter(Boolean);if(arr.length)out.push(["Değerleri","Güçlü yönleri","Başarıları"][ix]+": "+arr.join(", "))})}
@@ -787,7 +797,7 @@ function vPano(){
  if(!ban&&nr&&!editing)ban='<div class="card banner row"><span class="sp"><b>'+Ii("compass")+'Haftalık gözden geçirme zamanı</b><div class="mute">“Kontrol ve teftiş”: 3 dakika sürer.</div></span><button class="btn sm" data-a="review" data-k="'+nr+'">Başla</button></div>';
  h+=ban;
  h+='<div class="'+(editing?"edit":"")+'">';
- S.board.forEach(function(t,i){var w=W[t];if(!w)return;
+ S.board.forEach(function(t,i){var w=W[t];if(!w||(w.mod&&!w.mod()))return;
   h+='<section class="card w"><div class="wh"><span class="eyebrow">'+esc(w.t)+'</span>'+(editing?'<span class="ctl"><button data-a="wup" data-i="'+i+'">↑</button><button data-a="wdown" data-i="'+i+'">↓</button><button data-a="wdel" data-i="'+i+'">×</button></span>':'')+'</div>'+(editing?'<div class="mute">'+esc(w.d)+'</div>':w.r())+'</section>'});
  h+='</div>';
  if(editing||!S.board.length)h+='<button class="btn ghost wide" data-a="wadd">+ Widget ekle</button>';
@@ -908,6 +918,7 @@ function vBen(){
  h+=listBlock("me:guc","Güçlü yönlerim","Seni sen yapan güçlü yanlar.");
  h+=listBlock("me:basari","Geçmiş başarılarım","Zorlandığında dönüp bakacağın başarılar.");
  [["kz","Plan bana ne kazandırır?",W.kazanim.r()],["du","Dua",duaHtml()],["ha","Hadis-i şerif",hadisHtml()]].forEach(function(r){h+='<details class="fold" data-fold="ben:'+r[0]+'"'+(folds["ben:"+r[0]]?" open":"")+'><summary>'+r[1]+'</summary><div class="card">'+r[2]+'</div></details>'});
+ h+=klModCard();
  h+='<div class="card row" data-a="openset" style="margin-top:22px"><span class="sp"><b>'+Ii("gear")+'Ayarlar</b><div class="mute">Maskot, bildirimler, namaz vakitleri, yedek ve güncellemeler</div></span><span class="mute">›</span></div>';
  return h}
 function vAyar(){
@@ -932,8 +943,255 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div><div class="card row"><span class="sp">'+Ii("beads")+'Tesbih düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla tesbih.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #39'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #40'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
+/* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
+var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
+var KB=[null,
+ ["İrfan & Stratejik Vizyon","Mahmud Esad Coşan (1938–2001)","Başmakaleler & Güncel Meseleler","Modern çağda Müslümanın aksiyon, estetik, çevre, ticaret, teşkilatlanma ve dış politika vizyonu.","mecvakfi.org / serveriletisim.com"],
+ ["Tasavvuf & Akademik Tahlil","Mahmud Esad Coşan (1938–2001)","Hacı Bektaş-ı Veli: Makâlât","Anadolu'yu İslamlaştıran irfan geleneğinin şeriat ve Ehl-i Sünnet omurgasıyla tam uyumu.","islamansiklopedisi.org.tr/makalat"],
+ ["Ahlak & Cemiyet İnşası","Mehmed Zahid Kotku (1897–1980)","Tasavvufi Ahlak (5 Cilt)","Nefs terbiyesinin helal kazanç, yerli sanayi, vakıf hizmeti ve cemiyet inşasına dönüşümü.","serveriletisim.com"],
+ ["Sünnet & Tasavvuf","Ahmed Ziyâüddin Gümüşhânevî (1813–1893)","Râmûzü’l-Ehâdîs & Câmiu’l-Usûl","Hadis merkezli tasavvufun ve hem cephede hem akademide aktif âlim modelinin kurucu metni.","archive.org (Râmûzü'l-Ehâdîs)"],
+ ["Klasik Zihniyet & İrfan","İmam Gazzâlî (1058–1111)","İhyâu Ulûmi’d-Dîn (4 Cilt)","Fıkıh (zâhir) ile tasavvufun (bâtın) medeniyet ölçeğinde büyük sentezi; kalp ve ticaret ahlakı.","archive.org (Tam Metin Arşivi)"],
+ ["Siyer & Devlet Stratejisi","Muhammed Hamidullah (1908–2002)","İslam Peygamberi (2 Cilt) & el-Vesâiku’s-Siyâsiyye","Hz. Peygamber'in (s.a.v.) diplomasi, anayasa (Medine Vesikası), istihbarat, maliye ve eğitim sistemi.","hamidullah.info"],
+ ["Siyer & Sahih Kronoloji","Mustafa Asım Köksal (1913–1998)","İslam Tarihi & Hz. Hüseyin ve Kerbela Faciası","Klasik rivayet kaynaklarının Ehl-i Sünnet edebi ve muhabbet diliyle en teferruatlı kronolojik sentezi.","TDV İslam Ansiklopedisi"],
+ ["Hadis & Oryantalizm Eleştirisi","Muhammed Mustafa el-A‘zamî (1930–2017)","İlk Devir Hadis Edebiyatı & Kur’an Tarihi","Oryantalistlerin (Goldziher, Schacht) iddialarına karşı Sünnetin ve Kur'an'ın korunduğunun elyazması kanıtları.","TDV İslam Ansiklopedisi"],
+ ["İslam Siyaset Teorisi","Ebu’l-Hasan el-Mâverdî (972–1058)","el-Ahkâmü’s-Sultâniyye & Edebü’d-Dünya ve’d-Din","Klasik İslam kamu hukuku, hilafet, vezirlik, bürokrasi, vergi sistemi ve dünya-ahiret dengesi.","archive.org (Klasik Metin)"],
+ ["Tarih Felsefesi & Sosyoloji","İbn Haldun (1332–1406)","Mukaddime","Devletlerin doğuş ve çöküş yasaları, asabiyet, umran (şehirleşme), vergi yükü ve 4 kuşak teorisi.","ktp.isam.org.tr (İSAM)"],
+ ["Karşılaştırmalı Medeniyet","Ebu Reyhan el-Bîrûnî (973–1048)","Tahkîku Mâ li’l-Hind","Dünya tarihinin ilk bilimsel antropoloji ve karşılaştırmalı dinler/medeniyetler saha araştırması.","TDV İslam Ansiklopedisi"],
+ ["Siyasi Tecrübe & Ahlak","İbn Miskeveyh (932–1030)","Tecâribü’l-Ümem & Tehzîbü’l-Ahlâk","Tarihi, devlet adamlarının ve toplumların hatalarından ders çıkarılacak rasyonel bir laboratuvar olarak okuma.","TDV İslam Ansiklopedisi"],
+ ["Makro Şeriat ve Toplum","Şah Veliyyullah ed-Dehlevî (1703–1762)","Hüccetullahi’l-Bâliğa (2 Cilt)","İslami hükümlerin arkasındaki sosyolojik hikmetler ve toplumların şehirleşme/devletleşme (irtifâkât) aşamaları.","archive.org (Tercüme Kayıtları)"],
+ ["Osmanlı Devlet Felsefesi","Kâtib Çelebi (1609–1657)","Düstûru’l-Amel li-Islâhi’l-Halel & Mîzânü’l-Hakk","İbn Haldun'un organizmacı devlet teorisini Osmanlı'ya uyarlayan ve ilim-irfan dengesini savunan eser.","TDV İslam Ansiklopedisi"],
+ ["Hukuk, Devlet ve Kronoloji","Ahmed Cevdet Paşa (1822–1895)","Târîh-i Cevdet & Kısas-ı Enbiyâ ve Tevârîh-i Hulefâ","Mecelle mimarının gözünden İslam tarihi ve Osmanlı'nın modernleşme/Tanzimat dönemi yapısal analizi.","archive.org (Tam Metin)"],
+ ["Küresel Medeniyet Muhasebesi","Ebu’l-Hasen en-Nedvî (1914–1999)","Müslümanların Gerilemesiyle Dünya Neler Kaybetti?","İslam medeniyetinin dünya sahnesinden çekilmesiyle insanlığın içine düştüğü materyalist krizin analizi.","archive.org (Açık Erişim)"],
+ ["İktisat Ahlakı ve Zihniyet","Sabri F. Ülgener (1911–1983)","İktisadi Çözülmenin Ahlak ve Zihniyet Dünyası & Zihniyet ve Din","Üretken Ahilik/fütüvvet ruhunun zamanla nasıl içe kapanmacı ve pasif bir zihniyete dönüştüğünün tahlili.","DergiPark (Makaleler PDF)"],
+ ["Epistemoloji & Edep","Seyyid Muhammed Nakîb el-Attâs (d. 1931)","İslam, Sekülerizm ve Geleceğin Felsefesi","Modern çağdaki krizi “Edep Kaybı” olarak teşhis eden ve “Bilginin İslamîleştirilmesi”ni kuran eser.","archive.org (Orijinal PDF)"],
+ ["Çift Kutuplu Büyük Sentez","Aliya İzzetbegoviç (1925–2003)","Doğu Batı Arasında İslam","Salt ruhçuluk ile salt materyalizm arasında İslam'ı “cami ile fabrikayı birleştiren” sentez olarak kurgulayan başyapıt.","aliyaizzetbegovic.org"],
+ ["Medeniyet Sosyolojisi","Malik bin Nebî (1905–1973)","Medeniyetin Şartları & İslam Dünyasında Fikir ve Put","İslam dünyasının krizini dış güçlerden önce “sömürgeye elverişlilik” kavramıyla ve insan+toprak+zaman formülüyle açıklar.","TDV İslam Ansiklopedisi"],
+ ["İslam Bilim Tarihi","Fuat Sezgin (1924–2018)","İslam’da Bilim ve Teknik (5 Cilt)","Müslümanların küresel bilim tarihindeki kurucu yerini yüzlerce usturlab, harita ve elyazmasıyla ispatlayan külliyat.","ibtav.org (Açık Erişim PDF)"],
+ ["Tabiat Felsefesi & Bilim","Seyyid Hüseyin Nasr (d. 1933)","İslam ve İlim & İnsan ve Tabiat","Seküler Batı biliminin yol açtığı ekolojik krize karşı İslam'ın tevhid merkezli kâinat ve tabiat tasavvurunu savunur.","DergiPark (İncelemeler)"],
+ ["Şehir, Mimari ve Estetik","Turgut Cansever (1920–2009)","Kubbeyi Yere Koymamak & İslam’da Şehir ve Mimari","Tevhid inancının ve tasavvuf terbiyesinin Osmanlı şehrine, sokağına, evine ve estetiğine nasıl yansıdığının felsefesi.","DergiPark (Makaleler PDF)"],
+ ["Osmanlı İrfanı ve Zarafeti","Semiha Ayverdi (1905–1993)","İbrahim Efendi Konağı & Abide Şahsiyetler","Osmanlı-İslam medeniyetinin insan kalitesini, vakıf şuurunu, konak ve dergâh terbiyesini içeriden anlatan şaheser.","kubbealti.org.tr"],
+ ["Ahlak ve Amel Felsefesi","Tâhâ Abdurrahman (d. 1944)","Ahlak Sorunu & Amel Sorunu","Batı rasyonalizmini ve seküler moderniteyi, tasavvufi terbiye ve amel merkezli özgün bir mantık diliyle eleştirir.","DergiPark (Akademik Analizler)"],
+ ["Hareket Felsefesi & Maarif","Nurettin Topçu (1909–1975)","Türkiye’nin Maarif Davası & İsyan Ahlakı","İskenderpaşa (Abdülaziz Bekkine) halkasından beslenen Anadolu irfanı, ahlak merkezli iktisat ve eğitim manifestosu.","DergiPark (Hareket Yazıları)"],
+ ["Çağdaş İslam Düşüncesi","İsmail Kara (d. 1955)","İslamcıların Siyasi Görüşleri & Cumhuriyet Türkiye'sinde Bir Mesele Olarak İslam","Osmanlı'dan Cumhuriyet'e İslami hareketlerin, ulemanın ve dergâhların modern devletle ilişkisini birincil belgelerle inceler.","ktp.isam.org.tr (İSAM Makaleler)"],
+ ["Din ve Modernleşme Sosyolojisi","Şerif Mardin (1927–2017)","Türk Modernleşmesi & Din ve İdeoloji","Türkiye'deki devlet-toplum ilişkilerini “merkez-çevre” teorisi ve Nakşibendi/tasavvufi ağların sosyolojisi üzerinden açıklar.","DergiPark (İncelemeler)"],
+ ["Hukuk Sosyolojisi & Devlet","Wael B. Hallaq (d. 1955)","İmkansız Devlet & Şeriat: Teori, Uygulama ve Dönüşümler","Klasik İslam toplumunun (vakıf, lonca ve bağımsız ulema) modern ulus-devletin bürokratik yapısıyla neden çeliştiğini açıklar.","DergiPark (Kitap Tahlilleri)"],
+ ["Epistemolojik Sistem Analizi","Muhammed Âbid el-Câbirî (1935–2010)","Arap-İslam Aklının Oluşumu (4 Ciltlik Külliyat)","İslam düşünce tarihini Beyân (dil/fıkıh), İrfân (tasavvuf) ve Burhân (felsefe/mantık) olarak üç epistemik sistemde inceler.","TDV İslam Ansiklopedisi"],
+ ["Küresel İslam Medeniyeti","Marshall G. S. Hodgson (1922–1968)","İslam’ın Serüveni (3 Cilt)","İslam tarihini şeriat, tasavvuf ağları ve Barut İmparatorlukları (Osmanlı-Safevi-Babür) ekseninde küresel sistem olarak okur.","archive.org (The Venture of Islam)"],
+ ["Coğrafya ve Yapısal Tarih","Fernand Braudel (1902–1985)","II. Felipe Döneminde Akdeniz ve Akdeniz Dünyası (3 Cilt)","16. yüzyıl Osmanlı-Avrupa mücadelesini iklim, dağlar, ticaret yolları, buğday ve gümüş enflasyonu (longue durée) ile açıklar.","archive.org (Mediterranean)"]
+];
+var KP=[null,
+ [[[1,"Başmakaleler"],[4,"Râmûzü’l-Ehâdîs · günde 5 hadis"]],"Okuma yolculuğuna çıkmadan önce pusulayı düzeltmek; “çağdaş derviş-münevver” vizyonunu ve sünnet bilincini kuşanmak."],
+ [[[6,"İslam Peygamberi · Cilt 1"],[7,"İslam Tarihi · Mekke/Medine seçmeler"]],"Köksal Hoca'dan kronolojik olayları ve sahabe muhabbetini alırken; Hamidullah'tan aynı olayların diplomatik ve anayasal analizini okumak."],
+ [[[6,"İslam Peygamberi · Cilt 2"],[7,"Hz. Hüseyin ve Kerbela Faciası"]],"Hz. Peygamber'in (s.a.v.) maliye, eğitim, askeri istihbarat ve hukuk sistemini kavramak; ilk dönem siyasi imtihanlarını Ehl-i Sünnet edebiyle öğrenmek."],
+ [[[8,"İlk Devir Hadis Edebiyatı"],[2,""]],"Sünnetin tarihsel güvenilirliğini bilimsel kanıtlarla çelikleştirmek ve Anadolu tasavvufunun şeriatla bütünlüğünü görmek."],
+ [[[19,""]],"Kurucu asırdan alınan ruhu, modern çağın materyalist ve ütopik ideolojileri karşısında “çift kutuplu birlik” teziyle konumlandırmak."],
+ [[[16,""],[15,"Kısas-ı Enbiyâ · seçmeler"]],"İslam ümmetinin küresel tarihteki ahlaki denge rolünü ve tarihi kırılma noktalarını klasik-modern köprüsünde muhasebe etmek."],
+ [[[10,"Cilt 1"]],"Tarihin zahirinden batınına geçmek: Coğrafya, iklim, göçebelik-yerleşiklik (bedavet-hadaret) ve “asabiyet” teorisini çözmek."],
+ [[[10,"Cilt 2"],[14,"Düstûru’l-Amel li-Islâhi’l-Halel"]],"Devletlerin 4 kuşak (120 yıl) ömür yasasını, vergi-üretim ilişkilerini ve bu teorinin Osmanlı devlet krizine nasıl uygulandığını görmek."],
+ [[[9,"el-Ahkâmü’s-Sultâniyye"],[12,"Tecâribü’l-Ümem · seçmeler"]],"Klasik İslam kamu hukuku, hilafet-sultanlık dengesi, bürokrasi ve siyasi tecrübenin rasyonel yönetim ilkelerini kavramak."],
+ [[[17,"İktisadi Çözülmenin Ahlak ve Zihniyet Dünyası"]],"İbn Haldun'un çöküş teorisinin Osmanlı iktisat ve tasavvuf tarihindeki karşılığı: Ahilikten pasif/içe kapanık zihniyete geçişin analizi."],
+ [[[20,"Medeniyetin Şartları"],[13,"İrtifâkât bölümü"]],"Şehirleşme ve medeniyet inşasının aşamaları ile İslam dünyasını içten çürüten “sömürgeye elverişlilik” hastalığının teşhisi."],
+ [[[26,""]],"Yozlaşan zihniyete karşı Anadolu irfanını, ahlak merkezli iktisadı ve “hareket” (aksiyon) felsefesini eğitim davasıyla birleştirmek."],
+ [[[18,""]],"Batı sekülerizminin kavramlarımızı nasıl bozduğunu (“Edep Kaybı”) ve “Bilginin İslamîleştirilmesi” projesini felsefi düzeyde kavramak."],
+ [[[5,"İlim, Akaid ve Ticaret bölümleri"],[3,"seçmeler"]],"Bilginin amele ve ihlaslı ticarete dönüşmesi; zâhiri fıkıh ile bâtıni kalp temizliğinin günlük hayatta mezcedilmesi."],
+ [[[25,"Ahlak Sorunu (veya Amel Sorunu)"]],"İmam Gazzâlî ve tasavvuf geleneğinin modern felsefe diliyle yeniden üretilmesi; araçsal Batı aklına karşı “ahlaki modernite” savunusu."],
+ [[[23,"Kubbeyi Yere Koymamak"],[24,"İbrahim Efendi Konağı"]],"Tevhid ve tasavvuf terbiyesinin mekâna, mimariye, şehre ve Osmanlı konağındaki insan zarafetine nasıl yansıdığını görmek."],
+ [[[29,"İmkansız Devlet"]],"Klasik İslam toplumunun (vakıflar, loncalar ve bağımsız âlimler) modern ulus-devletin merkeziyetçi mekanizmasıyla yapısal farkını çözmek."],
+ [[[27,"Cumhuriyet Türkiye'sinde Bir Mesele Olarak İslam"],[28,"Türk Modernleşmesi"]],"Hallaq'ın teorik olarak anlattığı modernleşme geriliminin son dönem Osmanlı ve Türkiye'deki somut tarihi ve sosyolojik seyri."],
+ [[[31,"Cilt 1 · İslam'ın Klasik Çağı"],[11,"seçmeler"]],"İslam'ın doğuşundan 10. yüzyıla kadar küresel bir medeniyete dönüşümünü ve diğer medeniyetleri inceleme ufkunu görmek."],
+ [[[31,"Cilt 2 · Orta Dönem İslam Yayılması"]],"Hilafetin siyasi gücünü kaybettiği dönemde bile İslam'ın tasavvuf ağları, vakıflar ve şeriat hukukuyla dünyayı nasıl birleştirdiğini anlamak."],
+ [[[31,"Cilt 3 · Barut İmparatorlukları ve Modern Çağ"]],"Osmanlı, Safevi ve Babür imparatorluklarının küresel jeopolitiğini ve Batı'nın “Büyük Dönüşümü” karşısındaki konumunu analiz etmek."],
+ [[[30,""]],"İslam düşünce tarihindeki Beyân (fıkıh/dil), İrfân (tasavvuf) ve Burhân (felsefe/mantık) sistemlerini eleştirel bir süzgeçten geçirmek."],
+ [[[32,"Cilt 1 · Coğrafi Çerçeve ve Ekonomi"]],"Tarihe savaşlar üzerinden değil; dağlar, denizler, iklim, ticaret yolları ve uzun süreli yapısal değişimler (longue durée) üzerinden bakmak."],
+ [[[21,"Cilt 1"],[22,"İslam ve İlim"]],"2 yıllık programı taçlandırmak: İslam bilim tarihinin somut kanıtlarını ve gelecekte kurulacak tevhid merkezli bilim felsefesini birleştirmek."]
+];
+var XR1=[["mesele","Müellifin temel meselesi","Bu kitabı hangi soruya cevap vermek için yazdı?"],["iskelet","Kitabın mimari iskeleti","Kaç ana bölümden oluşuyor? Mantıksal akışı nasıl?"],["kavram","Müellifin 3 anahtar kavramı","Örn: Asabiyet, İrtifâkât, Edep Kaybı"]];
+var XR2=[["suzgec","İrfan ve Sünnet süzgeci","Esad Coşan / Ehl-i Sünnet çizgisinden bakınca eserin en güçlü yönü ve varsa şerh düşülecek noktası"],["bag","Diğer kitaplarla bağlantı","Bu eser listedeki hangi yazarla aynı veya zıt şeyi söylüyor?"]];
+var klSec="ay",klLibF="",openBook=null,openKv=null;
+
+function klDef(){return{on:false,start:null,target:25,done:{},b:{},daily:{},kv:["Devlet Meşruiyeti","Ahilik ve İktisat","Sömürgeye Elverişlilik","Diplomasi Stratejisi"].map(function(t){return{id:uid(),name:t,notes:[]}})}}
+function KL(){var k=S.kl;if(!k||typeof k!=="object")k=S.kl=klDef();["done","b","daily"].forEach(function(f){if(!k[f]||typeof k[f]!=="object")k[f]={}});if(!Array.isArray(k.kv))k.kv=[];if(!k.target)k.target=25;return k}
+function klOn(){return!!(S.kl&&S.kl.on)}
+function bk(n){var b=KL().b;if(!b[n])b[n]={st:""};var x=b[n];x.an=x.an||[];x.fx=x.fx||[];return x}
+function peekB(n){var x=KL().b[n]||{};return{st:x.st||"",an:x.an||[],fx:x.fx||[],s:x.s,e:x.e,mesele:x.mesele,iskelet:x.iskelet,kavram:x.kavram,suzgec:x.suzgec,bag:x.bag}}
+function aName(n){return KB[n][1].replace(/\s*\([^)]*\)\s*$/,"")}
+function bookLbl(n){return aName(n)+" · "+KB[n][2]}
+function kurOf(m){return Math.ceil(m/6)}
+function curMonth(){var d=KL().done;for(var m=1;m<=24;m++)if(!d[m])return m;return 25}
+function doneCount(){var d=KL().done,n=0;for(var m=1;m<=24;m++)if(d[m])n++;return n}
+function monthsOf(n){var o=[];for(var m=1;m<=24;m++)if(KP[m][0].some(function(w){return w[0]===n}))o.push(m);return o}
+function thisMonth(){var d=today();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}
+function monthDate(m){var s=KL().start;if(!s)return null;var p=s.split("-");return new Date(+p[0],+p[1]-1+m-1,1)}
+function monthLabel(m){var d=monthDate(m);return d?GM[d.getMonth()]+" "+d.getFullYear():""}
+function planIdx(){var s=monthDate(1);if(!s)return 0;var t=today();return(t.getFullYear()-s.getFullYear())*12+t.getMonth()-s.getMonth()+1}
+function kvById(id){return KL().kv.filter(function(c){return c.id===id})[0]}
+function bookOpts(){return["Genel (kitapsız)"].concat(KB.slice(1).map(function(b,i){return(i+1)+". "+aName(i+1)+" – "+b[2]}))}
+function todayPages(){return KL().daily[key(today())]||0}
+function klStreak(){var k=KL(),n=0,d=today();if((k.daily[key(d)]||0)<k.target)d=addDays(d,-1);while((k.daily[key(d)]||0)>=k.target){n++;d=addDays(d,-1)}return n}
+function klPoints(){if(!klOn())return 0;var k=KL(),n=0;for(var d in k.daily)if(k.daily[d]>=k.target)n++;return n}
+function klMsg(h){if(!klOn()||h<17)return"";var p=todayPages(),t=KL().target;return p<t?"Külliyat: bugün "+p+"/"+t+" sayfa. "+(p?"Az kaldı.":"Günlük okumanı unutma. 📖"):""}
+function fmtT(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+
+function workRow(w){var n=w[0],B=KB[n],x=peekB(n);
+ return'<div class="lr" data-a="k_book" data-id="'+n+'" style="cursor:pointer"><span class="st st-'+(x.st||"no")+'">'+(x.st==="tamam"?"✓":"")+'</span><div class="sp"><div class="'+(x.st==="tamam"?"done":"")+'">'+esc(B[2])+'</div><div class="mute">'+esc(aName(n))+(w[1]?' · '+esc(w[1]):'')+'</div></div><span class="mute">›</span></div>'}
+function readInner(){var k=KL(),p=todayPages(),pct=Math.min(100,Math.round(p/k.target*100));
+ return'<div class="row"><div class="sp"><span class="big2">'+p+'</span><span class="mute"> / '+k.target+' sayfa bugün</span></div><span class="mute">🔥 '+klStreak()+' gün</span></div><div class="bar" style="margin:8px 0 10px"><i style="width:'+pct+'%;'+(p>=k.target?'background:var(--g)':'')+'"></i></div><div class="row"><button class="btn ghost sm" data-a="k_pg" data-n="5">+5</button><button class="btn ghost sm" data-a="k_pg" data-n="10">+10</button><button class="btn ghost sm" data-a="k_pg" data-n="25">+25</button><span class="sp"></span><button class="btn ghost sm" data-a="k_pgset">Düzelt</button></div>'}
+function schedNote(m){var lb=monthLabel(m);if(!lb)return"";var pi=planIdx();
+ if(pi<1)return'<div class="mute" style="margin-top:8px">Program başlangıcı: '+esc(monthLabel(1))+'</div>';
+ var d=pi-m;return'<div class="mute" style="margin-top:8px">Takvimde: '+esc(lb)+(d>0?' · <span class="c-r">takvimin '+d+' ay gerisinde</span>':d<0?' · <span class="c-g">takvimin önünde</span>':'')+'</div>'}
+
+function vKulliyat(){
+ KL();
+ if(openBook&&KB[openBook])return vBook(openBook);openBook=null;
+ if(openKv){var c=kvById(openKv);if(c)return vKv(c);openKv=null}
+ var h='<div class="hd"><div><div class="eyebrow">İlim, İrfan ve Medeniyet</div><h1>Külliyat</h1></div><button class="btn ghost sm" data-a="k_info">Yöntem</button></div>';
+ h+='<div class="chips">'+[["ay","Bu Ay"],["program","Program"],["kitap","Kitaplık"],["kavram","Kavramlar"]].map(function(s){return'<button class="chip'+(klSec===s[0]?" on":"")+'" data-a="k_sec" data-v="'+s[0]+'">'+s[1]+'</button>'}).join("")+'</div>';
+ return h+(klSec==="program"?klProgram():klSec==="kitap"?klLib():klSec==="kavram"?klKvList():klAy())}
+
+function klAy(){
+ var m=curMonth(),dn=doneCount();
+ if(m>24)return'<div class="card" style="text-align:center;padding:26px 14px"><div class="big2">Program tamamlandı</div><div class="mute" style="margin-top:4px">24 ayın tamamı bitti. Allah kabul etsin.</div></div><div class="lh"><h2>Günlük okuma</h2></div><div class="card">'+readInner()+'</div>';
+ var p=KP[m],kur=kurOf(m);
+ var h='<div class="card"><div class="eyebrow">'+kur+'. Kur · '+esc(KUR[kur-1])+'</div><div class="row" style="margin-top:4px"><div class="big sp">'+m+'. Ay</div><span class="mute">'+dn+' / 24 ay tamam</span></div><div class="bar" style="margin-top:8px"><i style="width:'+Math.round(dn/24*100)+'%"></i></div>'+schedNote(m)+'</div>';
+ h+='<div class="lh"><h2>Bu ayın eserleri</h2></div><div class="card list">'+p[0].map(workRow).join("")+'</div>';
+ h+='<div class="lh"><h2>Ayın hedefi</h2></div><div class="quote" style="text-align:left;font-weight:400">'+esc(p[1])+'</div>';
+ h+='<div class="lh"><h2>Günlük okuma</h2></div><div class="card">'+readInner()+'<div class="mute" style="margin-top:8px">Az da olsa devamlı: günde 20–25 sayfa ya da sabah-akşam toplam 35 dakika.</div></div>';
+ h+='<button class="btn wide" style="margin-top:6px" data-a="k_mdone" data-v="'+m+'">'+m+'. ayı tamamladım</button>';
+ if(m<24){var q=KP[m+1];h+='<div class="lh"><h2>Sıradaki · '+(m+1)+'. Ay</h2></div><div class="card">'+q[0].map(function(w){return'<div class="mute" style="padding:2px 0">'+esc(aName(w[0]))+' – '+esc(KB[w[0]][2])+'</div>'}).join("")+'</div>'}
+ return h}
+
+function klProgram(){
+ var cur=curMonth(),d=KL().done,h='';
+ for(var r=1;r<=4;r++){var c=0;for(var m=(r-1)*6+1;m<=r*6;m++)if(d[m])c++;
+  h+='<div class="lh"><h2>'+r+'. Kur</h2><span class="mute">'+c+' / 6</span></div><div class="card list"><div class="mute" style="padding:10px 0 4px">'+esc(KUR[r-1])+'</div>';
+  for(m=(r-1)*6+1;m<=r*6;m++){var ok=!!d[m],lb=monthLabel(m);
+   h+='<div class="lr" data-a="k_month" data-v="'+m+'" style="cursor:pointer"><span class="st '+(ok?"st-tamam":m===cur?"st-cur":"")+'" style="font-size:13px">'+(ok?"✓":m)+'</span><div class="sp"><div'+(m===cur?' style="font-weight:600"':'')+'>'+KP[m][0].map(function(w){return esc(aName(w[0]))}).join(" & ")+'</div><div class="mute">'+(m===cur?"Şu anki ay":m+". Ay")+(lb?' · '+esc(lb):'')+'</div></div><span class="mute">›</span></div>'}
+  h+='</div>'}
+ return h}
+
+function klLib(){
+ var f=klLibF,rows=[];for(var n=1;n<=32;n++){if(f&&peekB(n).st!==f)continue;rows.push(n)}
+ var h='<div class="lh"><h2>32 eser</h2><span class="seg">'+[["","Tümü"],["devam","Okunuyor"],["tamam","Biten"]].map(function(s){return'<button class="'+(f===s[0]?"on":"")+'" data-a="k_lf" data-v="'+s[0]+'">'+s[1]+'</button>'}).join("")+'</span></div>';
+ if(!rows.length)return h+'<div class="card mute">'+(f==="devam"?"Şu an okunan kitap yok. Bir kitabın sayfasından durumunu “Okunuyor” yap.":"Henüz biten kitap yok.")+'</div>';
+ return h+'<div class="card list">'+rows.map(function(n){var x=peekB(n),B=KB[n];return'<div class="lr" data-a="k_book" data-id="'+n+'" style="cursor:pointer"><span class="num">'+n+'</span><div class="sp"><div class="'+(x.st==="tamam"?"done":"")+'">'+esc(B[2])+'</div><div class="mute">'+esc(aName(n))+' · '+esc(B[0])+'</div></div>'+(x.st==="devam"?'<span class="tag" style="margin:0">Okunuyor</span>':x.st==="tamam"?'<span class="c-g">✓</span>':'<span class="mute">›</span>')+'</div>'}).join("")+'</div>'}
+
+function klKvList(){
+ var kv=KL().kv,h='<div class="lh"><h2>Kavram dosyaları</h2><button class="btn ghost sm" data-a="k_kvadd">+ Kavram</button></div><div class="mute" style="margin:-2px 0 10px">Farklı kitaplardan aldığın notları aynı kavram altında buluştur; yan yana gelince bağlantılar görünür.</div>';
+ if(!kv.length)return h+'<div class="card mute">İlk kavram dosyanı aç.</div>';
+ return h+kv.map(function(c){var bs={};c.notes.forEach(function(x){if(x.b)bs[x.b]=1});var nb=Object.keys(bs).length;
+  return'<div class="card area" data-a="k_kv" data-id="'+c.id+'" style="cursor:pointer"><div class="sp"><b>'+esc(c.name)+'</b><div class="mute">'+(c.notes.length?c.notes.length+' not'+(nb?' · '+nb+' kitap':''):'Henüz not yok')+'</div></div><span class="mute">›</span></div>'}).join("")}
+
+function vKv(c){
+ var h='<div class="hd"><button class="btn ghost sm" data-a="k_kvback">‹ Kavramlar</button><button class="x" data-a="k_kvedit" data-id="'+c.id+'">⋯</button></div><div class="eyebrow">Kavram dosyası</div><h1 style="margin-bottom:6px">'+esc(c.name)+'</h1>';
+ h+='<div class="lh"><h2>Notlar</h2><button class="btn ghost sm" data-a="k_nadd" data-id="'+c.id+'">+ Not</button></div>';
+ if(!c.notes.length)return h+'<div class="card mute">Bu kavramla ilgili farklı kitaplardan notlar ekle. Örneğin İbn Haldun’dan bir not ile Ülgener’den bir notu burada yan yana koy.</div>';
+ return h+c.notes.map(function(x,i){return'<div class="card"><div class="row" style="align-items:flex-start"><div class="sp">'+(x.b&&KB[x.b]?'<div class="eyebrow" data-a="k_book" data-id="'+x.b+'" style="cursor:pointer">'+esc(bookLbl(x.b))+' ›</div>':'<div class="eyebrow">Genel not</div>')+'<div style="margin-top:4px;white-space:pre-wrap">'+esc(x.t)+'</div></div><button class="x" data-a="k_nedit" data-id="'+c.id+'" data-i="'+i+'">⋯</button></div></div>'}).join("")}
+
+function vBook(n){
+ var B=KB[n],x=peekB(n),ms=monthsOf(n);
+ var h='<div class="hd"><button class="btn ghost sm" data-a="k_bback">‹ Geri</button><button class="btn ghost sm" data-a="k_copy" data-id="'+n+'">Metin olarak al</button></div>';
+ h+='<div class="eyebrow">'+n+' · '+esc(B[0])+'</div><h1 style="margin:2px 0 4px">'+esc(B[2])+'</h1><div class="mute">'+esc(B[1])+(ms.length?' · Planda '+ms.join(" ve ")+'. ay':'')+'</div>';
+ h+='<div class="quote" style="text-align:left;font-weight:400;margin-top:12px">'+esc(B[3])+'<small class="mute" style="font-weight:400;letter-spacing:0">Kaynak: '+esc(B[4])+'</small></div>';
+ h+='<div class="seg full">'+[["","Başlamadı"],["devam","Okunuyor"],["tamam","Bitti"]].map(function(s){return'<button class="'+(x.st===s[0]?"on":"")+'" data-a="k_bst" data-id="'+n+'" data-v="'+s[0]+'">'+s[1]+'</button>'}).join("")+'</div>';
+ if(x.s)h+='<div class="mute" style="margin-top:6px">Başlama: '+esc(fdate(x.s))+(x.e?' · Bitiş: '+esc(fdate(x.e)):'')+'</div>';
+ if(!x.iskelet&&x.st!=="tamam")h+='<div class="card row" style="margin-top:12px"><div class="sp"><b>Başlamadan önce: 15 dakika</b><div class="mute">Sadece içindekiler sayfasını incele, kitabın iskeletini aşağıya yaz.</div></div><button class="btn ghost sm" data-a="k_t15">Sayacı aç</button></div>';
+ function fields(arr){return arr.map(function(f){return'<label class="fl">'+esc(f[1])+'</label><textarea class="small" data-kbind="'+n+':'+f[0]+'" placeholder="'+esc(f[2])+'">'+esc(x[f[0]]||"")+'</textarea>'}).join("")}
+ h+='<div class="lh"><h2>Kitap röntgeni</h2></div><div class="card">'+fields(XR1)+'</div>';
+ h+='<div class="lh"><h2>Bölüm çapaları</h2><button class="btn ghost sm" data-a="k_anadd" data-id="'+n+'">+ Bölüm</button></div>';
+ if(!x.an.length)h+='<div class="card mute">Her bölümü bitirince 1 tez, 1 kavram ve 1 somut örnek yaz; sonra bir sonraki bölüme geç.</div>';
+ else h+='<div class="card list">'+x.an.map(function(a,i){return'<div class="lr" style="align-items:flex-start"><span class="num" style="padding-top:2px">'+(i+1)+'</span><div class="sp"><b>'+esc(a.bolum)+'</b>'+(a.tez?'<div style="margin-top:2px">'+esc(a.tez)+'</div>':'')+(a.kavram?'<span class="tag">'+esc(a.kavram)+'</span>':'')+(a.ornek?'<div class="mute" style="margin-top:4px">Örnek: '+esc(a.ornek)+'</div>':'')+'<div style="margin-top:8px">'+(a.seal?'<span class="c-g" style="font-size:13px">✓ Sesli mühürlendi</span>':'<button class="btn ghost sm" data-a="k_seal" data-id="'+n+'" data-i="'+i+'">Sesli mühürle · 2 dk</button>')+'</div></div><button class="x" data-a="k_anedit" data-id="'+n+'" data-i="'+i+'">⋯</button></div>'}).join("")+'</div>';
+ h+='<div class="lh"><h2>Şahsi zahriye fihristi</h2><button class="btn ghost sm" data-a="k_fxadd" data-id="'+n+'">+ Satır</button></div>';
+ if(!x.fx.length)h+='<div class="card mute">“Bunu bir sohbette kullanırım” dediğin yerleri sayfa numarasıyla tek satır not et. Kitap bitince ayda bir göz at.</div>';
+ else h+='<div class="card list">'+x.fx.map(function(r,i){return'<div class="lr"><span class="mute" style="width:52px;flex:none">s. '+esc(r.s)+'</span><span class="sp">'+esc(r.t)+'</span><button class="x" data-a="k_fxedit" data-id="'+n+'" data-i="'+i+'">⋯</button></div>'}).join("")+'</div>';
+ h+='<div class="lh"><h2>Değerlendirme</h2></div><div class="card">'+fields(XR2)+'</div>';
+ var notes=[];KL().kv.forEach(function(c){c.notes.forEach(function(t){if(t.b===n)notes.push([c,t])})});
+ h+='<div class="lh"><h2>Kavram notları</h2><button class="btn ghost sm" data-a="k_bnadd" data-id="'+n+'">+ Not</button></div>';
+ if(!notes.length)h+='<div class="card mute">Bu kitaptan bir notu bir kavram dosyasına bağla.</div>';
+ else h+='<div class="card list">'+notes.map(function(p){return'<div class="lr" data-a="k_kv" data-id="'+p[0].id+'" style="cursor:pointer;align-items:flex-start"><div class="sp"><b>'+esc(p[0].name)+'</b><div class="mute" style="white-space:pre-wrap">'+esc(p[1].t)+'</div></div><span class="mute">›</span></div>'}).join("")+'</div>';
+ return h}
+function fdate(k){var d=fromKey(k);return d.getDate()+" "+GM[d.getMonth()]+" "+d.getFullYear()}
+
+function bookText(n){var B=KB[n],x=peekB(n),L=[];
+ L.push("ESER: "+B[2]+" — "+B[1]);var ms=monthsOf(n);if(ms.length)L.push("Planda: "+ms.map(function(m){return kurOf(m)+". Kur, "+m+". Ay"}).join(" / "));
+ if(x.s)L.push("Okuma: "+fdate(x.s)+(x.e?" – "+fdate(x.e):""));
+ XR1.forEach(function(f){L.push("\n"+f[1].toLocaleUpperCase("tr")+"\n"+(x[f[0]]||"—"))});
+ L.push("\nBÖLÜM ÇAPALARI");if(!x.an.length)L.push("—");
+ x.an.forEach(function(a,i){L.push((i+1)+". "+a.bolum+(a.tez?"\n   Tez: "+a.tez:"")+(a.kavram?"\n   Kavram: "+a.kavram:"")+(a.ornek?"\n   Örnek: "+a.ornek:""))});
+ XR2.forEach(function(f){L.push("\n"+f[1].toLocaleUpperCase("tr")+"\n"+(x[f[0]]||"—"))});
+ L.push("\nŞAHSİ ZAHRİYE FİHRİSTİ");if(!x.fx.length)L.push("—");x.fx.forEach(function(r){L.push("s. "+r.s+" – "+r.t)});
+ return L.join("\n")}
+
+function timerSheet(title,sec,body,doneLabel,onDone){
+ var left=sec,iv=null;
+ sheet(title,body+'<div class="timer">'+fmtT(left)+'</div><div class="row"><button class="btn ghost sp" data-ks>Başlat</button>'+(onDone?'<button class="btn sp" data-kd>'+esc(doneLabel)+'</button>':'')+'</div>',function(o){
+  var t=o.querySelector(".timer"),bs=o.querySelector("[data-ks]"),bd=o.querySelector("[data-kd]");
+  bs.onclick=function(){if(iv){clearInterval(iv);iv=null;bs.textContent="Devam et";return}if(left<=0)return;bs.textContent="Duraklat";
+   iv=setInterval(function(){left--;t.textContent=fmtT(Math.max(0,left));if(!document.body.contains(o)){clearInterval(iv);return}if(left<=0){clearInterval(iv);iv=null;bs.textContent="Süre doldu";t.style.color="var(--g)";buzz("ok")}},1000)};
+  if(bd)bd.onclick=function(){clearInterval(iv);o.remove();onDone()};
+  o.addEventListener("click",function(e){if(e.target===o||(e.target.hasAttribute&&e.target.hasAttribute("data-close")))clearInterval(iv)});
+ })}
+
+function klModCard(){var k=KL();
+ var h='<div class="lh"><h2>Modüller</h2></div><div class="card"><div class="row"><span class="sp"><b>📚 İlim, İrfan ve Medeniyet Külliyatı</b><div class="mute">32 eser, 24 aylık okuma programı ve hafıza protokolü.</div></span><button class="btn '+(k.on?"ghost ":"")+'sm" data-a="'+(k.on?"k_off":"k_on")+'">'+(k.on?"Kapat":"Aç")+'</button></div>';
+ if(k.on)h+='<div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)"><span class="sp mute">Başlangıç: '+esc(monthLabel(1)||"—")+' · Günlük hedef: '+k.target+' sayfa</span><button class="btn ghost sm" data-a="k_set">Ayarla</button></div>';
+ return h+'</div>'}
+
+W.kulliyat={t:"Külliyat · Bu ay",d:"İlim, İrfan ve Medeniyet Külliyatı: bu ayın eserleri ve günlük okuma.",mod:klOn,r:function(){
+ var m=curMonth();
+ var top=m>24?'<div class="mute">Program tamamlandı.</div>':'<div class="row" data-a="k_go" style="cursor:pointer;margin-bottom:10px"><div class="sp"><b>'+m+'. Ay</b> <span class="mute">· '+kurOf(m)+'. Kur</span>'+KP[m][0].map(function(w){return'<div class="mute">'+esc(aName(w[0]))+' – '+esc(KB[w[0]][2])+'</div>'}).join("")+'</div><span class="mute">›</span></div>';
+ return top+readInner()}};
+
+document.addEventListener("input",function(e){var b=e.target.getAttribute&&e.target.getAttribute("data-kbind");if(!b)return;var p=b.split(":");bk(p[0])[p[1]]=e.target.value;save()});
+document.addEventListener("click",function(e){
+ var el=e.target.closest("[data-a]");if(!el)return;var a=el.getAttribute("data-a");if(a.indexOf("k_")!==0)return;
+ var id=el.getAttribute("data-id"),i=parseInt(el.getAttribute("data-i"),10),v=el.getAttribute("data-v"),n=parseInt(id,10),k=KL(),ov=el.closest(".over");
+ function top(){render();window.scrollTo(0,0)}
+ switch(a){
+ case"k_go":klSec="ay";openBook=null;openKv=null;go("kulliyat");return;
+ case"k_sec":klSec=v;openBook=null;openKv=null;top();return;
+ case"k_lf":klLibF=v;render();return;
+ case"k_book":if(ov)ov.remove();if(!KB[n])return;openBook=n;tab="kulliyat";top();return;
+ case"k_bback":openBook=null;top();return;
+ case"k_bst":mut(function(){var x=bk(n),t=key(today());x.st=v;if(v==="devam"&&!x.s)x.s=t;if(v==="tamam"){if(!x.s)x.s=t;x.e=t}if(v==="")x.e=""});return;
+ case"k_pg":mut(function(){var t=key(today());k.daily[t]=(k.daily[t]||0)+parseInt(el.getAttribute("data-n"),10)});buzz();if(todayPages()>=k.target&&todayPages()-parseInt(el.getAttribute("data-n"),10)<k.target)say("Günlük okuma hedefi tamam! 📖",true);return;
+ case"k_pgset":ask("Bugün okunan sayfa",[{label:"Sayfa sayısı",type:"number",value:todayPages()}],function(r){mut(function(){k.daily[key(today())]=Math.max(0,parseInt(r[0],10)||0)})});return;
+ case"k_mdone":mut(function(){k.done[v]=true});window.scrollTo(0,0);say(v+". ay tamam. Hayırlı olsun! 🫡",true);return;
+ case"k_month":var m=parseInt(v,10),dn=!!k.done[m],lb=monthLabel(m);
+  sheet(m+". Ay · "+kurOf(m)+". Kur",'<div class="card list">'+KP[m][0].map(workRow).join("")+'</div><div class="eyebrow" style="margin:14px 0 4px">Ayın hedefi</div><div>'+esc(KP[m][1])+'</div>'+(lb?'<div class="mute" style="margin-top:8px">Takvimde: '+esc(lb)+'</div>':'')+'<button class="btn '+(dn?"ghost ":"")+'wide" style="margin-top:16px" data-a="k_mtog" data-v="'+m+'">'+(dn?"Tamamlanmadı olarak işaretle":"Tamamlandı olarak işaretle")+'</button>');return;
+ case"k_mtog":if(ov)ov.remove();mut(function(){k.done[v]=!k.done[v]});return;
+ case"k_info":sheet("Hafıza protokolü",'<div class="mute" style="margin-bottom:10px">Her kitapta 5 adım. Uygulamadaki karşılıkları yanında.</div>'+[["1. Mimari iskelet","Başlamadan önce 15 dakika sadece içindekiler sayfasını incele.","Kitap sayfası › 15 dakika sayacı ve “iskelet” alanı"],["2. 3×1 çapa","Her bölümden 1 ana tez, 1 orijinal kavram, 1 somut örnek seç; yazmadan sonraki bölüme geçme.","Kitap sayfası › Bölüm çapaları"],["3. Zahriye fihristi","Kullanacağın yerleri sayfa numarası ve bölüm adıyla tek satır not et; ayda bir göz at.","Kitap sayfası › Şahsi zahriye fihristi"],["4. Kavram dosyaları","Notları kitap özeti olarak bırakma; farklı yazarlardan notları aynı kavramda çarpıştır.","Kavramlar sekmesi"],["5. Sesli mühürleme","Bölümü bitirince kitabı kapat, 2 dakika sesli anlat.","Bölüm çapası › Sesli mühürle"]].map(function(s){return'<div class="card"><b>'+s[0]+'</b><div style="margin-top:2px">'+s[1]+'</div><div class="mute" style="margin-top:4px">→ '+s[2]+'</div></div>'}).join("")+'<div class="mute">Okuma ritmi: günde 20–25 sayfa ya da sabah-akşam toplam 35 dakika. Kitaplar birbirini besleyen çiftler hâlinde sıralı.</div>');return;
+ case"k_t15":timerSheet("15 dakika kuralı",900,'<div class="mute">Sadece içindekiler: Kaç ana bölüm var? Bir bölümden diğerine nasıl geçiliyor? Bitince iskeleti kitap sayfasına yaz.</div>',"",null);return;
+ case"k_anadd":ask("Bölüm çapası",[{label:"Bölüm adı"},{label:"Ana tez",type:"area"},{label:"Orijinal kavram"},{label:"Somut vaka / örnek",type:"area"}],function(r){if(!r[0])return;mut(function(){bk(n).an.push({id:uid(),bolum:r[0],tez:r[1],kavram:r[2],ornek:r[3],seal:false})})},{label:"Ekle"});return;
+ case"k_anedit":var an=bk(n).an,A=an[i];if(!A)return;
+  ask("Bölüm çapası",[{label:"Bölüm adı",value:A.bolum},{label:"Ana tez",type:"area",value:A.tez},{label:"Orijinal kavram",value:A.kavram},{label:"Somut vaka / örnek",type:"area",value:A.ornek}],function(r){if(!r[0])return;mut(function(){A.bolum=r[0];A.tez=r[1];A.kavram=r[2];A.ornek=r[3]})},{onDelete:function(){mut(function(){an.splice(an.indexOf(A),1)})}});return;
+ case"k_seal":var A2=bk(n).an[i];if(!A2)return;
+  timerSheet("Sesli mühürleme",120,'<div class="mute">Kitabı kapat ve karşında bir ders halkası varmış gibi sesli anlat:</div><div class="quote" style="text-align:left;font-weight:400;margin:10px 0 0">“Bugün '+esc(aName(n))+'’in <i>'+esc(KB[n][2])+'</i> kitabının <b>'+esc(A2.bolum)+'</b> bölümünü okudum. Müellif burada '+(A2.tez?'<b>'+esc(A2.tez)+'</b>':'[ana tez]')+' iddiasını savunuyor ve bunu kanıtlamak için '+(A2.ornek?'<b>'+esc(A2.ornek)+'</b>':'[çapa örnek]')+' hadisesini delil getiriyor…”</div>',"Mühürledim ✓",function(){mut(function(){A2.seal=true})});return;
+ case"k_fxadd":ask("Zahriye satırı",[{label:"Sayfa"},{label:"Not (bölüm adı ve kısa açıklama)"}],function(r){if(!r[1])return;mut(function(){bk(n).fx.push({id:uid(),s:r[0],t:r[1]})})},{label:"Ekle"});return;
+ case"k_fxedit":var fx=bk(n).fx,F=fx[i];if(!F)return;
+  ask("Zahriye satırı",[{label:"Sayfa",value:F.s},{label:"Not",value:F.t}],function(r){if(!r[1])return;mut(function(){F.s=r[0];F.t=r[1]})},{onDelete:function(){mut(function(){fx.splice(fx.indexOf(F),1)})}});return;
+ case"k_copy":sheet("Kitap röntgeni (metin)",'<div class="mute">Kopyalayıp not uygulamana yapıştırabilir ya da yazdırabilirsin.</div><textarea id="kxp" style="min-height:220px;margin-top:8px" readonly></textarea><div class="row" style="margin-top:12px"><span class="sp"></span><button class="btn" data-cp>Kopyala</button></div>',function(o){var t=o.querySelector("#kxp");t.value=bookText(n);var bt=o.querySelector("[data-cp]");bt.onclick=function(){t.select();function ok(){bt.textContent="Kopyalandı ✓"}try{navigator.clipboard.writeText(t.value).then(ok,function(){try{document.execCommand("copy");ok()}catch(x){}})}catch(er){try{document.execCommand("copy");ok()}catch(x){}}}});return;
+ case"k_kvadd":ask("Yeni kavram dosyası",[{label:"Kavram (ör. Devlet Meşruiyeti)"}],function(r){if(r[0])mut(function(){k.kv.push({id:uid(),name:r[0],notes:[]})})},{label:"Ekle"});return;
+ case"k_kv":if(ov)ov.remove();openKv=id;openBook=null;klSec="kavram";tab="kulliyat";top();return;
+ case"k_kvback":openKv=null;top();return;
+ case"k_kvedit":var C=kvById(id);if(!C)return;ask("Kavram dosyası",[{label:"Kavram",value:C.name}],function(r){if(r[0])mut(function(){C.name=r[0]})},{onDelete:function(){openKv=null;mut(function(){k.kv=k.kv.filter(function(x){return x.id!==id})})}});return;
+ case"k_nadd":var C2=kvById(id);if(!C2)return;var bo=bookOpts();
+  ask("Kavram notu",[{label:"Hangi kitaptan?",type:"select",opts:bo,value:bo[0]},{label:"Not",type:"area"}],function(r){if(!r[1])return;mut(function(){C2.notes.push({id:uid(),b:parseInt(r[0],10)||0,t:r[1]})})},{label:"Ekle"});return;
+ case"k_nedit":var C3=kvById(id);if(!C3||!C3.notes[i])return;var N=C3.notes[i],bo2=bookOpts();
+  ask("Kavram notu",[{label:"Hangi kitaptan?",type:"select",opts:bo2,value:bo2[N.b||0]},{label:"Not",type:"area",value:N.t}],function(r){if(!r[1])return;mut(function(){N.b=parseInt(r[0],10)||0;N.t=r[1]})},{onDelete:function(){mut(function(){C3.notes.splice(C3.notes.indexOf(N),1)})}});return;
+ case"k_bnadd":var NEW="＋ Yeni kavram dosyası",names=k.kv.map(function(c){return c.name}).concat([NEW]);
+  ask("Kavram notu",[{label:"Kavram dosyası",type:"select",opts:names,value:names[0]},{label:"Yeni kavram adı (yeni seçtiysen)"},{label:"Not",type:"area"}],function(r){if(!r[2])return;mut(function(){var c=r[0]===NEW?null:k.kv.filter(function(x){return x.name===r[0]})[0];if(!c){c={id:uid(),name:r[1]||"Adsız kavram",notes:[]};k.kv.push(c)}c.notes.push({id:uid(),b:n,t:r[2]})})},{label:"Ekle"});return;
+ case"k_on":sheet("Külliyat modülünü aç",'<div>Modül açılınca alt menüye <b>Külliyat</b> sekmesi, panoya da bu ayın okuma kartı eklenir.</div><div class="mute" style="margin-top:6px">İstediğin zaman kapatabilirsin; ilerlemen ve notların silinmez.</div><label>Başlangıç ayı</label><input type="month" id="kst" value="'+(k.start||thisMonth())+'"><label>Günlük sayfa hedefi</label><input type="number" id="ktg" value="'+k.target+'"><div class="row" style="margin-top:16px"><span class="sp"></span><button class="btn" data-kok>Modülü aç</button></div>',function(o){
+   o.querySelector("[data-kok]").onclick=function(){var s=o.querySelector("#kst").value,t=parseInt(o.querySelector("#ktg").value,10);o.remove();
+    k.on=true;k.start=/^\d{4}-\d{2}$/.test(s)?s:(k.start||thisMonth());k.target=t>0?t:25;
+    if(S.board.indexOf("kulliyat")<0)S.board.splice(Math.min(1,S.board.length),0,"kulliyat");
+    klSec="ay";openBook=null;openKv=null;save();go("kulliyat");setTimeout(function(){say("Külliyat programı başladı. Bismillah! 📖",true)},300)}});return;
+ case"k_off":sheet("Modülü kapat",'<div>Külliyat sekmesi ve pano kartı gizlenir.</div><div class="mute" style="margin-top:6px">İlerlemen ve notların silinmez; yeniden açtığında kaldığın yerden devam edersin.</div><div class="row" style="margin-top:16px"><span class="sp"></span><button class="btn" data-koff>Kapat</button></div>',function(o){o.querySelector("[data-koff]").onclick=function(){o.remove();mut(function(){k.on=false});if(tab==="kulliyat")go("pano")}});return;
+ case"k_set":ask("Külliyat ayarları",[{label:"Başlangıç ayı",type:"month",value:k.start||thisMonth()},{label:"Günlük sayfa hedefi",type:"number",value:k.target}],function(r){mut(function(){if(/^\d{4}-\d{2}$/.test(r[0]))k.start=r[0];var t=parseInt(r[1],10);if(t>0)k.target=t})});return;
+ }
+});
+
 var IC={pano:'<rect x="3" y="3" width="7.5" height="9" rx="2"/><rect x="13.5" y="3" width="7.5" height="5" rx="2"/><rect x="13.5" y="11" width="7.5" height="10" rx="2"/><rect x="3" y="15" width="7.5" height="6" rx="2"/>',
 hafta:'<rect x="3" y="4.5" width="18" height="16.5" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
 hedef:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3"/>',
@@ -952,10 +1210,12 @@ beads:'<circle cx="12" cy="4.2" r="1.6"/><circle cx="16.6" cy="5.8" r="1.6"/><ci
 target:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
 mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>',
 send:'<path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/>',
+kulliyat:'<path d="M4 4.5h4v15H4zM10 4.5h4v15h-4z"/><path d="M15.6 5.3l3.8-1 3.6 14.5-3.8 1z" transform="translate(-1.6 .4)"/>',
 prev:'<path d="M14.5 5.5L8 12l6.5 6.5"/>',next:'<path d="M9.5 5.5L16 12l-6.5 6.5"/>'};
 function Ii(n){return'<svg class="i ii" viewBox="0 0 24 24" aria-hidden="true">'+IC[n]+'</svg>'}
 function I(n){return'<svg class="i" viewBox="0 0 24 24" aria-hidden="true">'+IC[n]+'</svg>'}
 var TABS=[["pano","pano","Pano"],["defter","defter","Defter"],["hafta","hafta","Hafta"],["hedef","hedef","Hedefler"],["ben","ben","Ben"]];
+function tabs(){return klOn()?TABS.slice(0,4).concat([["kulliyat","kulliyat","Külliyat"]],TABS.slice(4)):TABS}
 var SECV={};
 var SICO={profil:["#2d6cb5","ben"],maskot:["#a8875a",""],ai:["#1a73e8","mic"],bildirim:["#c4502c","bell"],takvim:["#2e7d4f","pin"],yedek:["#6b5bd2","refresh"],uygulama:["#7b7566","gear"]};
 function aiSettingsHtml(){var c=aiCfg(),on=aiOn();
@@ -975,8 +1235,9 @@ function render(){
  if(S.onboarded&&!S.settings.simp2){S.settings.simp2=1;if(S.board.indexOf("namaz")<0)S.board.unshift("namaz");if(S.board.indexOf("zikir")<0)S.board.splice(1,0,"zikir");save()}
  var a=document.getElementById("app"),st=window.scrollY;
  if(!S.onboarded){a.innerHTML=vOnb();document.getElementById("nav").innerHTML="";if(typeof nobetSync==="function")nobetSync();return}
- a.innerHTML=setOpen?vAyar():tab==="pano"?vPano():tab==="hafta"?vHafta():tab==="hedef"?vHedef():tab==="defter"?vDefter():vBen();
- document.getElementById("nav").innerHTML=TABS.map(function(t){return'<button class="'+(tab===t[0]&&!setOpen?"on":"")+'" data-tab="'+t[0]+'"><b>'+I(t[1])+'</b>'+t[2]+'</button>'}).join("");
+ if(tab==="kulliyat"&&!klOn())tab="pano";
+ a.innerHTML=setOpen?vAyar():tab==="pano"?vPano():tab==="hafta"?vHafta():tab==="hedef"?vHedef():tab==="defter"?vDefter():tab==="kulliyat"?vKulliyat():vBen();
+ document.getElementById("nav").innerHTML=tabs().map(function(t){return'<button class="'+(tab===t[0]&&!setOpen?"on":"")+'" data-tab="'+t[0]+'"><b>'+I(t[1])+'</b>'+t[2]+'</button>'}).join("");
  var fab=document.getElementById("tfab");if(!fab){fab=document.createElement("button");fab.id="tfab";fab.setAttribute("data-a","tesbih");fab.setAttribute("aria-label","Tesbih");fab.innerHTML=I("beads");document.body.appendChild(fab)}fab.hidden=!S.onboarded||setOpen||S.settings.tfab===false;
  if(setOpen)foldSettings(a);
  a11y(a);window.scrollTo(0,st);if(typeof nobetSync==="function")nobetSync()}
@@ -999,7 +1260,7 @@ document.addEventListener("change",function(e){
  if(id0==="scity"){var c=CITIES.filter(function(x){return x[0]===e.target.value})[0];if(c){S.settings.city=c[0];S.settings.lat=c[1];S.settings.lng=c[2];save();render();ensurePT()}return}
  if(id0==="bfin"){var f=e.target.files&&e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var d=JSON.parse(rd.result);if(!d||!d.v)throw 0;S=migrate(d);hc={};save();render();toast("Yedek yüklendi ✓")}catch(er){toast("Bu dosya geçerli bir yedek değil.")}};rd.readAsText(f);e.target.value="";return}if(e.target.id==="tmorning"||e.target.id==="tevening"){S.settings[e.target.id==="tmorning"?"morning":"evening"]=e.target.value;save();return}if(e.target.id==="hoff"){S.settings.hijriOffset=parseInt(e.target.value,10)||0;hc={};save();render()}});
 document.addEventListener("click",function(e){
- var tb=e.target.closest("[data-tab]");if(tb){openArea=tb.getAttribute("data-tab")==="hedef"&&tab==="hedef"?null:openArea;if(tb.getAttribute("data-tab")==="defter"&&tab==="defter")defterSec="";go(tb.getAttribute("data-tab"));return}
+ var tb=e.target.closest("[data-tab]");if(tb){openArea=tb.getAttribute("data-tab")==="hedef"&&tab==="hedef"?null:openArea;if(tb.getAttribute("data-tab")==="defter"&&tab==="defter")defterSec="";if(tb.getAttribute("data-tab")==="kulliyat"&&tab==="kulliyat"){openBook=null;openKv=null}go(tb.getAttribute("data-tab"));return}
  var el=e.target.closest("[data-a]");if(!el)return;
  var a=el.getAttribute("data-a"),id=el.getAttribute("data-id"),i=parseInt(el.getAttribute("data-i"),10),k=el.getAttribute("data-k"),p=el.getAttribute("data-p"),v=el.getAttribute("data-v");
  switch(a){
@@ -1008,7 +1269,7 @@ document.addEventListener("click",function(e){
  case"wdown":if(i<S.board.length-1)mut(function(){S.board.splice(i+1,0,S.board.splice(i,1)[0])});return;
  case"wdel":mut(function(){S.board.splice(i,1)});return;
  case"wadd":
-  var free=Object.keys(W).filter(function(t){return S.board.indexOf(t)<0});
+  var free=Object.keys(W).filter(function(t){return S.board.indexOf(t)<0&&(!W[t].mod||W[t].mod())});
   sheet("Widget ekle",(nobetOn()?"":'<button class="wopt" data-w="__nobet"><b>'+mDef().e+' '+esc(mName())+'</b><div class="mute">Köşede durur, hatırlatma yapar, dokununca küçük bir pencere açar.</div></button>')+(free.length?free.map(function(t){return'<button class="wopt" data-w="'+t+'"><b>'+esc(W[t].t)+'</b><div class="mute">'+esc(W[t].d)+'</div></button>'}).join(""):'<div class="mute">Tüm widget\'lar panoda.</div>'),function(o){
    o.addEventListener("click",function(ev){var b=ev.target.closest("[data-w]");if(!b)return;o.remove();var wt=b.getAttribute("data-w");if(wt==="__nobet"){mut(function(){setMode("app")});setTimeout(function(){say(mName()+" geldi! "+mDef().e,true)},300)}else mut(function(){S.board.push(wt)})})});return;
  case"tadd":ask("Yeni iş",[{label:"Ne yapacaksın?"}],function(r){if(r[0])mut(function(){dayLog(k).big.push({t:r[0],done:false})})},{label:"Ekle"});return;
@@ -1192,7 +1453,7 @@ var RANKS=[[0,"Yavru"],[10,"Çırak"],[30,"Yolcu"],[60,"Gezgin"],[100,"Haberci"]
 function points(){var n=0,k,x;for(k in S.log){var L=S.log[k];if(L.h)for(x in L.h)if(L.h[x])n++;if(L.a)for(x in L.a)if(L.a[x])n++;(L.big||[]).forEach(function(b){if(b.done&&!b.moved)n++})}
  for(k in S.weeks){var w=S.weeks[k];if(!w)continue;if(w.a)for(x in w.a)if(w.a[x])n++;if(w.review)n+=5}
  for(k in S.months){var m=S.months[k];if(m&&m.a)for(x in m.a)if(m.a[x])n++}
- for(k in S.hrev)if(S.hrev[k])n+=5;return n}
+ for(k in S.hrev)if(S.hrev[k])n+=5;return n+klPoints()}
 function rankOf(p){var r=RANKS[0],nx=null;for(var i=0;i<RANKS.length;i++){if(p>=RANKS[i][0])r=RANKS[i];else{nx=RANKS[i];break}}return{name:r[1],min:r[0],next:nx}}
 function dayStats(){return dayCounts(key(today()))}
 var nEl=document.getElementById("nobet"),bubT=null,msgI=0,lastAll=null,lastRank=null;
@@ -1221,6 +1482,7 @@ function nobetMsgs(){
  if(nx&&nx.days<=3)M(nx.t+" "+(nx.days===1?"yarın":nx.days+" gün sonra")+".");
  extraMsgs().forEach(function(x){M(x)});
  var nv=nextPrayer();if(nv&&nv.mins<=30&&nv.mins>0)M(nv.name+" vaktine "+nv.mins+" dakika var. 🕌");
+ var km=klMsg(new Date().getHours());if(km)M(km);
  if(!m.length)M("Her şey yolunda görünüyor"+hi()+". Ben buradayım. 🌿");
  return m}
 function applyAct(a,dk){
@@ -1372,7 +1634,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("39",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("40",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
