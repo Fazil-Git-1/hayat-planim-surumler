@@ -125,7 +125,7 @@ body.chatonly .ch-sheet .ch-body{flex:1;overflow-y:auto}
 #wms .eyebrow{color:#efe7d4;opacity:.6}#wms .fc-set{margin-top:18px}#wms .fc-go{margin-top:auto;padding-top:18px;text-align:center}#wms .tb-names{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}#wms .tb-names button{min-height:42px;padding:0 14px;border-radius:21px;border:1px solid rgba(255,255,255,.15);color:#efe7d4;font-size:14px}#wms .tb-names button.on{background:#d2bb90;color:#121826;border-color:#d2bb90}
 .wm-in{width:100%;margin-top:8px;min-height:46px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#efe7d4;padding:0 14px;font-size:16px;box-sizing:border-box}
 .wm-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}.wm-clock{font-size:min(30vw,190px);font-weight:300;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}.wm-clock.sm{font-size:64px;text-align:center;margin-top:18px}.wm-clock.dim{opacity:.45}
-.wm-side{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:420px}.wm-task{font-size:18px;opacity:.9}.wm-ses b{font-size:30px;font-weight:500;font-variant-numeric:tabular-nums}.wm-ses span{opacity:.6}.wm-bar{width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}.wm-bar i{display:block;height:100%;background:#d2bb90}
+.wm-side{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;max-width:420px}.wm-task{font-size:18px;opacity:.9;color:#efe7d4;padding:4px 10px;border-radius:12px}.wm-task:active{background:rgba(255,255,255,.08)}#wmpill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:7;background:#121826;color:#efe7d4;border-radius:22px;padding:9px 16px;font-size:14px;font-variant-numeric:tabular-nums;box-shadow:0 6px 18px rgba(18,24,38,.35);white-space:nowrap}#wmpill.off{background:#4a5163}#wmpill[hidden]{display:none}body.tbopen .over,body.tbopen .toast{z-index:46}.wm-ses b{font-size:30px;font-weight:500;font-variant-numeric:tabular-nums}.wm-ses span{opacity:.6}.wm-bar{width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}.wm-bar i{display:block;height:100%;background:#d2bb90}
 .wm-next{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.wm-next span{font-size:13px;padding:5px 10px;border-radius:12px;background:rgba(255,255,255,.07);font-variant-numeric:tabular-nums}
 .wm-ev{background:#1f2a44;border:1px solid rgba(210,187,144,.35);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:8px;margin-top:10px}.wm-ev b{font-size:18px}.wm-ev .wm-cd{font-size:48px;font-variant-numeric:tabular-nums;text-align:center}.wm-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}.wm-btns .fc-start{flex:1 1 100%;min-height:52px;font-size:16px}
 @media (orientation:landscape) and (max-height:560px){.wm-main{flex-direction:row;gap:28px}.wm-clock{font-size:min(36vh,22vw)}.wm-side{align-items:flex-start;text-align:left;width:auto}.wm-next{justify-content:flex-start}}
@@ -453,8 +453,9 @@ var W={
   return'<div class="gun"><div class="eyebrow">Ayet</div><div class="gq">“'+esc(a[0])+'”</div><div class="mute">— '+esc(a[1])+'</div><div class="eyebrow" style="margin-top:12px">Hadis</div><div class="gq">“'+esc(hd[0])+'”</div><div class="mute">— '+esc(hd[1])+'</div></div>'}},
  odak:{t:"Odak ve Nur Puanı",d:"Kitap, Kur'an, ders ya da iş için odak sayacı; her dakika 1 Nur.",r:function(){var fs=focusStats(),run=FOC&&FOC.end;
   return'<button class="tcard" data-a="focus"><span class="tic" style="background:var(--acc)">'+I("target")+'</span><span class="sp"><b>'+(run?"Odak sürüyor · "+focusLeftTxt():"Odaklan")+'</b><div class="mute">Bugün '+fs.d+' dk · bu hafta '+fs.w+' dk · '+fs.y+' Nur</div></span><span class="mute">›</span></button>'}},
- calisma:{t:"Çalışma modu",d:"Büyük saat; 30 dk'da bir kalk, 20 dk'da bir göz, saatte bir su hatırlatması; ezanda duraklar.",r:function(){var on=!!WM,A=on?wmActive():0,ws=0;(S.work||[]).forEach(function(w){if(w.d===key(today()))ws+=w.m});
-  return'<button class="tcard" data-a="work"><span class="tic" style="background:#1f2a44">'+I("clock")+'</span><span class="sp"><b>'+(on?(WM.run?"Çalışıyorsun · ":"Duraklatıldı · ")+wmFmt(A):"Çalışma modu")+'</b><div class="mute">'+(on&&WM.task?esc(WM.task)+" · ":"")+(on?"Açmak için dokun":"Bugün "+ws+" dk · mola ve göz hatırlatmalı")+'</div></span><span class="mute">›</span></button>'}},
+ calisma:{t:"Çalışma modu",d:"Büyük saat; 30 dk'da bir kalk, 20 dk'da bir göz, saatte bir su hatırlatması; ezanda duraklar.",r:function(){var on=!!WM,A=on?wmActive():0,ws=wmWeek(),wl=S.settings.wmLast;
+  return'<button class="tcard" data-a="work"><span class="tic" style="background:#1f2a44">'+I("clock")+'</span><span class="sp"><b>'+(on?(WM.run?"Çalışıyorsun · ":"Duraklatıldı · ")+wmFmt(A):"Çalışma modu")+'</b><div class="mute">'+(on?(WM.task?esc(WM.task)+" · ":"")+"Açmak için dokun":"Bugün "+wmFmt(ws.d*60000)+" · bu hafta "+wmFmt(ws.w*60000))+'</div></span><span class="mute">›</span></button>'+
+  (!on?'<div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap"><button class="btn sm" data-a="workq">▶ '+(wl&&wl.t?"Devam: "+esc(wl.t.length>22?wl.t.slice(0,21)+"…":wl.t):"Hızlı başla")+' · '+(wl&&wl.d===0?"süresiz":wmFmt((wl?wl.d:120)*60000))+'</button>'+(wmCfg().sched?'<span class="mute" style="align-self:center">📅 '+esc(wmSchedTxt())+'</span>':'')+'</div>':'')}},
  hedefler:{t:"Yıllık hedef ilerlemesi",d:"Her hayat alanındaki hedeflerinin durumu.",r:function(){
   return S.areas.map(function(a){var p=areaPct(a);return'<div class="row" style="padding:5px 0" data-a="openarea" data-id="'+a.id+'"><span style="width:24px">'+a.ico+'</span><span class="sp">'+esc(a.name)+'<div class="bar" style="margin-top:4px"><i style="width:'+p+'%"></i></div></span><span class="mute">'+a.goals.length+' hedef</span></div>'}).join("")}},
  soz:{t:"Günün sözü",d:"Her gün bir hayat alanının sözü.",r:function(){var q=S.areas.filter(function(a){return a.quote});if(!q.length)return"";var a=q[dayIndex()%q.length];return'<div style="font-weight:500">“'+esc(a.quote)+'”</div><div class="mute" style="margin-top:6px">M.N.C. · '+esc(a.name)+'</div>'}},
@@ -554,18 +555,27 @@ function gearBtn(){return'<button class="ico" data-a="openset" title="Ayarlar" a
 /* ---------- Çalışma modu: büyük saat, mola / göz / su hatırlatmaları, namazda duraklatma ---------- */
 var WM=null,WMO=null,WMT=null,WMWL=null;try{WM=JSON.parse(localStorage.getItem("hp.wm")||"null")}catch(e){WM=null}
 function wmSave(){try{localStorage.setItem("hp.wm",JSON.stringify(WM))}catch(e){}}
-function wmCfg(){var c=S.settings.wm||{};return{stand:c.stand==null?30:c.stand,standLen:c.standLen||5,eye:c.eye==null?20:c.eye,water:c.water==null?60:c.water,prayer:c.prayer!==false}}
+function wmCfg(){var c=S.settings.wm||{};return{sched:c.sched||null,stand:c.stand==null?30:c.stand,standLen:c.standLen||5,eye:c.eye==null?20:c.eye,water:c.water==null?60:c.water,prayer:c.prayer!==false}}
 function wmActive(at){if(!WM)return 0;return WM.act+(WM.run?Math.max(0,(at||Date.now())-WM.run):0)}
 function wmFmt(ms,sec){var s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return sec?(h?h+":":"")+(h?("0"+m).slice(-2):m)+":"+("0"+s%60).slice(-2):(h?h+" sa ":"")+m+" dk"}
-function wmStart(min,task){var c=wmCfg(),now=Date.now();WM={start:now,run:now,act:0,plan:(min||0)*60000,task:task||"",last:now,
-  nx:{st:c.stand?c.stand*60000:0,ey:c.eye?c.eye*60000:0,wa:c.water?c.water*60000:0},n:{st:[0,0],ey:[0,0],wa:[0,0]},why:"",ev:null};wmSave();wmLoop();scheduleNotifs();buzz()}
-function wmPause(why,at){if(!WM||!WM.run)return;at=at||Date.now();WM.act+=Math.max(0,at-WM.run);WM.run=null;WM.why=why||"user";wmSave();scheduleNotifs()}
-function wmResume(){if(!WM||WM.run)return;WM.run=Date.now();WM.why="";WM.ev=null;wmSave();scheduleNotifs()}
-function wmFinish(){if(!WM)return;var mins=Math.round(wmActive()/60000),n=WM.n,task=WM.task;WM=null;wmSave();scheduleNotifs();
+function wmStart(min,task,tk){var c=wmCfg(),now=Date.now();S.settings.wmLast={t:task||"",d:min||0};WM={start:now,run:now,act:0,plan:(min||0)*60000,task:task||"",tk:tk||null,last:now,
+  nx:{st:c.stand?c.stand*60000:0,ey:c.eye?c.eye*60000:0,wa:c.water?c.water*60000:0},n:{st:[0,0],ey:[0,0],wa:[0,0]},why:"",ev:null};wmSave();save();wmLoop();wmOngoing();buzz()}
+function wmPause(why,at){if(!WM||!WM.run)return;at=at||Date.now();WM.act+=Math.max(0,at-WM.run);WM.run=null;WM.why=why||"user";wmSave();scheduleNotifs();wmOngoing()}
+function wmResume(){if(!WM||WM.run)return;WM.run=Date.now();WM.why="";WM.ev=null;wmSave();scheduleNotifs();wmOngoing()}
+function wmWeek(){var m=key(monday(today())),t=key(today()),o={d:0,w:0};(S.work||[]).forEach(function(w){if(w.d===t)o.d+=w.m;if(w.d>=m)o.w+=w.m});return o}
+function wmFinish(){if(!WM)return;var mins=Math.round(wmActive()/60000),n=WM.n,task=WM.task,tk=WM.tk;WM=null;wmSave();scheduleNotifs();wmOngoing();
  if(mins>=1){S.focus=S.focus||[];S.focus.push({d:key(today()),m:mins,c:"Çalışma"});S.work=S.work||[];S.work.push({d:key(today()),m:mins,t:task,n:n});save()}
- var parts=[];if(n.st[1])parts.push(n.st[1]+" molanın "+n.st[0]+"'ini");if(n.ey[1])parts.push(n.ey[1]+" göz molasının "+n.ey[0]+"'ini");if(n.wa[1])parts.push(n.wa[1]+" su hatırlatmasının "+n.wa[0]+"'ini");
- var msg=mins>=1?wmFmt(mins*60000)+" çalıştın, +"+mins+" Nur."+(parts.length?" "+parts.join(", ")+" yaptın.":""):"Çalışma modu kapandı.";
- closeWork();clearInterval(WMT);WMT=null;toast(msg);if(mins>=1&&typeof say==="function")say(msg+(n.st[1]&&n.st[0]<n.st[1]?" Yarın molalara biraz daha uyalım"+hi()+".":" Maşallah"+hi()+"!"),true);render()}
+ closeWork();clearInterval(WMT);WMT=null;wmPill();render();buzz("ok");
+ if(mins<1){toast("Çalışma modu kapandı.");return}
+ var ws=wmWeek(),row=function(ic,l,a,b){return b?'<div class="row" style="padding:6px 0"><span class="sp">'+ic+' '+l+'</span><b>'+a+' / '+b+'</b></div>':""};
+ var tb=tk&&S.log[tk.k]&&S.log[tk.k].big[tk.i],tq=tb&&!tb.done&&!tb.moved;
+ var body='<div style="text-align:center;margin:4px 0 12px"><div style="font-size:34px;font-weight:600">'+wmFmt(mins*60000)+'</div><div class="mute">'+(task?esc(task)+' · ':'')+'+'+mins+' Nur</div></div>'+
+  row("🧍","Kalkma molası",n.st[0],n.st[1])+row("👀","Göz molası",n.ey[0],n.ey[1])+row("💧","Su",n.wa[0],n.wa[1])+
+  '<div class="row" style="padding:6px 0"><span class="sp">📊 Bugün toplam</span><b>'+wmFmt(ws.d*60000)+'</b></div><div class="row" style="padding:6px 0"><span class="sp">🗓 Bu hafta</span><b>'+wmFmt(ws.w*60000)+'</b></div>'+
+  (tq?'<div class="card" style="margin-top:12px"><b>“'+esc(tb.t)+'” bitti mi?</b><div class="row" style="margin-top:10px;gap:8px"><button class="btn sm" data-wf="done">Evet, bitti ✓</button><button class="btn ghost sm" data-close>Hâlâ devam ediyor</button></div></div>':'')+
+  '<div class="row" style="margin-top:14px"><span class="sp"></span><button class="btn'+(tq?' ghost':'')+'" data-close>Tamam</button></div>';
+ sheet("Çalışma tamam 🎉",body,function(o){o.addEventListener("click",function(e){if(e.target.closest("[data-wf=done]")){mut(function(){tb.done=true});o.remove();toast("İşaretledim ✓")}})});
+ if(typeof say==="function"&&!document.hidden){var miss=n.st[1]&&n.st[0]<n.st[1];setTimeout(function(){say(wmFmt(mins*60000)+" çalıştın"+hi()+"."+(miss?" Molalara biraz daha uyalım.":" Maşallah!"),true)},400)}}
 function wmPrayers(){if(!hasLoc()||muaf(key(today()))||!wmCfg().prayer)return[];var d=today();if(!WM._pt||WM._pt.d!==key(d)){var t=prayerTimes(d,S.settings.lat,S.settings.lng);WM._pt={d:key(d),t:[0,2,3,4,5].map(function(i){return{i:i,at:t[i].getTime()}})}}return WM._pt.t}
 function wmTick(){if(!WM)return;var now=Date.now(),last=WM.last||now;
  if(WM.run){var hit=wmPrayers().filter(function(p){return p.at>last&&p.at<=now})[0];
@@ -579,26 +589,41 @@ function wmTick(){if(!WM)return;var now=Date.now(),last=WM.last||now;
  if(WM.ev&&WM.ev.k==="ey"&&now>=WM.ev.until){WM.n.ey[0]++;WM.ev=null;buzz("ok")}
  if(WM.ev&&WM.ev.k==="wa"&&now>=WM.ev.until){WM.ev=null}
  if(WM.ev&&WM.ev.k==="mola"&&now>=WM.ev.until){WM.ev={k:"molabitti"};buzz("ok");wmShow()}
- wmSave();if(WMO)wmPaint();else if(typeof render==="function"&&!document.hidden&&now%60000<1100)render()}
+ wmSave();if(WMO)wmPaint();else wmPill()}
 function wmLoop(){clearInterval(WMT);WMT=setInterval(wmTick,1000);wmTick()}
 function wmShow(){if(WMO||document.hidden)return;var k=WM&&WM.ev&&WM.ev.k;if(k==="ey"||k==="wa"){toast(k==="ey"?"👀 Göz molası: 20 sn uzağa bak":"💧 Su içme zamanı");return}if(!CHO)openWork()}
 function wmNotifs(){var o=[];if(!WM||!WM.run)return o;var now=Date.now(),A=wmActive(now),c=wmCfg(),lim=A+6*3600000,id=7100;
  function at(a){return new Date(now+(a-A))}
  var sts=[];if(WM.nx.st){for(var s=WM.nx.st;s<lim&&sts.length<12;s+=(c.stand+c.standLen)*60000)sts.push(s)}
- sts.forEach(function(s){o.push({id:id++,title:"🧍 Kalk, "+c.standLen+" dk esne",body:wmFmt(c.stand*60000)+" oldu oturuyorsun. Biraz yürü, omuzlarını aç"+hi()+".",schedule:{at:at(s),allowWhileIdle:true}})});
- if(WM.nx.ey){for(var e=WM.nx.ey;e<lim&&o.length<32;e+=c.eye*60000)if(!sts.some(function(s){return Math.abs(s-e)<120000}))o.push({id:id++,title:"👀 Göz molası",body:"20 saniye boyunca 6 metre uzağa bak.",schedule:{at:at(e),allowWhileIdle:true}})}
- if(WM.nx.wa){for(var w=WM.nx.wa;w<lim&&o.length<40;w+=c.water*60000)o.push({id:id++,title:"💧 Su iç",body:"Bir bardak su iyi gelir.",schedule:{at:at(w),allowWhileIdle:true}})}
- if(WM.plan&&!WM.planDone&&WM.plan>A)o.push({id:7190,title:"✅ Çalışma hedefi tamam",body:wmFmt(WM.plan)+" doldu. Bitirmek ya da devam etmek için dokun.",schedule:{at:at(WM.plan),allowWhileIdle:true}});
- wmPrayers().forEach(function(p,j){if(p.at>now&&p.at<now+6*3600000)o.push({id:7191+j,title:"🕌 "+NV.filter(function(n){return n[0]===p.i})[0][1]+" vakti",body:"Çalışma modu duraklatıldı. Kılınca devam edersin.",schedule:{at:new Date(p.at),allowWhileIdle:true}})});
+ sts.forEach(function(s){o.push({id:id++,title:"🧍 Kalk, "+c.standLen+" dk esne",body:wmFmt(c.stand*60000)+" oldu oturuyorsun. Biraz yürü, omuzlarını aç"+hi()+".",extra:{wm:1},schedule:{at:at(s),allowWhileIdle:true}})});
+ if(WM.nx.ey){for(var e=WM.nx.ey;e<lim&&o.length<32;e+=c.eye*60000)if(!sts.some(function(s){return Math.abs(s-e)<120000}))o.push({id:id++,title:"👀 Göz molası",body:"20 saniye boyunca 6 metre uzağa bak.",extra:{wm:1},schedule:{at:at(e),allowWhileIdle:true}})}
+ if(WM.nx.wa){for(var w=WM.nx.wa;w<lim&&o.length<40;w+=c.water*60000)o.push({id:id++,title:"💧 Su iç",body:"Bir bardak su iyi gelir.",extra:{wm:1},schedule:{at:at(w),allowWhileIdle:true}})}
+ if(WM.plan&&!WM.planDone&&WM.plan>A)o.push({id:7190,title:"✅ Çalışma hedefi tamam",body:wmFmt(WM.plan)+" doldu. Bitirmek ya da devam etmek için dokun.",extra:{wm:1},schedule:{at:at(WM.plan),allowWhileIdle:true}});
+ wmPrayers().forEach(function(p,j){if(p.at>now&&p.at<now+6*3600000)o.push({id:7191+j,title:"🕌 "+NV.filter(function(n){return n[0]===p.i})[0][1]+" vakti",body:"Çalışma modu duraklatıldı. Kılınca devam edersin.",extra:{wm:1},schedule:{at:new Date(p.at),allowWhileIdle:true}})});
  return o}
+var WMX=[["Ayağa kalk, kollarını yukarı uzat","10 saniye tut, 3 kez tekrarla. Sonra biraz yürü."],["Omuz çevirme","Omuzlarını 10 kez öne, 10 kez arkaya çevir."],["Boyun esnetme","Başını yavaşça sağa, sola, öne eğ; her birinde 15 sn bekle."],["Bel ve sırt","Ellerini beline koy, hafifçe geriye esne. Sonra öne eğilip ayak uçlarına uzan."],["Biraz yürü","Su doldur, pencereden dışarı bak, abdest tazele."],["Bilek ve parmaklar","Bileklerini çevir, parmaklarını açıp kapat; klavye yorgunluğu geçer."]];
+var WMCH=false;
+function wmOngoing(){if(!LN)return;try{if(!WMCH&&LN.createChannel){WMCH=true;LN.createChannel({id:"wm",name:"Çalışma modu",description:"Çalışma modu açıkken duran bildirim",importance:2,vibration:false}).catch(function(){})}
+ LN.cancel({notifications:[{id:7098}]}).catch(function(){});if(LN.removeDeliveredNotifications)LN.removeDeliveredNotifications({notifications:[{id:7098}]}).catch(function(){});
+ if(!WM)return;var st=new Date(WM.start),body=(WM.run?hhmm(st)+"'dan beri çalışıyorsun":"Duraklatıldı")+(WM.task?" · "+WM.task:"")+(WM.plan?" · hedef "+wmFmt(WM.plan):"");
+ setTimeout(function(){if(!WM)return;LN.schedule({notifications:[{id:7098,title:"⏰ Çalışma modu "+(WM.run?"açık":"duraklatıldı"),body:body+". Açmak için dokun.",ongoing:true,autoCancel:false,channelId:"wm",extra:{wm:1},schedule:{at:new Date(Date.now()+300),allowWhileIdle:true}}]}).catch(function(){})},50)}catch(e){}}
+function wmPill(){var p=document.getElementById("wmpill"),show=!!WM&&!WMO&&S.onboarded&&!document.body.classList.contains("choopen")&&!document.body.classList.contains("tbopen");
+ if(!show){if(p)p.hidden=true;return}if(!p){p=document.createElement("button");p.id="wmpill";p.setAttribute("data-a","work");document.body.appendChild(p)}
+ var A=wmActive(),nx=WM.nx.st?" · 🧍 "+wmFmt(Math.max(0,WM.nx.st-A)):"";p.hidden=false;p.classList.toggle("off",!WM.run);p.innerHTML="⏰ "+(WM.run?wmFmt(A,true)+nx:"Duraklatıldı · "+wmFmt(A));}
+function wmSchedTxt(){var sc=wmCfg().sched;if(!sc||!sc.time)return"";var d=sc.days||[1,2,3,4,5];return(d.join()==="1,2,3,4,5"?"Hafta içi":d.length===7?"Her gün":rutinTxt({days:d,freq:d.length}))+" "+sc.time}
+function wmSchedNotifs(){var o=[],sc=wmCfg().sched;if(!sc||!sc.time)return o;var d0=sc.days||[1,2,3,4,5],now=new Date();
+ for(var i=0;i<14;i++){var d=addDays(today(),i);if(d0.indexOf(d.getDay())<0)continue;var t=at(d,sc.time);if(t>now&&!(i===0&&WM))o.push({id:7200+i,title:"⏰ Çalışma saatin geldi"+hi(),body:"Çalışma modunu açmak için dokun. Molaları ben hatırlatırım.",extra:{wm:"open"},schedule:{at:t,allowWhileIdle:true}})}return o}
 function wmAwake(on){try{if(NB&&NB.awake){var pp=NB.awake({on:!!on});if(pp&&pp.catch)pp.catch(function(){})}}catch(e){}
  try{if(on&&navigator.wakeLock&&!WMWL)navigator.wakeLock.request("screen").then(function(l){WMWL=l}).catch(function(){});if(!on&&WMWL){WMWL.release();WMWL=null}}catch(e){}}
 function openWork(min){if(WMO){wmPaint();return}closeAllSheets();if(FC)closeFocus();WMO=document.createElement("div");WMO.id="wms";document.body.appendChild(WMO);document.body.classList.add("tbopen");ovHide(true);if(min!=null)WMO._dur=min;wmAwake(true);wmPaint();
  WMO.addEventListener("click",function(e){var b=e.target.closest("[data-wm]");if(!b)return;var a=b.getAttribute("data-wm"),v=b.getAttribute("data-v"),c=wmCfg();
   if(a==="close")closeWork();
   else if(a==="dur"){WMO._dur=+v;wmPaint()}
+  else if(a==="pick"){var pb=dayLog(key(today())).big[+v];if(pb){WMO._task=pb.t;WMO._tk={k:key(today()),i:+v};wmPaint()}}
+  else if(a==="sched"){var sc=c.sched||{},DO=["Hafta içi","Her gün","Hafta sonu"],DV=[[1,2,3,4,5],[0,1,2,3,4,5,6],[0,6]],cd=(sc.days||[1,2,3,4,5]).join();ask("Çalışma saati",[{label:"Saat (boş bırakırsan kapanır)",type:"time",value:sc.time||"09:00"},{label:"Günler",type:"select",opts:DO,value:DO[Math.max(0,DV.map(function(x){return x.join()}).indexOf(cd))]}],function(r){S.settings.wm=Object.assign({},S.settings.wm||{});S.settings.wm.sched=r[0]?{time:r[0],days:DV[DO.indexOf(r[1])]||DV[0]}:null;save();wmPaint();toast(r[0]?"Her "+wmSchedTxt()+" hatırlatacağım":"Çalışma saati kapandı")},{label:"Kaydet"})}
+  else if(a==="task"){ask("Şimdi ne üzerinde çalışıyorsun?",[{label:"Konu",value:WM.task||""}],function(r){WM.task=(r[0]||"").trim();WM.tk=null;wmSave();wmOngoing();wmPaint()},{label:"Kaydet"})}
   else if(a==="tg"){S.settings.wm=Object.assign({},S.settings.wm||{});var cur=c[v],opts={stand:[30,45,60,0],eye:[20,0],water:[60,45,90,0]}[v],nx=opts[(opts.indexOf(cur)+1)%opts.length];S.settings.wm[v]=nx;save();wmPaint()}
-  else if(a==="start"){var ti=WMO.querySelector("#wmtask");wmStart(WMO._dur==null?120:WMO._dur,ti?ti.value.trim():"");wmPaint()}
+  else if(a==="start"){var ti=WMO.querySelector("#wmtask"),tv=ti?ti.value.trim():"";wmStart(WMO._dur==null?120:WMO._dur,tv,WMO._tk&&WMO._task===tv?WMO._tk:null);wmPaint()}
   else if(a==="pause"){if(WM.run)wmPause("user");else wmResume();wmPaint()}
   else if(a==="stop")wmFinish();
   else if(a==="mola"){wmPause("mola");WM.ev={k:"mola",until:Date.now()+c.standLen*60000};WM.n.st[0]++;wmSave();wmPaint()}
@@ -614,28 +639,28 @@ function openWork(min){if(WMO){wmPaint();return}closeAllSheets();if(FC)closeFocu
  if(!WMT&&WM)wmLoop()}
 function closeWork(){if(!WMO)return;wmAwake(false);WMO.remove();WMO=null;document.body.classList.remove("tbopen");if(!CHO)ovHide(false);render()}
 function wmPaint(){if(!WMO)return;var c=wmCfg(),now=new Date();
- if(!WM){var dur=WMO._dur==null?120:WMO._dur,lbl=function(m){return m?(m%60?m+" dk":m/60+" sa"):"Süresiz"};
+ if(!WM){var wl=S.settings.wmLast;if(WMO._dur==null&&wl)WMO._dur=wl.d;var dur=WMO._dur==null?120:WMO._dur,tdl=dayLog(key(today())).big.map(function(b,i){return{b:b,i:i}}).filter(function(x){return!x.b.done&&!x.b.moved}).slice(0,6),lbl=function(m){return m?(m%60?m+" dk":m/60+" sa"):"Süresiz"};
   WMO.innerHTML='<div class="tb-top"><button class="tb-b" data-wm="close">✕</button><span class="tb-tot">Çalışma modu</span><span style="width:44px"></span></div>'+
    '<div class="wm-clock sm">'+hhmm(now)+'</div>'+
-   '<div class="fc-set"><div class="eyebrow">Ne üzerinde çalışıyorsun?</div><input id="wmtask" class="wm-in" placeholder="Ör. rapor, ders, proje…" value="'+esc(WMO._task||"")+'">'+
+   '<div class="fc-set"><div class="eyebrow">Ne üzerinde çalışıyorsun?</div><input id="wmtask" class="wm-in" placeholder="Ör. rapor, ders, proje…" value="'+esc(WMO._task||"")+'">'+(tdl.length?'<div class="tb-names">'+tdl.map(function(x){return'<button data-wm="pick" data-v="'+x.i+'" class="'+(WMO._tk&&WMO._tk.i===x.i&&WMO._task===x.b.t?"on":"")+'">'+esc(x.b.t.length>28?x.b.t.slice(0,27)+"…":x.b.t)+'</button>'}).join("")+'</div>':'')+
    '<div class="eyebrow" style="margin-top:18px">Ne kadar?</div><div class="tb-names">'+[60,90,120,180,240,0].map(function(m){return'<button data-wm="dur" data-v="'+m+'" class="'+(m===dur?"on":"")+'">'+lbl(m)+'</button>'}).join("")+'</div>'+
    '<div class="eyebrow" style="margin-top:18px">Hatırlatmalar <span style="opacity:.6">(değiştirmek için dokun)</span></div><div class="tb-names">'+
    '<button data-wm="tg" data-v="stand" class="'+(c.stand?"on":"")+'">🧍 '+(c.stand?c.stand+" dk'da bir "+c.standLen+" dk kalk":"Kalkma kapalı")+'</button>'+
    '<button data-wm="tg" data-v="eye" class="'+(c.eye?"on":"")+'">👀 '+(c.eye?c.eye+" dk'da bir göz":"Göz kapalı")+'</button>'+
    '<button data-wm="tg" data-v="water" class="'+(c.water?"on":"")+'">💧 '+(c.water?c.water+" dk'da bir su":"Su kapalı")+'</button></div>'+
-   (hasLoc()?'<div class="tb-hint" style="margin-top:10px;text-align:left">🕌 Ezan vaktinde oturum kendiliğinden duraklar.</div>':'')+'</div>'+
+   (hasLoc()?'<div class="tb-hint" style="margin-top:10px;text-align:left">🕌 Ezan vaktinde oturum kendiliğinden duraklar.</div>':'')+'<div class="eyebrow" style="margin-top:18px">Her gün hatırlat</div><div class="tb-names"><button data-wm="sched" class="'+(c.sched?"on":"")+'">📅 '+(c.sched?esc(wmSchedTxt()):"Çalışma saati kur")+'</button></div></div>'+
    '<div class="fc-go"><button class="fc-start" data-wm="start">Başla · '+lbl(dur)+'</button><div class="tb-hint" style="margin-top:14px">Ekran açık kalır. Telefon kilitliyken de bildirimle hatırlatırım.</div></div>';
-  var ti=WMO.querySelector("#wmtask");if(ti)ti.addEventListener("input",function(){WMO._task=ti.value});return}
+  var ti=WMO.querySelector("#wmtask");if(ti)ti.addEventListener("input",function(){WMO._task=ti.value;WMO._tk=null});return}
  var A=wmActive(),ev=WM.ev,np=hasLoc()?nextPrayer():null,ft=focusStats(),h="";
  h+='<div class="tb-top"><button class="tb-b" data-wm="close">Küçült</button><span class="tb-tot">'+(WM.run?"Çalışıyorsun":WM.why==="namaz"?"Namaz için duraklatıldı":WM.why==="mola"?"Moladasın":"Duraklatıldı")+'</span><span style="width:44px"></span></div>';
- h+='<div class="wm-main"><div class="wm-clock'+(WM.run?"":" dim")+'">'+hhmm(now)+'</div><div class="wm-side">'+(WM.task?'<div class="wm-task">'+esc(WM.task)+'</div>':'')+
+ h+='<div class="wm-main"><div class="wm-clock'+(WM.run?"":" dim")+'">'+hhmm(now)+'</div><div class="wm-side">'+'<button class="wm-task" data-wm="task">'+(WM.task?esc(WM.task)+' ✎':'+ Konu ekle')+'</button>'+
   '<div class="wm-ses"><b>'+wmFmt(A,true)+'</b>'+(WM.plan?' <span>/ '+wmFmt(WM.plan)+'</span>':'')+'</div>'+
   (WM.plan?'<div class="wm-bar"><i style="width:'+Math.min(100,A/WM.plan*100).toFixed(1)+'%"></i></div>':'')+
   '<div class="wm-next">'+(WM.nx.st?'<span>🧍 '+wmFmt(Math.max(0,WM.nx.st-A))+'</span>':'')+(WM.nx.ey?'<span>👀 '+wmFmt(Math.max(0,WM.nx.ey-A))+'</span>':'')+(WM.nx.wa?'<span>💧 '+wmFmt(Math.max(0,WM.nx.wa-A))+'</span>':'')+(np?'<span>🕌 '+esc(np.name)+' '+hhmm(np.at)+'</span>':'')+'</div>'+
   '<div class="tb-hint">Bugün toplam '+(ft.d+Math.round(A/60000))+' dk odak</div></div></div>';
  if(ev){var cd=ev.until?wmFmt(ev.until-Date.now(),true):"";
-  if(ev.k==="st")h+='<div class="wm-ev"><b>🧍 Kalkma zamanı</b><div>'+wmFmt(c.stand*60000)+' oldu oturuyorsun. '+c.standLen+' dakika ayağa kalk, yürü, esne.</div><div class="wm-btns"><button class="fc-start" data-wm="mola">Molaya başla · '+c.standLen+' dk</button><button class="tb-b" data-wm="later">5 dk sonra</button><button class="tb-b" data-wm="skip">Atla</button></div></div>';
-  else if(ev.k==="mola")h+='<div class="wm-ev"><b>Moladasın</b><div class="wm-cd">'+cd+'</div><div>Omuzlarını çevir, boynunu esnet, biraz yürü. Su içmeyi unutma.</div><div class="wm-btns"><button class="tb-b" data-wm="back">Erken dön</button></div></div>';
+  var ex=WMX[(WM.n.st[1]+new Date(WM.start).getDate())%WMX.length];if(ev.k==="st")h+='<div class="wm-ev"><b>🧍 Kalkma zamanı</b><div>'+wmFmt(c.stand*60000)+' oldu oturuyorsun. '+c.standLen+' dakika kalk. Bu molanın hareketi: <b style="font-size:inherit">'+esc(ex[0])+'</b></div><div class="wm-btns"><button class="fc-start" data-wm="mola">Molaya başla · '+c.standLen+' dk</button><button class="tb-b" data-wm="later">5 dk sonra</button><button class="tb-b" data-wm="skip">Atla</button></div></div>';
+  else if(ev.k==="mola")h+='<div class="wm-ev"><b>Moladasın</b><div class="wm-cd">'+cd+'</div><div><b style="font-size:inherit">'+esc(ex[0])+'</b><br>'+esc(ex[1])+'</div><div class="wm-btns"><button class="tb-b" data-wm="back">Erken dön</button></div></div>';
   else if(ev.k==="molabitti")h+='<div class="wm-ev"><b>Mola bitti, hoş geldin'+esc(hi())+'</b><div>Kaldığın yer:</div><input id="wmtask2" class="wm-in" value="'+esc(WM.task||"")+'" placeholder="Şimdi neye odaklanıyorsun?"><div class="wm-btns"><button class="fc-start" data-wm="back">Devam et</button></div></div>';
   else if(ev.k==="ey")h+='<div class="wm-ev sm"><b>👀 Göz molası · '+cd+'</b><div>Ekrandan kaldır, 6 metre uzağa bak. Göz kırp.</div><div class="wm-btns"><button class="tb-b" data-wm="eyeok">Yaptım</button><button class="tb-b" data-wm="evx">Atla</button></div></div>';
   else if(ev.k==="wa")h+='<div class="wm-ev sm"><b>💧 Su iç</b><div>Bir bardak su iyi gelir.</div><div class="wm-btns"><button class="tb-b" data-wm="waok">İçtim</button><button class="tb-b" data-wm="evx">Sonra</button></div></div>';
@@ -862,7 +887,7 @@ var AI_DECL=[
    prayer_time_notif:{type:"boolean",description:"Namaz vakti girince bildirim"},
    quiet_from:{type:"integer",description:"Sessiz saat başlangıcı (0-23)"},
    quiet_to:{type:"integer",description:"Sessiz saat bitişi (0-23)"},
-   work_stand_every:{type:"integer",description:"Çalışma modunda kaç dk'da bir kalkma molası (0=kapalı)"},work_break_len:{type:"integer",description:"Kalkma molası kaç dk"},work_eye_every:{type:"integer",description:"Kaç dk'da bir göz molası (0=kapalı)"},work_water_every:{type:"integer",description:"Kaç dk'da bir su (0=kapalı)"},work_prayer_pause:{type:"boolean",description:"Ezan vaktinde çalışmayı duraklat"}}}}
+   work_stand_every:{type:"integer",description:"Çalışma modunda kaç dk'da bir kalkma molası (0=kapalı)"},work_break_len:{type:"integer",description:"Kalkma molası kaç dk"},work_eye_every:{type:"integer",description:"Kaç dk'da bir göz molası (0=kapalı)"},work_water_every:{type:"integer",description:"Kaç dk'da bir su (0=kapalı)"},work_prayer_pause:{type:"boolean",description:"Ezan vaktinde çalışmayı duraklat"},work_schedule_time:{type:"string",description:"Her gün çalışma saati hatırlatması SS:DD; kapatmak için 'yok'"},work_schedule_days:{type:"array",items:{type:"integer"},description:"Çalışma saati günleri 0=Pazar..6=Cumartesi (varsayılan hafta içi)"}}}}
 ];
 function aiNorm(x){return nrm(String(x||"")).replace(/^(\[?[a-z]:)/,"")}
 function aiPick(arr,q,field,label){q=String(q||"").trim();if(!q)return{err:label+" belirtilmedi."};
@@ -900,7 +925,7 @@ function aiTool(name,a){a=a||{};var r;
   if(!c2.length)return"HATA: değiştirilecek bir şey verilmedi.";return"İş ("+aiDayLbl(k)+"): "+b.t+" → "+c2.join(", ");
  case"delete_task":var k3=aiDay(a.date);if(!k3)return"HATA: tarih YYYY-AA-GG olmalı.";r=aiTaskFind(k3,a.task);if(r.err)return"HATA: "+r.err;S.log[k3].big.splice(r.it.i,1);return"İş silindi ("+aiDayLbl(k3)+"): "+r.it.b.t;
  case"work_mode":if(a.action==="stop"){if(!WM)return"Çalışma modu zaten kapalı.";setTimeout(wmFinish,600);return"Çalışma modu bitiriliyor."}if(a.action==="pause"){if(!WM)return"HATA: çalışma modu kapalı.";wmPause("user");return"Çalışma duraklatıldı."}if(a.action==="resume"){if(!WM)return"HATA: çalışma modu kapalı.";wmResume();return"Çalışmaya devam."}
-  if(WM)return"Çalışma modu zaten açık ("+wmFmt(wmActive())+").";wmStart(a.minutes==null?120:a.minutes,a.task||"");setTimeout(function(){if(CHO&&!CHATONLY)closeChat();openWork()},900);return"Çalışma modu başladı"+(a.minutes?" ("+wmFmt(a.minutes*60000)+")":" (süresiz)")+(a.task?": "+a.task:"")+". Molaları ben hatırlatırım.";
+  if(WM)return"Çalışma modu zaten açık ("+wmFmt(wmActive())+").";var wtk=null;if(a.task){var ft=aiTaskFind(key(today()),a.task);if(ft.it)wtk={k:key(today()),i:ft.it.i}}wmStart(a.minutes==null?120:a.minutes,a.task||"",wtk);setTimeout(function(){if(CHO&&!CHATONLY)closeChat();openWork()},900);return"Çalışma modu başladı"+(a.minutes?" ("+wmFmt(a.minutes*60000)+")":" (süresiz)")+(a.task?": "+a.task:"")+". Molaları ben hatırlatırım.";
  case"carry_over_tasks":var pp=pendingPast(),tk=key(today());if(!pp.length)return"Önceki günlerden kalan iş yok.";pp.forEach(function(x){var bb=S.log[x.k].big[x.i];bb.moved=true;dayLog(tk).big.push({t:bb.t,done:false,from:x.k})});return pp.length+" iş bugüne taşındı: "+pp.map(function(x){return x.t}).join(", ");
  case"edit_item":case"delete_item":var lp=aiListPath(a);if(lp.err)return"HATA: "+lp.err;var arr=getList(lp.p)||[],cf=CFG[kindOf(lp.p)]||{f:[{k:"t"}]},fk=cf.f[0].k;r=aiPick(arr,a.item,fk,lp.lbl);if(r.err)return"HATA: "+r.err;var it=r.it;
   if(name==="delete_item"){arr.splice(arr.indexOf(it),1);return cap1(lp.lbl)+" silindi: "+it[fk]}
@@ -919,6 +944,7 @@ function aiTool(name,a){a=a||{};var r;
   if(typeof a.quiet_from==="number"){st.quietFrom=a.quiet_from;c4.push("sessiz saat başlangıcı "+a.quiet_from)}
   if(typeof a.quiet_to==="number"){st.quietTo=a.quiet_to;c4.push("sessiz saat bitişi "+a.quiet_to)}
   var wmk={work_stand_every:"stand",work_break_len:"standLen",work_eye_every:"eye",work_water_every:"water",work_prayer_pause:"prayer"};Object.keys(wmk).forEach(function(k5){if(a[k5]!==undefined&&a[k5]!==null){st.wm=Object.assign({},st.wm||{});st.wm[wmk[k5]]=a[k5];c4.push("çalışma modu "+wmk[k5]+" = "+a[k5])}});
+  if(a.work_schedule_time!==undefined&&a.work_schedule_time!==null&&a.work_schedule_time!==""){var wt=aiTime(a.work_schedule_time);st.wm=Object.assign({},st.wm||{});if(wt){st.wm.sched={time:wt,days:(a.work_schedule_days&&a.work_schedule_days.length?a.work_schedule_days:(st.wm.sched&&st.wm.sched.days)||[1,2,3,4,5])};c4.push("çalışma saati "+wmSchedTxt())}else if(wt===""){st.wm.sched=null;c4.push("çalışma saati kapalı")}}
   if(!c4.length)return"HATA: değiştirilecek ayar verilmedi.";scheduleNotifs();return"Ayarlar: "+c4.join(", ");
  }
  return"HATA: bilinmeyen araç "+name}
@@ -1189,7 +1215,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div><div class="card row"><span class="sp">'+Ii("beads")+'Tesbih düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla tesbih.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #42'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #43'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -1485,6 +1511,7 @@ function render(){
  if(tab==="kulliyat"&&!klOn())tab="pano";
  a.innerHTML=setOpen?vAyar():tab==="pano"?vPano():tab==="hafta"?vHafta():tab==="hedef"?vHedef():tab==="defter"?vDefter():tab==="kulliyat"?vKulliyat():vBen();
  document.getElementById("nav").innerHTML=tabs().map(function(t){return'<button class="'+(tab===t[0]&&!setOpen?"on":"")+'" data-tab="'+t[0]+'"><b>'+I(t[1])+'</b>'+t[2]+'</button>'}).join("");
+ if(typeof wmPill==="function")wmPill();
  var fab=document.getElementById("tfab");if(!fab){fab=document.createElement("button");fab.id="tfab";fab.setAttribute("data-a","tesbih");fab.setAttribute("aria-label","Tesbih");fab.innerHTML=I("beads");document.body.appendChild(fab)}fab.hidden=!S.onboarded||setOpen||S.settings.tfab===false;
  if(setOpen)foldSettings(a);
  a11y(a);window.scrollTo(0,st);if(typeof nobetSync==="function")nobetSync()}
@@ -1548,6 +1575,7 @@ document.addEventListener("click",function(e){
  case"chatopen":openChat();return;
  case"tesbih":openTesbih();return;
  case"work":openWork();return;
+ case"workq":var wl=S.settings.wmLast||{t:"",d:120};wmStart(wl.d,wl.t);openWork();return;
  case"tfabtog":S.settings.tfab=S.settings.tfab===false;save();render();return;
  case"aisave":var kin=document.getElementById("aikey"),kv=kin&&kin.value.trim(),cc=aiCfg();if(!kv&&!cc.key){toast("Önce anahtarı yapıştır");return}var useK=kv||cc.key;cc=aiCfgRaw();toast("Deneniyor…");
   aiTest(useK,function(err,pk){if(err){toast("Olmadı: "+String(err.message||err).slice(0,80));return}var c2=aiCfgRaw();c2.key=useK;c2.on=true;c2.models=pk.all.slice(0,12);if(!c2.model||pk.all.indexOf(c2.model)<0)c2.model=pk.best;aiSet(c2);folds["set:sec-ai"]=true;render();toast("Yapay zekâ hazır ✓ ("+c2.model+")")});return;
@@ -1622,6 +1650,8 @@ document.addEventListener("click",function(e){
 
 /* ---------- Telefon bildirimleri (yalnızca APK'da) ---------- */
 var Cap=window.Capacitor,LN=(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()&&Cap.Plugins)?Cap.Plugins.LocalNotifications:null,ntT=null;
+try{if(LN&&LN.addListener)LN.addListener("localNotificationActionPerformed",function(a){var x=a&&a.notification&&a.notification.extra;if(x&&x.wm)setTimeout(function(){if(CHO&&!CHATONLY)closeChat();openWork()},350)})}catch(e){}
+setTimeout(function(){if(!WM&&LN)try{LN.cancel({notifications:[{id:7098}]}).catch(function(){})}catch(e){}},2000);
 function scheduleNotifs(){if(!LN)return;clearTimeout(ntT);ntT=setTimeout(doSchedule,1500)}
 function at(d,hm){var p=String(hm||"08:00").split(":");return new Date(d.getFullYear(),d.getMonth(),d.getDate(),+p[0]||0,+p[1]||0)}
 async function doSchedule(){
@@ -1643,7 +1673,7 @@ async function doSchedule(){
    if(st.pnotif&&hasLoc()&&!muaf(key(d))){var ptd=prayerTimes(d,st.lat,st.lng);NV.forEach(function(n,j){var tt=ptd[n[0]];if(tt>now)list.push({id:base+5+j,title:"🕌 "+n[1]+" vakti",body:hhmm(tt)+" · "+(st.city||""),schedule:{at:tt,allowWhileIdle:true}})})}
    if(sp.length){var t=at(d,"10:00");if(t>now)list.push({id:base+3,title:"🌙 "+sp[0].t.replace(" (bu gece)",""),body:"Bugün: "+sp.map(function(x){return x.t}).join(", "),schedule:{at:t,allowWhileIdle:true}})}
   }
-  if(typeof wmNotifs==="function")list=list.concat(wmNotifs());
+  if(typeof wmNotifs==="function")list=list.concat(wmNotifs(),wmSchedNotifs());
   if(FOC&&!FOC.paused&&FOC.end>Date.now())list.push({id:7001,title:"⏱ Odak tamam",body:FOC.cat+" · "+Math.round(FOC.dur/60000)+" dk. Maşallah"+hi()+"!",schedule:{at:new Date(FOC.end),allowWhileIdle:true}});
   if(list.length)await LN.schedule({notifications:list});
  }catch(err){console.log("bildirim",err)}
@@ -1885,7 +1915,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("42",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("43",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
