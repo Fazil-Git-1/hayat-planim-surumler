@@ -58,7 +58,7 @@ textarea{min-height:80px;resize:vertical}textarea.small{min-height:44px;margin-t
 .nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:5}
 .nav button{flex:1;padding:9px 0 8px;font-size:11px;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:2px}
 .nav button.hud{position:relative;color:var(--acc);font-weight:600}.nav button.hud b{width:58px;height:58px;border-radius:29px;margin-top:-26px;background:var(--card);border:1px solid var(--line);box-shadow:0 6px 18px rgba(31,42,68,.22);overflow:hidden}.nav button.hud b svg{width:46px;height:46px}
-.backbar{margin:-4px 0 6px}.tm-chip{font-size:12px;padding:3px 8px;border-radius:10px;color:var(--mute);font-variant-numeric:tabular-nums;opacity:.55}.tm-chip.on{opacity:1;color:var(--acc);background:var(--acc2);font-weight:600}
+.backbar{margin:-4px 0 6px}.msgs .r .fbk{display:flex;gap:6px;margin-top:6px;font-size:12px;color:var(--mute)}.msgs .r .fbk button{font-size:14px;padding:2px 8px;border-radius:12px;border:1px solid var(--line);background:var(--card);opacity:.7}.tm-chip{font-size:12px;padding:3px 8px;border-radius:10px;color:var(--mute);font-variant-numeric:tabular-nums;opacity:.55}.tm-chip.on{opacity:1;color:var(--acc);background:var(--acc2);font-weight:600}
 .tl{padding:6px 12px}.tl-h{display:flex;gap:10px;min-height:46px;border-top:1px solid var(--line)}.tl-h:first-child{border-top:0}.tl-t{width:42px;flex:none;font-size:12px;color:var(--mute);padding-top:6px;font-variant-numeric:tabular-nums}.tl-c{flex:1;position:relative;padding:4px 0 4px;min-height:38px}
 .tl-row{gap:8px;padding:4px 8px;margin:2px 0;border-radius:10px;align-items:center}.tl-row.pr{background:rgba(31,42,68,.06)}.tl-row.hb{background:rgba(46,125,79,.08)}.tl-row.tk{background:var(--acc2)}.tl-row.wkx{background:rgba(168,135,90,.12)}.tl-m{font-size:12px;color:var(--mute);width:38px;flex:none;font-variant-numeric:tabular-nums}.tl-ic{width:22px;text-align:center}
 .chk.sm{width:22px;height:22px;font-size:12px}.tl-add{position:absolute;right:0;top:6px;width:26px;height:26px;border-radius:13px;color:var(--mute);opacity:.5}.tl-h.now .tl-t{color:var(--acc);font-weight:600}.tl-now{position:absolute;left:-6px;right:0;height:2px;background:#c4502c;border-radius:1px;z-index:1}.tl-now:before{content:"";position:absolute;left:-3px;top:-3px;width:8px;height:8px;border-radius:4px;background:#c4502c}.g2{display:grid;grid-template-columns:1fr;gap:10px}.g2>.tcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px}
@@ -909,6 +909,7 @@ function cleanItem(raw,kill){return raw.split(/\s+/).filter(function(w){var n=nr
 function cap1(x){return x.charAt(0).toLocaleUpperCase("tr")+x.slice(1)}
 function futToInf(w){var m=w.match(/^(.*?)(y?)(acağ|eceğ|acak|ecek)(ım|im|ız|iz)?$/i);if(!m||m[1].length<2)return w;return m[1]+(/^a/i.test(m[3])?"mak":"mek")}
 function parseRutin(raw,t,words){
+ if(/(hedef|aksiyon)/.test(t)&&/(^|\s)ekle(\s|$)/.test(t))return null;
  if(/rutin(ler)?im|rutinlerim neler|rutinleri göster/.test(t)){var rr=S.habits.filter(function(h){return h.time||h.days||hfreq(h)<7||true});return rr.length?"Rutinlerin: "+rr.map(function(h){return h.name+" ("+rutinTxt(h)+")"}).join("; ")+".":"Henüz rutinin yok. \"Her sabah 7'de yürüyüş\" gibi söyleyebilirsin."}
  var daily=/(^|\s)her (gün|sabah|akşam|öğle|öğlen|gece|ikindi)(\s|$)|(^|\s)(her gün|günde bir)/.test(t);
  var days=[];Object.keys(DAYW).sort(function(a,b){return b.length-a.length}).forEach(function(dn){var re=new RegExp("(^|\\s)(her )?"+dn+"(leri|ları|ler|lar|günleri|ı|i|u|ü)?(\\s|$)");if(re.test(t)&&days.indexOf(DAYW[dn])<0){if(dn==="pazar"&&/pazartesi/.test(t)&&!/(^|\s)pazar(ları|leri)?(\s|$)/.test(t.replace(/pazartesi\w*/g,"")))return;days.push(DAYW[dn])}});
@@ -983,14 +984,16 @@ function parseCmd(raw){
  var t=nrm(raw),words=t.split(" "),tk=key(today()),L=dayLog(tk);
  if(!t)return"";
  if(/^(yardım|ne yapabilirsin|neler yapabilirsin|komutlar|nasıl kullanılır)/.test(t))return'Örnekler: "her sabah 7\'de yürüyüş", "hafta içi akşam 9\'da kitap okuyacağım", "kitap okudum", "öğle kıldım", "yarın 10\'da toplantı", "kitap listeme Suç ve Ceza ekle", "sağlık alanına hedef ekle yürüyüş", "alışkanlık ekle erken kalkmak", "33 sübhanallah", "kaza sabah 2 ekle", "haftanın ayeti: …", "niyetim: …", "ne kaldı?"';
- if(/ne kaldı|ne var|kalan|durum/.test(t)){var op=L.big.filter(function(b){return!b.done&&!b.moved}).map(function(b){return b.t}),oh=S.habits.filter(function(x){return!L.h[x.id]}).map(function(x){return x.name});return op.length||oh.length?"Kalanlar: "+op.concat(oh).join(", ")+".":"Bugün her şey tamam"+hi()+"! 🎉"}
+ if(/(^|\s)(ne kaldı|ne var|kalan işler|kalanlar|kalan|durum)(\s|$)/.test(t)){var op=L.big.filter(function(b){return!b.done&&!b.moved}).map(function(b){return b.t}),oh=S.habits.filter(function(x){return!L.h[x.id]}).map(function(x){return x.name});return op.length||oh.length?"Kalanlar: "+op.concat(oh).join(", ")+".":"Bugün her şey tamam"+hi()+"! 🎉"}
  var kq=t.match(/(kuran|kur an|mushaf|cüz)\D*(\d+)\s*sayfa|(\d+)\s*sayfa\s*(kuran|kur an)/);if(kq){var np=parseInt(kq[2]||kq[3],10);if(!S.hatim)S.hatim={page:0,daily:20,count:0,start:key(today()),log:{}};hatimAdd(np);return"Hatmine "+np+" sayfa ekledim. Şu an "+S.hatim.page+". sayfadasın (%"+Math.round(S.hatim.page/604*100)+")."}
  var kk2=t.match(/külliyat\D*(\d+)\s*sayfa|(\d+)\s*sayfa\D*külliyat/);if(kk2&&klOn()){var np2=parseInt(kk2[1]||kk2[2],10),KLs=KL(),tk2=key(today()),bef=KLs.daily[tk2]||0;KLs.daily[tk2]=bef+np2;return"Külliyat okumana "+np2+" sayfa ekledim. Bugün "+KLs.daily[tk2]+"/"+KLs.target+" sayfa"+(bef<KLs.target&&KLs.daily[tk2]>=KLs.target?", günlük hedef tamam! 📖":".")}
  if(/çalışma mod|mesai mod|çalışmaya başl|mesaiye başl|işe başlıyorum/.test(t)&&!/(kapat|bitir|durdur|rapor|ayar|ritm|saat)/.test(t)){var wh=(t.match(/(\d+(?:[.,]5)?)\s*saat/)||[])[1],wd=(t.match(/(\d+)\s*(dk|dakika)/)||[])[1],wmn=wh?Math.round(parseFloat(wh.replace(",","."))*60):wd?+wd:/süresiz/.test(t)?0:null;setTimeout(function(){if(WM)openWork();else{openWork(wmn);}},400);return WM?"Çalışma modu zaten açık, ekranı açıyorum.":"Çalışma modunu açıyorum"+(wmn?" ("+wmFmt(wmn*60000)+")":"")+". Ne üzerinde çalışacağını yaz ve Başla'ya bas."}
  if(/çalışma mod/.test(t)&&/(kapat|bitir|durdur)/.test(t)){if(!WM)return"Çalışma modu zaten kapalı.";setTimeout(wmFinish,300);return"Çalışma modunu bitiriyorum."}
  if(/odak|odaklan|pomodoro/.test(t)){var fm=(t.match(/(\d+)\s*(dk|dakika)/)||[])[1];setTimeout(function(){openFocus(fm?+fm:25);if(FC){FC._cat=/kuran|kur an/.test(t)?"Kur'an":/ders|çalış/.test(t)?"Ders":/iş/.test(t)?"İş":"Kitap";paintFocus()}},500);return"Odak sayacını açıyorum. Hazır olunca Başla'ya bas."}
  if(/tesbih|zikir çek|zikre başla/.test(t)&&!/\d/.test(t)){setTimeout(openTesbih,600);return"Tesbihi açıyorum. Ekrana ya da ses tuşlarına basarak say."}
+ var nvl0=(PARSE_AI&&aiOn())?null:localNav(raw,t,words);if(nvl0)return nvl0;
  if(isChatty(t,raw)){if(PARSE_AI&&aiOn())return null;var stk=smallTalk(t);if(stk)return stk}
+ var nvl=localNav(raw,t,words);if(nvl)return nvl;
  var led=localEdit(raw,t,words);if(led)return led;
  var ext=parseExtra(raw,t,words,L);if(ext)return ext;
  if(/^not\s/.test(t)){var nt=raw.replace(/^\s*not\s*:?\s*/i,"");L.note=(L.note?L.note+"\n":"")+nt;return"Gün notuna ekledim."}
@@ -1004,14 +1007,14 @@ function parseCmd(raw){
   if(got.length)return(neg?"Geri aldım: ":"İşaretledim: ")+got.join(", ")+(neg?".":" ✓");
   if(PARSE_AI&&aiOn())return null;
   return'Bunu bir işe ya da alışkanlığa bağlayamadım. Yeni iş olarak eklemem için başına "ekle" yaz.'}
- if(PARSE_AI&&aiOn()&&!/^\s*ekle/i.test(raw)&&!/(^|\s)(bugün|yarın|öbür gün|yarından sonra|pazartesi|salı|çarşamba|perşembe|cuma|cumartesi|pazar)(\s|$)|\d/.test(t))return null;
+ if(PARSE_AI&&aiOn()&&!/^\s*ekle/i.test(raw)&&(!/(^|\s)(bugün|yarın|öbür gün|yarından sonra|pazartesi|salı|çarşamba|perşembe|cuma|cumartesi|pazar)(\s|$)|\d/.test(t)||/(^|\s)(koy|koyar mısın|al|alır mısın|taşı|taşır mısın|ertele|değiştir|yap|ayarla|çevir|kaydır|güncelle|sil|kaldır|iptal|çalışacağım|çalışıyorum|çalışayım)(\s|$)/.test(t)))return null;
  var off=0,txt=raw.replace(/^\s*ekle\s*:?\s*/i,"");
  if(/(^|\s)yarından sonra(\s|$)|(^|\s)öbür gün(\s|$)/.test(t)){off=2;txt=txt.replace(/yarından sonra|öbür gün/i,"")}
  else if(/(^|\s)yarın(\s|$)/.test(t)){off=1;txt=txt.replace(/(^|\s)yarın(\s|$)/i," ")}
  else{Object.keys(DAYW).sort(function(a,b){return b.length-a.length}).some(function(dn){if(words.indexOf(dn)>=0){var dd=(DAYW[dn]-today().getDay()+7)%7;off=dd||7;txt=txt.replace(new RegExp("(^|\\s)"+dn+"(\\s|$)","i")," ");return true}})}
  txt=txt.replace(/(^|\s)bugün(\s|$)/i," ").replace(/\s+/g," ").trim();if(!txt)return"Ne eklememi istersin?";
  txt=txt.replace(/\s+(istiyorum|lazım|gerek|gerekiyor)$/i,"").split(/\s+/).map(futToInf).join(" ");txt=txt.charAt(0).toLocaleUpperCase("tr")+txt.slice(1);
- var tt=takeTime(txt);txt=tt.txt;txt=txt.charAt(0).toLocaleUpperCase("tr")+txt.slice(1);var dk=key(addDays(today(),off)),no={t:txt,done:false};if(tt.tm)no.tm=tt.tm;dayLog(dk).big.push(no);
+ txt=txt.replace(/\s+(var\s+)?ekle(r misin)?$/i,"").trim()||txt;var tt=takeTime(txt);txt=tt.txt;txt=txt.charAt(0).toLocaleUpperCase("tr")+txt.slice(1);var dk=key(addDays(today(),off)),no={t:txt,done:false};if(tt.tm)no.tm=tt.tm;dayLog(dk).big.push(no);
  return(off===0?"Bugüne":off===1?"Yarına":WD[addDays(today(),off).getDay()]+" gününe")+" ekledim: "+(tt.tm?tt.tm+" ":"")+txt+(tt.tm?". O saatte hatırlatacağım.":"")}
 var PARSE_AI=false,AI_HIST=[],AI_BUSY=false,AI_LASTERR="";
 (function(){try{var h=JSON.parse(localStorage.getItem("hp.aih")||"{}");if(h.d===key(today()))AI_HIST=h.h||[]}catch(e){}})();
@@ -1053,7 +1056,7 @@ function aiSystem(){return"Sen \""+mName()+"\" adında, Hayat Planım uygulamas�
  "Uygulama, AKRA 'Kişisel Hayat Planım' defterine dayanır: hayat alanları (manevi, sağlık, sosyal, iş, eğitim...) için yıllık hedefler, aylık/haftalık/günlük aksiyonlar, alışkanlıklar, haftalık 'kontrol ve teftiş' (gözden geçirme) ve günü kapatma. Önerilerini bu yapıya bağla.\n"+
  "CEVAP KALİTESİ:\n- Önce soruyu gerçekten cevapla; kullanıcının aşağıdaki verilerine dayanarak kişisel ve somut ol (gün, sayı, isim ver). Genel geçer tavsiyeden kaçın.\n- Mesaj [ses] ile başlıyorsa sesli konuşuyordur: 2-3 kısa cümle, liste yok. Yazılıysa gerektiği kadar yaz (genelde 40-120 kelime); adımlar gerekiyorsa '- ' ile 3-5 maddelik kısa liste ve önemli yerde **kalın** kullanabilirsin.\n- Bilmediğin ya da emin olmadığın şeyi uydurma; 'emin değilim' de. Google araması yalnızca kullanıcının planıyla doğrudan ilgili bir bilgi gerekirse (ör. bir etkinliğin tarihi) kullanılsın.\n- Dini konularda: ayet aktarırsan sure adı ve ayet numarası, hadis aktarırsan kaynağını (Buhârî, Müslim vb.) ver; emin değilsen aktarma. Fıkhi hüküm/fetva verme, gerekirse Diyanet'e (diyanet.gov.tr) yönlendir. Nazik, teşvik edici, yargılamayan bir üslup kullan.\n- Sohbet ediliyorsa (selam, hal hatır, dertleşme) doğal ve kısa cevap ver, gerektiğinde bir soru sor; komut veya özellik listesi sayma.\n- Yazılı cevaplarda, faydalı olacaksa EN SONA ayrı bir satır olarak tam bu biçimde 2-3 kısa devam önerisi ekle: 'Öneriler: … | … | …'. Öneriler kullanıcının planıyla ilgili, uygulamada yapılabilecek kısa cümleler olsun (ör. 'Yarına taşı', 'Akşam rutini kur', 'Haftamı özetle').\n"+
  "AKSİYON KURALI (çok önemli): Sen soru soran değil İŞ YAPAN bir asistansın. Kullanıcı bir şeyi eklemeni, değiştirmeni, silmeni, taşımanı ya da ayarlamanı istediğinde SORMADAN ilgili aracı çağır ve yap; sonra ne yaptığını kısaca söyle. Her işlemin altında kullanıcıya 'Geri al' düğmesi çıkar, bu yüzden açık isteklerde onay isteme. 'Bundan sonra', 'artık', 'hep' gibi ifadeler kalıcı değişiklik demektir: alışkanlık için update_habit, ayar için update_settings kullan.\n- Yalnızca gerçekten belirsizse sor (ör. iki alışkanlık eşleşiyor, saat söylenmemiş). Kendin bir işlem ÖNERİYORSAN (ör. 'dünkü işleri bugüne alalım mı?') cevabın EN SONUNA ayrı satır olarak tam bu biçimde seçenek ekle: 'Seçenekler: Evet | Hayır' ya da 'Seçenekler: 21:00 | 21:30 | Vazgeç'. Bu satır kullanıcıya dokunulabilir düğme olarak gösterilir. Seçenek satırı varsa 'Öneriler:' satırı ekleme.\n- Kullanıcı 'Evet', 'olur', 'yap' derse bir önceki mesajında önerdiğin işlemi HEMEN araçlarla yap.\n- Araç 'HATA:' döndürürse yapıldı deme; hatayı düzeltip tekrar dene (ör. doğru adı/kimliği kullan) ya da kullanıcıya hangisini kastettiğini seçenekle sor.\n- Kimlikler: verilerde alışkanlıklar [h:kimlik], işler tarih ve [t:sıra] ile verilir; araçlara kimlik ya da tam adı ver. Tarihleri YYYY-AA-GG yaz (bugün "+key(today())+").\n- Rutin günleri: 0=Pazar,1=Pazartesi,2=Salı,3=Çarşamba,4=Perşembe,5=Cuma,6=Cumartesi. 'Akşam 9' = 21:00.\nARAÇLAR: work_mode (çalışma modunu başlat/bitir: büyük saat, mola, göz, su hatırlatmaları; \"çalışmaya başlıyorum\", \"2 saat çalışacağım\" gibi isteklerde kullan), update_habit (rutinin saati/günleri/adı), delete_habit, update_task (işi düzelt, tamamla, başka güne taşı), delete_task, carry_over_tasks (kalan işleri bugüne al), edit_item / delete_item (hedef, aksiyon, kitap, liste öğeleri), update_settings (bildirim saatleri, maskot sıklığı, namaz hatırlatması), run_command (YENİ ekleme/işaretleme). run_command kalıpları:\n- \"ekle bugün <iş>\", \"ekle yarın <iş>\", \"ekle cuma <iş>\"\n- \"<iş ya da alışkanlık> yaptım\" / \"<x> yapmadım\"; \"öğle kıldım\"\n- \"her sabah 7'de <rutin>\", \"hafta içi akşam 9'da <rutin>\", \"her cuma <rutin>\", \"haftada 3 gün <rutin>\"\n- \"kitap listeme <kitap> ekle\", \"gezi listeme <yer> ekle\", \"dualarıma <dua> ekle\", \"değerlerime <x> ekle\"\n- \"<alan> alanına hedef ekle <hedef>\", \"<alan> alanına haftalık aksiyon ekle <x>\", \"alışkanlık ekle <x>\"\n- \"kuran 10 sayfa okudum\" (hatim), \"25 dakika odaklan\"\n- \"not: <metin>\", \"33 sübhanallah\", \"kaza sabah 2 ekle\", \"haftanın ayeti: <metin>\"\n"+
- "Kullanıcı tek mesajda birden fazla şey isterse HER BİRİ için ayrı araç çağrısı yap. Aynı rutin farklı saatlerde isteniyorsa saat ekiyle ayrı kur. Sonunda yaptıklarını kısa bir listeyle özetle.\n\nKULLANICININ GÜNCEL VERİLERİ:\n"+aiContext()+"\n\nDÜZENLENEBİLİR ÖĞELER VE KİMLİKLER:\n"+aiIds()}
+ "Kullanıcı tek mesajda birden fazla şey isterse HER BİRİ için ayrı araç çağrısı yap. Aynı rutin farklı saatlerde isteniyorsa saat ekiyle ayrı kur. Sonunda yaptıklarını kısa bir listeyle özetle.\n\n"+aiAppMap()+"\n"+aiExamples()+"\n"+(aiRulesTxt()?aiRulesTxt()+"\n":"")+"\nKULLANICININ GÜNCEL VERİLERİ:\n"+aiContext()+"\n\nDÜZENLENEBİLİR ÖĞELER VE KİMLİKLER:\n"+aiIds()}
 /* ---------- Hüdhüd araçları: gerçek düzenleme işlemleri ---------- */
 var AIL={kitap:"books",gezi:"places",dua:"duas",yayin:"pubs",kisi:"people",birakilan:"bad",deger:"me:degerler",guclu:"me:guc",basari:"me:basari"};
 var AI_DECL=[
@@ -1117,7 +1120,7 @@ function aiTaskFind(k,q){var L=S.log[k];if(!L||!L.big)return{err:aiDayLbl(k)+" i
 function aiListPath(a){var l=a.list;if(l==="hedef"||l==="aksiyon"){var ar=aiPick(S.areas,a.area||"","name","alan");if(ar.err){var byid=S.areas.filter(function(x){return x.id===a.area})[0];if(!byid)return{err:ar.err};ar={it:byid}}
   return{p:"area:"+ar.it.id+":"+(l==="hedef"?"goals":"acts:"+(a.period||"gun")),lbl:ar.it.name+(l==="hedef"?" hedefi":" aksiyonu")}}
  var p=AIL[l];if(!p)return{err:"Bilinmeyen liste: "+l};return{p:p,lbl:{kitap:"kitap",gezi:"gezi yeri",dua:"dua",yayin:"yayın",kisi:"kişi",birakilan:"bırakılan alışkanlık",deger:"değer",guclu:"güçlü yön",basari:"başarı"}[l]}}
-function aiTool(name,a){a=a||{};var r;
+function aiTool(name,a){a=a||{};var r;var r2=aiTool2(name,a);if(r2!==null&&r2!==undefined)return r2;
  switch(name){
  case"run_command":PARSE_AI=false;return parseCmd(a.command||"")||"Komut anlaşılamadı.";
  case"update_habit":r=aiPick(S.habits,a.habit,"name","alışkanlık");if(r.err)return"HATA: "+r.err;var h=r.it,ch=[];
@@ -1181,8 +1184,106 @@ function aiOpts(txt){var op=[],mm=txt.match(/\n?\s*Seçenekler\s*:\s*(.+)\s*$/i)
  if(mm){op=mm[1].split("|").map(function(x){return x.replace(/^[\s\-*•]+|[\s.]+$/g,"")}).filter(Boolean).slice(0,4);txt=txt.slice(0,mm.index).trim()}
  else{var last=txt.trim().split(/\n/).pop();if(YNQ.test(last))op=["Evet","Hayır"]}
  return{txt:txt,op:op}}
-function needsAI(t){return/(değiştir|güncelle|düzelt|düzenle|(^|\s)sil(\s|$)|sil[ae](bilir|r)|silin|kaldır|çıkar|taşı(\s|$|r|y)|ertele|iptal|yerine|saatini|saati(\s|$)|günlerini|adını|olsun(\s|$)|olarak ayarla|ayarla|bundan sonra|artık|(^|\s)(evet|hayır|aynen|olur|tamam olur|onaylıyorum|yap bunu|yapalım|lütfen yap)(\s|$|[.!,]))/.test(t)}
+function needsAI(t){return/((^|\s)(aç|açar mısın|göster|gösterir misin|nerede|git|getir|öğren|unut|hatırla)(\s|$)|külliyat|modül|değiştir|güncelle|düzelt|düzenle|(^|\s)sil(\s|$)|sil[ae](bilir|r)|silin|kaldır|çıkar|taşı(\s|$|r|y)|ertele|iptal|yerine|saatini|saati(\s|$)|günlerini|adını|olsun(\s|$)|olarak ayarla|ayarla|bundan sonra|artık|(^|\s)(evet|hayır|aynen|olur|tamam olur|onaylıyorum|yap bunu|yapalım|lütfen yap)(\s|$|[.!,]))/.test(t)}
 function lastAsked(){var m=CL[CL.length-1];return!!(m&&m.op&&m.op.length&&Date.now()-m.at<30*60000)}
+/* ---------- Hüdhüd: ekran açma, modüller, Külliyat, öğretilen kurallar ---------- */
+var AI_SCREENS=["bugun","takvim_gun","takvim_hafta","takvim_ay","odak","ben","yillik_plan","alan","defter","kulliyat","kulliyat_kitap","kulliyat_kavramlar","ayarlar","calisma_modu","tesbih","odak_sayaci","calisma_raporu","haftalik_degerlendirme","aylik_degerlendirme"];
+AI_DECL.push(
+ {name:"open_screen",description:"Uygulamada bir ekranı açar. Kullanıcı 'aç', 'göster', 'git', 'nerede' dediğinde ya da bir işi o ekranda yapması gerektiğinde kullan. Sohbet penceresi kapanır ve ekran açılır.",parameters:{type:"object",properties:{
+   screen:{type:"string",enum:AI_SCREENS,description:"bugun=ana ekran; takvim_gun/hafta/ay; odak=çalışma, tesbih, Kur'an, kitap; ben=yıllık plan, değerlendirmeler, defter; yillik_plan=hayat alanları ve hedefler; alan=tek bir hayat alanı (target=alan adı); defter=alışkanlık/namaz/kuran/kitap/dua/gezi/insan/yayin bölümü (target=bölüm); kulliyat=Külliyat bu ay; kulliyat_kitap=bir eser (target=eser adı); calisma_modu=çalışma ekranı; tesbih; odak_sayaci; calisma_raporu; haftalik_degerlendirme; aylik_degerlendirme; ayarlar"},
+   target:{type:"string",description:"alan adı, defter bölümü ya da eser adı"}},required:["screen"]}},
+ {name:"set_module",description:"Bir modülü açar ya da kapatır. Şu an tek modül: kulliyat (İlim, İrfan ve Medeniyet Külliyatı: 32 eser, 24 aylık okuma programı).",parameters:{type:"object",properties:{
+   module:{type:"string",enum:["kulliyat"]},on:{type:"boolean"},start_month:{type:"string",description:"Başlangıç ayı YYYY-AA (boşsa bu ay)"},daily_pages:{type:"integer",description:"Günlük sayfa hedefi (varsayılan 25)"}},required:["module","on"]}},
+ {name:"kulliyat",description:"Külliyat okuma programında işlem yapar.",parameters:{type:"object",properties:{
+   action:{type:"string",enum:["log_pages","set_pages_today","book_status","month_done","add_concept","set_daily_target"],description:"log_pages=bugüne sayfa ekle; set_pages_today=bugünkü toplamı ayarla; book_status=eser durumu; month_done=ay tamam; add_concept=kavram dosyası aç; set_daily_target=günlük hedef"},
+   pages:{type:"integer"},book:{type:"string",description:"Eser adı ya da yazar"},status:{type:"string",enum:["baslamadi","devam","tamam"]},month:{type:"integer",description:"Program ayı 1-24"},name:{type:"string",description:"Kavram adı"}},required:["action"]}},
+ {name:"remember_rule",description:"Kullanıcının sana öğrettiği kalıcı bir kuralı ya da tercihi kaydeder ('bundan sonra … dediğimde … yap', 'bana hep … diye hitap et', 'sabahları kısa cevap ver'). Kaydedilen kurallar her sohbette sana verilir.",parameters:{type:"object",properties:{rule:{type:"string",description:"Kural, kısa ve net"}},required:["rule"]}},
+ {name:"forget_rule",description:"Daha önce öğretilen bir kuralı siler.",parameters:{type:"object",properties:{rule:{type:"string",description:"Kuralın metni ya da sıra numarası"}},required:["rule"]}}
+);
+function aiRules(){return S.aiRules||(S.aiRules=[])}
+function bookFind(q){var arr=[];for(var n=1;n<KB.length;n++)if(KB[n])arr.push({id:"b"+n,n:n,name:KB[n][2]+" — "+aName(n)});var r=aiPick(arr,q,"name","eser");if(r.err)return r;return{n:r.it.n}}
+var AI_NAV=null,AI_LASTNAV="";
+function aiNav(sc,tg){var r="";
+ switch(sc){
+ case"bugun":r="pano";break;case"takvim_gun":weekMode="gun";gunRef=today();r="hafta";break;case"takvim_hafta":weekMode="hafta";r="hafta";break;case"takvim_ay":weekMode="ay";r="hafta";break;
+ case"odak":r="odak";break;case"ben":r="ben";break;case"yillik_plan":openArea=null;r="hedef";break;
+ case"alan":var ar=aiPick(S.areas,tg||"","name","alan");if(ar.err)return{err:ar.err};openArea=ar.it.id;r="hedef";break;
+ case"defter":var DS={aliskanlik:"aliskanlik",alışkanlık:"aliskanlik",namaz:"namaz",kaza:"namaz",kuran:"kuran","kur'an":"kuran",hatim:"kuran",kitap:"kitap",kitaplar:"kitap",dua:"dua",dualar:"dua",gezi:"gezi",insan:"insan",insanlar:"insan",yayin:"yayin",yayın:"yayin"},ds=DS[nrm(tg||"").split(" ")[0]];if(!ds)return{err:"Defter bölümü: alışkanlık, namaz, kuran, kitap, dua, gezi, insan, yayın"};defterSec=ds;r="defter";break;
+ case"kulliyat":if(!klOn())return{err:"Külliyat modülü kapalı. Önce set_module ile aç ya da kullanıcıya açmak isteyip istemediğini sor."};klSec="ay";openBook=null;openKv=null;r="kulliyat";break;
+ case"kulliyat_kitap":if(!klOn())return{err:"Külliyat modülü kapalı."};var bf=bookFind(tg);if(bf.err)return{err:bf.err};openBook=bf.n;openKv=null;r="kulliyat";break;
+ case"kulliyat_kavramlar":if(!klOn())return{err:"Külliyat modülü kapalı."};klSec="kavram";openBook=null;openKv=null;r="kulliyat";break;
+ case"ayarlar":return{fn:function(){setOpen=true;render();window.scrollTo(0,0)}};
+ case"calisma_modu":return{fn:function(){openWork()}};case"tesbih":return{fn:openTesbih};case"odak_sayaci":return{fn:function(){openFocus(25)}};
+ case"calisma_raporu":return{fn:wmReport};case"haftalik_degerlendirme":return{fn:function(){openReview(needReview()||key(monday(today())))}};case"aylik_degerlendirme":weekMode="ay";r="hafta";break;
+ default:return{err:"Bilinmeyen ekran"}}
+ return{tab:r}}
+function localNav(raw,t,words){
+ if(/(^|\s)(ekle|kaydet|sil|yaptım|okudum)(\s|$)|\d+\s*sayfa/.test(t))return null;
+ var open=/(^|\s)(aç|açar mısın|açsana|göster|gösterir misin|git|götür|nerede|nereden)(\s|$)/.test(t),close=/(^|\s)kapat(\s|$)/.test(t);
+ if(!open&&!close)return null;
+ function go2(sc,tg,msg){var nv=aiNav(sc,tg);if(nv.err)return nv.err;if(CHATONLY){try{if(NB&&NB.finishChat)NB.finishChat()}catch(e){}return"Bu küçük pencereden ekran açamıyorum; uygulamayı açınca aynı komutu söyleyebilirsin."}
+  setTimeout(function(){if(CHO&&!CHATONLY)closeChat();if(nv.fn)nv.fn();else go(nv.tab)},900);return msg}
+ if(/külliyat/.test(t)){var k=KL();
+  if(close&&!open){if(!k.on)return"Külliyat zaten kapalı.";mut(function(){k.on=false});if(tab==="kulliyat")go("pano");return"Külliyat modülünü kapattım. İlerlemen silinmedi."}
+  var was=k.on;if(!was){k.on=true;k.start=k.start||thisMonth();k.target=k.target||25;save()}
+  var cm=curMonth(),bks=cm>0&&cm<=24&&KP[cm]?KP[cm][0].map(function(w){return bookLbl(w[0])}).join("; "):"";
+  return go2("kulliyat","",(was?"Külliyat'ı açıyorum.":"Külliyat modülünü açtım ("+k.target+" sayfa/gün).")+(bks?" Bu ayın eserleri: "+bks+".":""))}
+ if(close)return null;
+ if(/rapor/.test(t))return go2("calisma_raporu","","Çalışma raporunu açıyorum.");
+ if(/haftalık değerlendirme|gözden geçirme|teftiş/.test(t))return go2("haftalik_degerlendirme","","Haftalık değerlendirmeyi açıyorum.");
+ if(/aylık değerlendirme/.test(t))return go2("aylik_degerlendirme","","Aylık değerlendirmeyi açıyorum.");
+ if(/ayarlar/.test(t))return go2("ayarlar","","Ayarları açıyorum.");
+ if(/takvim|çizelge|günün planı|bugünün planı/.test(t))return go2(/hafta/.test(t)?"takvim_hafta":/(^|\s)ay(\s|$)/.test(t)?"takvim_ay":"takvim_gun","","Takvimi açıyorum.");
+ var ar=S.areas.filter(function(a){return hits(words,a.name)})[0];
+ if(ar&&/hedef|alan/.test(t))return go2("alan",ar.name,ar.name+" alanını açıyorum.");
+ if(/yıllık plan|yıllık hedef|hedeflerim|hedefler/.test(t))return go2("yillik_plan","","Yıllık planı açıyorum.");
+ var DF=[[/alışkanlık/,"aliskanlik","Alışkanlık geçmişini"],[/kaza|namaz geçmiş/,"namaz","Namaz ve kaza kayıtlarını"],[/kitap/,"kitap","Kitap listeni"],[/(^|\s)dua/,"dua","Dualarını"],[/gezi/,"gezi","Gezi listeni"],[/insan|kişi/,"insan","İnsanlar listeni"],[/yayın/,"yayin","Yayınlarını"]];
+ for(var i=0;i<DF.length;i++)if(DF[i][0].test(t))return go2("defter",DF[i][1],DF[i][2]+" açıyorum.");
+ if(/kur ?an|hatim|okuduğum kitap/.test(t))return go2("odak","","Odak sekmesini açıyorum.");
+ if(/niyet|değerlerim|yıllık planım/.test(t)||/(^|\s)ben(\s|$)/.test(t))return go2("ben","","Ben sekmesini açıyorum.");
+ if(/ana ekran|ana sayfa|bugün(ü)?(\s|$)/.test(t))return go2("bugun","","Bugün ekranını açıyorum.");
+ return null}
+function aiTool2(name,a){
+ if(name==="open_screen"){var nv=aiNav(a.screen,a.target);if(nv.err)return"HATA: "+nv.err;
+  AI_LASTNAV=a.screen;if(CHATONLY){try{if(NB&&NB.finishChat)NB.finishChat()}catch(e){}return"Bu küçük sohbet penceresinden ekran açamıyorum; kullanıcı uygulamayı açınca '"+a.screen+"' ekranına gidebilir. Bunu ona söyle."}
+  AI_NAV=nv;AI_LASTNAV=a.screen;return"Ekran açılacak: "+a.screen+(a.target?" ("+a.target+")":"")+". Cevabını kısa tut; sohbet kapanıp ekran açılacak."}
+ if(name==="set_module"){var k=KL();if(a.on){if(k.on)return"Külliyat zaten açık ("+curMonth()+". ay).";k.on=true;k.start=/^\d{4}-\d{2}$/.test(a.start_month||"")?a.start_month:(k.start||thisMonth());k.target=a.daily_pages>0?a.daily_pages:(k.target||25);return"Külliyat modülü açıldı. Başlangıç "+k.start+", günlük hedef "+k.target+" sayfa. Bu ayın eserleri: "+KP[curMonth()][0].map(function(w){return bookLbl(w[0])}).join("; ")+". Odak sekmesinde ve ana ekranda görünür."}
+  if(!k.on)return"Külliyat zaten kapalı.";k.on=false;return"Külliyat modülü kapatıldı (ilerleme silinmedi)."}
+ if(name==="kulliyat"){if(!klOn())return"HATA: Külliyat modülü kapalı. Kullanıcıya açmak isteyip istemediğini sor (set_module).";var K=KL(),tk=key(today());
+  switch(a.action){
+  case"log_pages":if(!(a.pages>0))return"HATA: pages gerekli";K.daily[tk]=(K.daily[tk]||0)+a.pages;return"Bugüne "+a.pages+" sayfa eklendi. Bugün "+K.daily[tk]+"/"+K.target+".";
+  case"set_pages_today":if(!(a.pages>=0))return"HATA: pages gerekli";K.daily[tk]=a.pages;return"Bugünkü okuma "+a.pages+"/"+K.target+" olarak ayarlandı.";
+  case"set_daily_target":if(!(a.pages>0))return"HATA: pages gerekli";K.target=a.pages;return"Günlük hedef "+a.pages+" sayfa.";
+  case"book_status":var bf=bookFind(a.book);if(bf.err)return"HATA: "+bf.err;var x=bk(bf.n),v={baslamadi:"",devam:"devam",tamam:"tamam"}[a.status||"devam"];x.st=v;if(v&&!x.s)x.s=tk;if(v==="tamam")x.e=tk;return KB[bf.n][2]+": "+(STL[v]||v);
+  case"month_done":var m=a.month||curMonth();K.done[m]=true;return m+". ay tamamlandı olarak işaretlendi.";
+  case"add_concept":if(!a.name)return"HATA: name gerekli";K.kv.push({id:uid(),name:cap1(a.name),notes:[]});return"Kavram dosyası açıldı: "+cap1(a.name);
+  }return"HATA: bilinmeyen işlem"}
+ if(name==="remember_rule"){var t=String(a.rule||"").trim();if(!t)return"HATA: rule boş";var R=aiRules();if(R.some(function(x){return nrm(x.t)===nrm(t)}))return"Bu kural zaten kayıtlı.";R.push({t:t.slice(0,240),at:Date.now()});if(R.length>40)R.shift();return"Kural kaydedildi ("+R.length+". kural): "+t}
+ if(name==="forget_rule"){var R2=aiRules(),q=String(a.rule||"").trim(),ix=/^\d+$/.test(q)?+q-1:-1;if(ix<0){var hit=R2.map(function(x,i){return{t:x.t,i:i}}).filter(function(x){return nrm(x.t).indexOf(nrm(q))>=0})[0];if(hit)ix=hit.i}if(ix<0||!R2[ix])return"HATA: kural bulunamadı. Kurallar: "+R2.map(function(x,i){return(i+1)+") "+x.t}).join(" | ");var del=R2.splice(ix,1)[0];return"Kural silindi: "+del.t}
+ return null}
+function aiAppMap(){return"UYGULAMA HARİTASI (kullanıcı bir yer sorarsa ya da açmanı isterse open_screen kullan):\n"+
+ "- Alt menü: Bugün (işler, alışkanlıklar, namaz kartı, günün yıllık hedefi) · Takvim (Gün çizelgesi, Hafta, Ay) · ortada Hüdhüd (sen) · Odak (çalışma modu, odak sayacı, tesbih, Kur'an hatmi, okunan kitap, Külliyat) · Ben (yıllık plan, değerlendirmeler, Defterim, niyet ve değerler, modüller, ayarlar).\n"+
+ "- Çalışma modu: büyük saat, mola/göz/su hatırlatmaları, namazda duraklar (work_mode aracı). Tesbih: tam ekran sayaç. Odak sayacı: 25 dk vb.\n"+
+ "- Külliyat modülü: "+(klOn()?"AÇIK, "+(curMonth()>24?"program tamamlandı":curMonth()+". ay; bu ayın eserleri: "+KP[curMonth()][0].map(function(w){var b=KL().b[w[0]]||{};return bookLbl(w[0])+" ["+(STL[b.st||""]||"")+"]"}).join("; "))+"; bugün "+todayPages()+"/"+KL().target+" sayfa; kavram dosyası "+KL().kv.length:"KAPALI (set_module ile açılır; açmadan önce başlangıç ayı ve günlük sayfa hedefini sormana gerek yok, varsayılan bu ay ve 25 sayfa)")+".\n"+
+ "- Ayarlar: yapay zekâ, maskot, bildirim saatleri, namaz konumu, yedek, güncelleme."}
+function aiExamples(){return"ÖRNEK DAVRANIŞLAR (bunlara benzer isteklerde böyle davran):\n"+
+ "- 'Külliyatı aç' → modül kapalıysa set_module{module:kulliyat,on:true} sonra open_screen{screen:kulliyat}; açıksa yalnızca open_screen. Cevap: 'Külliyat açıldı, bu ayın eserleri: …'.\n"+
+ "- 'Bugün külliyattan 30 sayfa okudum' → kulliyat{action:log_pages,pages:30}.\n"+
+ "- 'Makâlât'ı bitirdim' → kulliyat{action:book_status,book:'Makâlât',status:tamam}.\n"+
+ "- 'Takvimi göster / yarın neler var' → kısa cevap ver; isterse open_screen{screen:takvim_gun}.\n"+
+ "- 'Tesbih çekeceğim' → open_screen{screen:tesbih}. '2 saat çalışacağım rapor' → work_mode{action:start,minutes:120,task:'Rapor'}.\n"+
+ "- 'Sağlık hedeflerimi aç' → open_screen{screen:alan,target:'Sağlık'}. 'Kitap listem nerede' → open_screen{screen:defter,target:'kitap'}.\n"+
+ "- 'Bundan sonra \"akşam\" dediğimde 21:00 anla' → remember_rule.\n"+
+ "- Birden fazla adım gerekiyorsa hepsini sırayla araçlarla yap; yarıda bırakıp kullanıcıya ne yapacağını sorma."}
+function aiRulesTxt(){var R=aiRules();return R.length?"KULLANICININ SANA ÖĞRETTİKLERİ (her zaman uy, çelişirse bunlar önceliklidir):\n"+R.map(function(x,i){return(i+1)+") "+x.t}).join("\n"):""}
+function aiRulesHtml(){var R=aiRules();return'<div class="card"><b>'+esc(mName())+'\'e öğrettiklerim</b><div class="mute" style="margin:4px 0 8px">Sohbette "bundan sonra … yap" dediğinde ya da bir cevaba 👎 verip ne beklediğini yazdığında buraya eklenir. '+esc(mName())+' her sohbette bunlara uyar.</div>'+
+ (R.length?R.map(function(x,i){return'<div class="row" style="padding:6px 0;border-top:1px solid var(--line)"><span class="sp">'+esc(x.t)+'</span><button class="x" data-a="ruledel" data-i="'+i+'">×</button></div>'}).join(""):'<div class="mute">Henüz kural yok.</div>')+
+ '<button class="btn ghost sm" style="margin-top:8px" data-a="ruleadd">+ Kural ekle</button></div>'}
+function aiFeedback(at,good){var m=CL.filter(function(x){return x.at===at})[0];if(!m)return;
+ if(good){m.fb=1;clSave();refreshChat();toast("Teşekkürler, böyle devam 🐦");return}
+ ask("Ne yapmasını beklerdin?",[{label:"“"+String(m.u).replace(/^🎤 /,"").slice(0,80)+"” dediğinde "+mName()+" ne yapmalıydı?",type:"area"}],function(r){var t=(r[0]||"").trim();m.fb=-1;clSave();
+  if(t){aiRules().push({t:"“"+String(m.u).replace(/^🎤 /,"").slice(0,80)+"” gibi isteklerde: "+t,at:Date.now()});save();AI_HIST.push({role:"user",parts:[{text:"[geri bildirim] Son cevabın yanlıştı. Beklenen: "+t}]},{role:"model",parts:[{text:"Anladım, bundan sonra böyle yapacağım."}]});aiHistSave();toast(mName()+" bunu öğrendi")}
+  refreshChat()},{label:"Öğret"})}
 var AI_NOSEARCH=false;
 var AI_MO=null;
 function aiCall(contents,cb,noSearch,mdl){var c=aiCfg(),mo=mdl||AI_MO;if(mo)c.model=mo;var tools=[{function_declarations:AI_DECL}];
@@ -1192,8 +1293,9 @@ function aiCall(contents,cb,noSearch,mdl){var c=aiCfg(),mo=mdl||AI_MO;if(mo)c.mo
  .then(function(r){return r.json().then(function(j){return{st:r.status,j:j}})}).then(function(x){if(x.st===400&&tools.length>1&&/search|tool|grounding/i.test(JSON.stringify(x.j))){AI_NOSEARCH=true;aiCall(contents,cb,true);return}if(x.st!==200){var er=x.j.error||{},m=(er.message||"")+((er.details||[]).map(function(d){return d.reason?" "+d.reason:""}).join(""));throw{code:x.st,msg:m}}cb(null,x.j)}).catch(function(e){cb(e&&e.code!==undefined?e:{code:0,msg:String(e&&e.message||e)})})}
 function aiAsk(text,fromVoice,done){var c0=aiCfg();if(!c0.model){aiTest(c0.key,function(err,pk){var c1=aiCfg();c1.model=pk&&pk.best||"gemini-flash-latest";c1.models=pk&&pk.all.slice(0,12)||[];aiSet(c1);aiAsk2(text,fromVoice,done)});return}aiAsk2(text,fromVoice,done)}
 function aiAsk2(text,fromVoice,done){try{var hh=JSON.parse(localStorage.getItem("hp.aih")||"{}");if(hh.d!==key(today()))AI_HIST=[]}catch(e){}AI_HIST.push({role:"user",parts:[{text:(fromVoice?"[ses] ":"")+text}]});AI_HIST=AI_HIST.slice(-16);while(AI_HIST.length&&AI_HIST[0].role!=="user")AI_HIST.shift();var rounds=0,acts=[];
- (function step(){AI_MO=step.model||null;aiCall(AI_HIST,function(err,j){AI_MO=null;if(!err&&step.model){var cs=aiCfg();cs.model=step.model;aiSet(cs);step.model=null}
-  if(err){if(err.code>=500&&err.code<600&&rounds===0){step.n5=(step.n5||0)+1;if(step.n5===1){setTimeout(step,1500);return}var cf5=aiCfg(),nx5=AI_FALLBACK.concat(["gemini-flash-lite-latest"]).filter(function(x){return x!==cf5.model&&(step.used5||[]).indexOf(x)<0})[0];if(nx5&&step.n5<=3){step.used5=(step.used5||[]).concat([cf5.model]);step.model=nx5;setTimeout(step,800);return}}
+ (function step(){AI_MO=step.model||null;aiCall(AI_HIST,function(err,j){AI_MO=null;if(!err&&step.model&&!step.temp){var cs=aiCfg();cs.model=step.model;aiSet(cs);step.model=null}
+  if(err){if(err.code===429&&rounds===0){var cf6=aiCfg(),tried=(step.used6||[]).concat([cf6.model,step.model||""]),nx6=AI_FALLBACK.concat(["gemini-flash-lite-latest"]).filter(function(x){return tried.indexOf(x)<0})[0];if(nx6){step.used6=tried;step.model=nx6;step.temp=true;setTimeout(step,300);return}}
+   if(err.code>=500&&err.code<600&&rounds===0){step.n5=(step.n5||0)+1;if(step.n5===1){setTimeout(step,1500);return}var cf5=aiCfg(),nx5=AI_FALLBACK.concat(["gemini-flash-lite-latest"]).filter(function(x){return x!==cf5.model&&(step.used5||[]).indexOf(x)<0})[0];if(nx5&&step.n5<=3){step.used5=(step.used5||[]).concat([cf5.model]);step.model=nx5;setTimeout(step,800);return}}
    if(err.code===404&&rounds===0&&!step.tried){var cf=aiCfg(),nx=AI_FALLBACK.filter(function(x){return x!==cf.model&&(step.used||[]).indexOf(x)<0})[0];if(nx){step.used=(step.used||[]).concat([cf.model]);cf.model=nx;aiSet(cf);step();return}}
    AI_HIST.pop();var det=" ("+(err.code||"bağlantı")+(err.msg?": "+String(err.msg).slice(0,90):"")+")";
    if(err.code>=500&&err.code<600){AI_HIST.pop();AI_LASTERR="Sunucu yoğun ("+err.code+")";done("Google'ın yapay zekâ sunucuları şu an çok yoğun. Biraz sonra tekrar dener misin? Bu arada işlerini ve rutinlerini söyleyebilirsin, onları ben hallederim.",acts);return}
@@ -1223,10 +1325,10 @@ function handleCmd(v,fromVoice,forceAI){v=(v||"").trim();if(!v||AI_BUSY)return;
   if(!fromVoice)setTimeout(function(){var i2=document.getElementById(CHO?"chatin2":"chatin");if(i2)i2.focus()},30)}
  if(r===null){var m=clPush(shown,"…");AI_BUSY=true;refreshChat();
   var fin=false,guard=setTimeout(function(){if(!fin){fin=true;AI_BUSY=false;m.r="Cevap gecikti, tekrar dener misin?";clSave();refreshChat()}},45000);
-  try{aiAsk(v,fromVoice,function(ans,acts2,meta){if(fin)return;fin=true;clearTimeout(guard);AI_BUSY=false;if(meta){m.src=meta.src;m.sg=meta.sg;m.op=meta.op;if(meta.snap){AI_UNDO={at:m.at,s:meta.snap}}}if(acts2&&acts2.length)m.ac=acts2.slice(0,8);m.r=ans;clSave();aiHistSave();save();refreshChat();buzz();after(ans)})}catch(ex){fin=true;clearTimeout(guard);AI_BUSY=false;m.r="Bir hata oldu: "+String(ex&&ex.message||ex).slice(0,80);clSave();refreshChat()}return}
+  try{aiAsk(v,fromVoice,function(ans,acts2,meta){if(fin)return;fin=true;clearTimeout(guard);AI_BUSY=false;if(meta){m.src=meta.src;m.sg=meta.sg;m.op=meta.op;if(meta.snap){AI_UNDO={at:m.at,s:meta.snap}}}if(!meta){var lnv=null;try{var nt0=nrm(v);lnv=localNav(v,nt0,nt0.split(" "))}catch(e){}if(lnv)ans=lnv}if(acts2&&acts2.length)m.ac=acts2.slice(0,8);m.ai=true;m.r=ans;if(AI_NAV){var nv0=AI_NAV;AI_NAV=null;setTimeout(function(){if(CHO&&!CHATONLY)closeChat();if(nv0.fn)nv0.fn();else if(nv0.tab)go(nv0.tab)},1100)}clSave();aiHistSave();save();refreshChat();buzz();after(ans)})}catch(ex){fin=true;clearTimeout(guard);AI_BUSY=false;m.r="Bir hata oldu: "+String(ex&&ex.message||ex).slice(0,80);clSave();refreshChat()}return}
  clPush(shown,r);save();refreshChat();
  var nowp=dayProg(key(today()));if(nowp.t&&nowp.p>=1&&before<1){buzz("ok")}else buzz();after(r)}
-document.addEventListener("click",function(e){var u=e.target.closest("[data-undo]");if(u){e.stopPropagation();aiUndo(+u.getAttribute("data-undo"));return}var o=e.target.closest("[data-op]");if(o){e.stopPropagation();var lm=CL[CL.length-1];if(lm){lm.ans=true;clSave()}handleCmd(o.getAttribute("data-op"),false,true)}},true);
+document.addEventListener("click",function(e){var fbb=e.target.closest("[data-fb]");if(fbb){e.stopPropagation();var fp=fbb.getAttribute("data-fb").split(":");aiFeedback(+fp[0],fp[1]==="1");return}var u=e.target.closest("[data-undo]");if(u){e.stopPropagation();aiUndo(+u.getAttribute("data-undo"));return}var o=e.target.closest("[data-op]");if(o){e.stopPropagation();var lm=CL[CL.length-1];if(lm){lm.ans=true;clSave()}handleCmd(o.getAttribute("data-op"),false,true)}},true);
 document.addEventListener("submit",function(e){if(!e.target.matches("[data-chat]"))return;e.preventDefault();handleCmd(document.getElementById("chatin").value,false)});
 var TTS_CB=null,TTS_L=false;
 function speakOut(t,onDone){t=String(t||"").replace(/\*\*/g,"").replace(/^\s*[-•*]\s+/gm,"").replace(/\n+/g,". ").replace(/[✓🎉🌙📿🎤🤍]/g,"").replace(/\s*·\s*/g,", ").trim();if(!t){onDone&&onDone();return}
@@ -1267,7 +1369,7 @@ function paintChat(){if(!CHO)return;var st=CHO.querySelector(".ch-st");st.textCo
  CHO.querySelector(".ch-v").classList.toggle("on",VLOOP);
  var body=CHO.querySelector(".ch-body"),msgs=CL.slice(-30),h="",lastDay="";
  if(!msgs.length)h='<div class="msgs"><div class="r">'+esc(greet()+hi()+"! Ben "+mName()+". Senin kişisel asistanınım: günün, işlerin, rutinlerin ve hedeflerin için buradayım.")+'</div></div><div class="sgs">'+(CHATONLY?[]:[WM?"Çalışma moduna dön":"Çalışma modunu aç"]).concat(["Bugün ne var?","Günümü planla","Haftamı nasıl daha verimli geçiririm?","Hangi rutinleri aksatıyorum?"]).map(function(x){return'<button data-sg="'+esc(x)+'">'+esc(x)+'</button>'}).join("")+'</div>';
- else{h='<div class="msgs">';msgs.forEach(function(m){var dk=key(new Date(m.at));if(dk!==lastDay){lastDay=dk;h+='<span class="ch-day">'+(dk===key(today())?"Bugün":new Date(m.at).toLocaleDateString("tr-TR",{day:"numeric",month:"long"}))+'</span>'}h+='<div class="u">'+esc(m.u)+'</div><div class="r'+(m.r==="…"?" wait":"")+'">'+fmtMsg(m.r)+acHtml(m)+srcHtml(m)+'</div>'});h+='</div>';var lm=msgs[msgs.length-1];h+=opHtml(lm);if(lm&&lm.sg&&lm.sg.length&&!AI_BUSY&&!(lm.op&&lm.op.length))h+='<div class="sgs">'+lm.sg.map(function(x){return'<button data-sg="'+esc(x)+'">'+esc(x)+'</button>'}).join("")+'</div>'}
+ else{h='<div class="msgs">';msgs.forEach(function(m){var dk=key(new Date(m.at));if(dk!==lastDay){lastDay=dk;h+='<span class="ch-day">'+(dk===key(today())?"Bugün":new Date(m.at).toLocaleDateString("tr-TR",{day:"numeric",month:"long"}))+'</span>'}h+='<div class="u">'+esc(m.u)+'</div><div class="r'+(m.r==="…"?" wait":"")+'">'+fmtMsg(m.r)+acHtml(m)+srcHtml(m)+(m.ai&&m===msgs[msgs.length-1]&&!AI_BUSY?(m.fb?'<span class="fbk">'+(m.fb>0?'👍 Teşekkürler':'👎 Öğrendim')+'</span>':'<span class="fbk"><button data-fb="'+m.at+':1" aria-label="İyi cevap">👍</button><button data-fb="'+m.at+':0" aria-label="Kötü cevap, öğret">👎</button></span>'):'')+'</div>'});h+='</div>';var lm=msgs[msgs.length-1];h+=opHtml(lm);if(lm&&lm.sg&&lm.sg.length&&!AI_BUSY&&!(lm.op&&lm.op.length))h+='<div class="sgs">'+lm.sg.map(function(x){return'<button data-sg="'+esc(x)+'">'+esc(x)+'</button>'}).join("")+'</div>'}
  body.innerHTML=h;body.scrollTop=body.scrollHeight}
 function vPano(){
  var d=today(),h='<div class="hd"><div><div class="eyebrow">Hayat Planım</div><div class="big">'+esc(d.getDate()+" "+GM[d.getMonth()])+' · '+WD[d.getDay()]+'</div><div class="pill">'+esc(hstr(d))+(function(){var nx=nextMajor(d),sp=specials(d);return sp.length?' · <b class="c-'+sp[0].c+'">'+esc(sp[0].t)+'</b>':nx&&nx.days<=30?' · '+esc(nx.t)+' '+(nx.days===1?"yarın":nx.days+" gün sonra"):""})()+'</div></div><div class="row" style="gap:8px;flex:none">'+(editing?'<button class="btn sm" data-a="edit">Bitti</button>':'<button class="ico" data-a="edit" title="Panoyu düzenle" aria-label="Panoyu düzenle">'+I("edit")+'</button>')+gearBtn()+'</div></div>';
@@ -1434,7 +1536,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div><div class="card row"><span class="sp">'+Ii("beads")+'Tesbih düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla tesbih.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #49'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #50'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -1673,10 +1775,10 @@ document.addEventListener("click",function(e){
   ask("Kavram notu",[{label:"Hangi kitaptan?",type:"select",opts:bo2,value:bo2[N.b||0]},{label:"Not",type:"area",value:N.t}],function(r){if(!r[1])return;mut(function(){N.b=parseInt(r[0],10)||0;N.t=r[1]})},{onDelete:function(){mut(function(){C3.notes.splice(C3.notes.indexOf(N),1)})}});return;
  case"k_bnadd":var NEW="＋ Yeni kavram dosyası",names=k.kv.map(function(c){return c.name}).concat([NEW]);
   ask("Kavram notu",[{label:"Kavram dosyası",type:"select",opts:names,value:names[0]},{label:"Yeni kavram adı (yeni seçtiysen)"},{label:"Not",type:"area"}],function(r){if(!r[2])return;mut(function(){var c=r[0]===NEW?null:k.kv.filter(function(x){return x.name===r[0]})[0];if(!c){c={id:uid(),name:r[1]||"Adsız kavram",notes:[]};k.kv.push(c)}c.notes.push({id:uid(),b:n,t:r[2]})})},{label:"Ekle"});return;
- case"k_on":sheet("Külliyat modülünü aç",'<div>Modül açılınca alt menüye <b>Külliyat</b> sekmesi, panoya da bu ayın okuma kartı eklenir.</div><div class="mute" style="margin-top:6px">İstediğin zaman kapatabilirsin; ilerlemen ve notların silinmez.</div><label>Başlangıç ayı</label><input type="month" id="kst" value="'+(k.start||thisMonth())+'"><label>Günlük sayfa hedefi</label><input type="number" id="ktg" value="'+k.target+'"><div class="row" style="margin-top:16px"><span class="sp"></span><button class="btn" data-kok>Modülü aç</button></div>',function(o){
+ case"k_on":sheet("Külliyat modülünü aç",'<div>Modül açılınca <b>Odak</b> sekmesine ve ana ekrana bu ayın okuma kartı eklenir.</div><div class="mute" style="margin-top:6px">İstediğin zaman kapatabilirsin; ilerlemen ve notların silinmez.</div><label>Başlangıç ayı</label><input type="month" id="kst" value="'+(k.start||thisMonth())+'"><label>Günlük sayfa hedefi</label><input type="number" id="ktg" value="'+k.target+'"><div class="row" style="margin-top:16px"><span class="sp"></span><button class="btn" data-kok>Modülü aç</button></div>',function(o){
    o.querySelector("[data-kok]").onclick=function(){var s=o.querySelector("#kst").value,t=parseInt(o.querySelector("#ktg").value,10);o.remove();
     k.on=true;k.start=/^\d{4}-\d{2}$/.test(s)?s:(k.start||thisMonth());k.target=t>0?t:25;
-    if(S.board.indexOf("kulliyat")<0)S.board.splice(Math.min(1,S.board.length),0,"kulliyat");
+    
     klSec="ay";openBook=null;openKv=null;save();go("kulliyat");setTimeout(function(){say("Külliyat programı başladı. Bismillah! 📖",true)},300)}});return;
  case"k_off":sheet("Modülü kapat",'<div>Külliyat sekmesi ve pano kartı gizlenir.</div><div class="mute" style="margin-top:6px">İlerlemen ve notların silinmez; yeniden açtığında kaldığın yerden devam edersin.</div><div class="row" style="margin-top:16px"><span class="sp"></span><button class="btn" data-koff>Kapat</button></div>',function(o){o.querySelector("[data-koff]").onclick=function(){o.remove();mut(function(){k.on=false});if(tab==="kulliyat")go("pano")}});return;
  case"k_set":ask("Külliyat ayarları",[{label:"Başlangıç ayı",type:"month",value:k.start||thisMonth()},{label:"Günlük sayfa hedefi",type:"number",value:k.target}],function(r){mut(function(){if(/^\d{4}-\d{2}$/.test(r[0]))k.start=r[0];var t=parseInt(r[1],10);if(t>0)k.target=t})});return;
@@ -1782,7 +1884,7 @@ function aiSettingsHtml(){var c=aiCfg(),on=aiOn();
  (c.key?'<div class="eyebrow" style="margin:14px 0 4px">'+esc(mName())+' neleri bilsin?</div>'+[["stats","Haftalık ilerleme ve alışkanlık serileri"],["goals","Hayat alanları ve hedefler"],["books","Okuduğum kitaplar"],["me","Niyetim, değerlerim, güçlü yönlerim"],["notes","Son 3 günün notları"],["search","Plan için gerekirse Google'da arasın"]].map(function(r){var on=r[0]==="search"?c.search===true:aiCtx()[r[0]];return'<label class="tgl"><input type="checkbox" data-aictx="'+r[0]+'"'+(on?" checked":"")+'><span>'+r[1]+'</span></label>'}).join(""):'')+
  '<label>'+(c.shared?"Kendi anahtarın (isteğe bağlı)":c.key?"Anahtarı değiştir":"ya da elle yapıştır")+'</label><input type="password" id="aikey" autocomplete="off" placeholder="'+(c.key?"•••• kayıtlı":"AIza… ya da AQ. ile başlayan anahtar")+'">'+
  (c.key?'<div class="row" style="margin-top:10px;gap:8px"><button class="btn sm" data-a="aiping">Bağlantıyı test et</button></div>'+(AI_LASTERR?'<div class="mute" style="margin-top:8px">Son hata: '+esc(AI_LASTERR)+'</div>':''):'')+'<div class="row" style="margin-top:10px;gap:8px"><button class="btn sm" data-a="aisave">Kaydet ve dene</button>'+(c.key&&!c.shared?'<button class="btn ghost sm" data-a="aidel">Anahtarı sil</button>':'')+'</div>'+
- '<div class="mute" style="margin-top:10px">Anahtar: aistudio.google.com/apikey adresinden alınır. Kendi girdiğin anahtar sadece bu telefonda saklanır, yedeğe girmez.</div></div>'}
+ '<div class="mute" style="margin-top:10px">Anahtar: aistudio.google.com/apikey adresinden alınır. Kendi girdiğin anahtar sadece bu telefonda saklanır, yedeğe girmez.</div></div>'+aiRulesHtml()}
 function foldSettings(root){var heads=[].slice.call(root.querySelectorAll('.lh[id^="sec-"]'));if(!heads.length)return;var grp=document.createElement("div");grp.className="sgroup";heads[0].parentNode.insertBefore(grp,heads[0]);var made=[];heads.forEach(function(lh){var id=lh.id,d=document.createElement("details");d.className="fold set";d.id=id;d.setAttribute("data-fold","set:"+id);if(folds["set:"+id])d.open=true;var sm=document.createElement("summary"),t0=document.createElement("span"),t1=document.createElement("span"),t2=document.createElement("span"),ic=SICO[id.slice(4)]||["#7b7566","gear"];t0.className="ti";t0.style.background=ic[0];t0.innerHTML=ic[1]?I(ic[1]):mDef().e;sm.appendChild(t0);t1.textContent=lh.textContent;t2.className="sv";t2.textContent=SECV[id.slice(4)]||"";sm.appendChild(t1);sm.appendChild(t2);d.appendChild(sm);lh.parentNode.insertBefore(d,lh);var n=lh.nextSibling;lh.remove();while(n&&!(n.classList&&n.classList.contains("lh")&&/^sec-/.test(n.id||""))&&!(n.tagName==="DETAILS")){var nx=n.nextSibling;if(n.classList&&n.classList.contains("mute")&&!n.nextSibling)break;d.appendChild(n);n=nx}made.push(d)});made.forEach(function(d){grp.appendChild(d)})}
 function a11y(root){root.querySelectorAll("button.x").forEach(function(b){if(b.hasAttribute("aria-label"))return;var t=b.textContent.trim();b.setAttribute("aria-label",b.hasAttribute("data-close")?"Kapat":t==="×"?"Sil":t==="⋯"?"Seçenekler":t)})}
 function render(){
@@ -1867,6 +1969,8 @@ document.addEventListener("click",function(e){
  case"chatopen":openChat();return;
  case"tesbih":openTesbih();return;
  case"work":openWork();return;
+ case"ruledel":mut(function(){aiRules().splice(i,1)});toast("Kural silindi");return;
+ case"ruleadd":ask("Yeni kural",[{label:mName()+" neyi bilsin ya da nasıl davransın?",type:"area"}],function(r){if(r[0]&&r[0].trim())mut(function(){aiRules().push({t:r[0].trim().slice(0,240),at:Date.now()})})},{label:"Kaydet"});return;
  case"bendef":defterSec=v||"";go("defter");return;
  case"benay":weekMode="ay";go("hafta");return;
  case"planai":if(v)nudgeSet(v,{until:Date.now()+7*864e5});planAI();return;
@@ -2218,7 +2322,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("49",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("50",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
