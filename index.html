@@ -229,7 +229,7 @@ details.fold .lh{margin:0 0 8px}details.fold .lh h2{font-size:13px;font-weight:4
 .onb{min-height:calc(100vh - 40px);display:flex;flex-direction:column;justify-content:center;gap:12px}
 .onb .dots{display:flex;gap:6px;justify-content:center;margin-bottom:6px}.onb .dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}.onb .dots i.on{background:var(--acc)}
 .tog{padding:8px 14px;border-radius:20px;border:1px solid var(--line);background:var(--card);margin:4px 4px 0 0;font-size:14px}.tog.on{background:var(--acc);color:var(--card);border-color:var(--acc)}
-.bub .bb{display:flex;gap:8px;margin-top:8px}.bub .bb button{flex:1;padding:6px 8px;border-radius:9px;background:var(--acc2);color:var(--acc);font-weight:600;font-size:13px}.bub .bb button.y{background:var(--acc);color:var(--card)}
+.u:empty{display:none}.bub .bb{display:flex;gap:8px;margin-top:8px}.bub .bb button{flex:1;padding:6px 8px;border-radius:9px;background:var(--acc2);color:var(--acc);font-weight:600;font-size:13px}.bub .bb button.y{background:var(--acc);color:var(--card)}
 .pt{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;text-align:center}.pt>*{padding:7px 0 4px;border-radius:12px;font-size:15px;font-variant-numeric:tabular-nums}.pt .pv{background:var(--acc2)}.pt .sun{opacity:.6}.pt .nx{box-shadow:inset 0 0 0 2px var(--gold)}.pt .pv.ok{background:var(--acc);color:var(--card)}.pt i{display:block;height:15px;font-style:normal;font-size:12px}.pt small{display:block;font-size:11px;opacity:.75}
 .banner{border-color:var(--gold)}
 .stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}.stat b{display:block;font-size:20px}
@@ -1902,10 +1902,14 @@ function clToday(){var t0=today().getTime();return CL.filter(function(m){return 
 function clPush(u,r){var pm=CL[CL.length-1];if(pm&&pm.op)pm.ans=true;var m={u:u,r:r,at:Date.now()};CL.push(m);clSave();CHAT=clToday().slice(-1);return m}
 function refreshChat(){render();if(CHO)paintChat()}
 function splitCmd(v){return v.split(/(?:[.!?]+\s+|\n+|\s*;\s*|\s+ayrıca\s+|\s+bir de\s+)/i).map(function(x){return x.replace(/[.!?]+$/,"").replace(/^(ayrıca|bir de|ve|sonra|bir şey daha)\s+/i,"").trim()}).filter(function(x){return x.length>1})}
+function updCmd(v){var t=nrm(v);
+ if(/^(g[uü]ncelle|g[uü]ncellemeyi (indir|kur|yap|ba[sş]lat)|indir ve kur|s[uü]r[uü]m[uü] g[uü]ncelle|g[uü]ncelleme yap|g[uü]ncelle ve kur)$/.test(t)){if(updInfo){startUpdate();return"Güncellemeyi indiriyorum (#"+updInfo.n+"). Bitince kurulum ekranı açılır; onaylaman yeterli."}return"Uygulaman güncel görünüyor (#"+SURUM+")."}
+ if(updInfo&&/^([sş]imdi de[gğ]il|sonra|daha sonra)$/.test(t))return"Tamam. Hazır olduğunda \"güncelle\" demen yeterli.";return null}
 function handleCmd(v,fromVoice,forceAI){v=(v||"").trim();if(!v||AI_BUSY)return;
- var shown=(fromVoice?"🎤 ":"")+v,before=dayProg(key(today())).p,segs=splitCmd(v),r,nl=null;
- if(!forceAI&&segs.length===1&&!lastAsked()&&!CHATTY.test(nrm(v))){try{nl=nluTry(v)}catch(ex0){nl=null}}
- if(nl)r=nl.say;
+ var shown=(fromVoice?"🎤 ":"")+v,before=dayProg(key(today())).p,segs=splitCmd(v),r,nl=null,up=updCmd(v);
+ if(!up&&!forceAI&&segs.length===1&&!lastAsked()&&!CHATTY.test(nrm(v))){try{nl=nluTry(v)}catch(ex0){nl=null}}
+ if(up)r=up;
+ else if(nl)r=nl.say;
  else if(aiOn()&&(forceAI||lastAsked()||needsAI(nrm(v)))&&!CHATTY.test(nrm(v)))r=null;
  else if(segs.length>1&&!aiOn()){var outs=[];segs.forEach(function(sg){var x=parseCmd(sg);if(x)outs.push("• "+x)});r=outs.join("\n")||"Anlayamadım.";}
  else if(segs.length>1){r=null}
@@ -1938,7 +1942,8 @@ function loopListen(){if(!VLOOP||!CHO)return;listenOnce(function(t){if(!VLOOP)re
  if(BYE.test(nrm(t))){VLOOP=false;var bye="Görüşürüz"+hi()+", Allah'a emanet ol.";clPush("🎤 "+t,bye);paintChat();render();speakOut(bye);return}
  handleCmd(t,true)})}
 function chatAvatar(){return'<div class="cav">'+mDef().svg+'</div>'}
-function openChat(){if(CHO){paintChat();return}CHO=document.createElement("div");CHO.id="cho";
+function updAsk(){if(!updInfo||S.settings.updAsk===updInfo.n)return;S.settings.updAsk=updInfo.n;var m=clPush("","Yeni sürüm hazır: #"+updInfo.n+". Şimdi güncelleyelim mi?");m.op=["Güncelle","Şimdi değil"];clSave();save()}
+function openChat(){if(CHO){paintChat();return}try{updAsk()}catch(e){}CHO=document.createElement("div");CHO.id="cho";
  CHO.innerHTML=(CHATONLY?'<div class="ch-back" data-ch="close"></div><div class="ch-sheet">':'')+'<div class="ch-top">'+chatAvatar()+'<div class="sp"><b>'+esc(mName())+'</b><div class="mute ch-st"></div></div><button class="ch-v" data-ch="loop">'+I("mic")+'<span>Sesli sohbet</span></button><button class="tb-b ch-x" data-ch="close" aria-label="Kapat">✕</button></div><div class="ch-body"></div>'+
  '<form class="chat ch-in" data-chat2><input id="chatin2" type="text" enterkeyhint="send" autocomplete="off" placeholder="Yaz ya da mikrofona dokun…"><button type="button" class="mic" data-ch="mic" aria-label="Sesle söyle">'+I("mic")+'</button><button type="submit" aria-label="Gönder">'+I("send")+'</button></form>'+(CHATONLY?'</div>':'');
  CHO._t=Date.now();document.body.appendChild(CHO);document.body.classList.add("choopen");ovHide(true);paintChat();
@@ -2129,7 +2134,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div><div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Tesbih düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla tesbih.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #60'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #61'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -2676,7 +2681,7 @@ document.addEventListener("click",function(e){
  case"hudname":var hn=document.getElementById("hudname");if(hn&&hn.value.trim()){S.settings.userName=hn.value.trim();save();var nb0=document.getElementById("nobetBody");if(nb0)nb0.innerHTML=nobetBody();render();say("Memnun oldum "+uName()+"! "+mDef().e,true)}return;
  case"mdesign":var oldN=mName(),onb=!S.onboarded;S.settings.mascot=v;if(!S.settings.mascotName||S.settings.mascotName===oldN)S.settings.mascotName="";save();if(onb){var nn0=document.getElementById("onbn"),tt0=document.getElementById("onbt"),a1=nn0?nn0.value:"",a2=tt0?tt0.value:"";render();if(nn0){document.getElementById("onbn").value=a1;document.getElementById("onbt").value=a2}}else render();var ov4=el.closest(".over");if(ov4)ov4.remove();if(S.onboarded)setTimeout(function(){say("Merhaba"+hi(" ")+"! Ben "+mName()+", "+mDef().intro+". "+mDef().e,true)},250);return;
  case"updcheck":checkUpdate(true);return;
- case"updgo":startUpdate();return;
+ case"updgo":(function(){var bb=el.closest(".bub");if(bb)bb.remove()})();startUpdate();return;
  case"hudset":var ov3=el.closest(".over");if(ov3)ov3.remove();setOpen=true;render();window.scrollTo(0,0);return;
  case"openset":setOpen=true;render();window.scrollTo(0,0);return;
  case"closeset":setOpen=false;render();window.scrollTo(0,0);return;
@@ -2791,7 +2796,7 @@ function sleeping(){var h=new Date().getHours(),f=S.settings.quietFrom==null?23:
 function say(txt,salute,act){
  if(!nobetOn())return;
  if(overlayOn()&&NB&&NB.say){try{var pp=NB.say({t:txt,salute:!!salute});if(pp&&pp.catch)pp.catch(function(){})}catch(e){}return}var old=document.querySelector(".bub");if(old)old.remove();
- var b=document.createElement("div");b.className="bub";b.innerHTML=esc(txt)+(act?'<div class="bb"><button class="y" data-a="bubyes" data-act="'+esc(JSON.stringify(act))+'">✓ Yaptım</button><button data-a="bubno">Sonra</button></div>':'');
+ var b=document.createElement("div");b.className="bub";b.innerHTML=esc(txt)+(act==="upd"?'<div class="bb"><button class="y" data-a="updgo">⬇ İndir ve kur</button><button data-a="bubno">Sonra</button></div>':act?'<div class="bb"><button class="y" data-a="bubyes" data-act="'+esc(JSON.stringify(act))+'">✓ Yaptım</button><button data-a="bubno">Sonra</button></div>':'');
  if(!act)b.onclick=function(){b.remove()};document.body.appendChild(b);nEl.classList.add("talk");setTimeout(function(){nEl.classList.remove("talk")},act?15000:8000);
  if(salute){nEl.classList.add("salute");setTimeout(function(){nEl.classList.remove("salute")},1800)}
  clearTimeout(bubT);bubT=setTimeout(function(){b.remove()},act?15000:8000)}
@@ -2966,7 +2971,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("60",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("61",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
@@ -2974,7 +2979,7 @@ async function checkUpdate(manual){
   var r=await fetch("https://api.github.com/repos/"+UPD_REPO+"/releases/latest",{cache:"no-store"});
   if(!r.ok)throw new Error("HTTP "+r.status);
   var d=await r.json(),m=/(\d+)/.exec(d.tag_name||""),n=m?parseInt(m[1],10):0,a=(d.assets||[]).filter(function(x){return/\.apk$/i.test(x.name)})[0];
-  if(n>SURUM&&a){updInfo={n:n,url:a.browser_download_url,name:a.name,notes:(d.body||"").split("\n")[0].slice(0,140)};render();if(!manual)setTimeout(function(){say("Yeni bir sürüm var"+hi()+"! Pano'dan tek dokunuşla güncelleyebilirsin. "+mDef().e)},1500)}
+  if(n>SURUM&&a){updInfo={n:n,url:a.browser_download_url,name:a.name,notes:(d.body||"").split("\n")[0].slice(0,140)};render();if(!manual)setTimeout(function(){say("Yeni sürüm var"+hi()+" (#"+n+")! "+(overlayOn()?"Bana dokun, sohbette Güncelle'ye bas. ":"")+mDef().e,false,"upd")},1500)}
   else{updInfo=null;if(manual)toast("Uygulaman güncel ✓ (#"+SURUM+")")}
  }catch(e){if(manual)toast("Güncelleme denetlenemedi: "+String(e&&e.message||e).slice(0,60))}}
 function updCard(){if(!updInfo)return"";return'<div class="card banner"><div class="row"><span class="sp"><b>'+Ii("bell")+'Yeni sürüm hazır: #'+updInfo.n+'</b><div class="mute">'+(updInfo.notes?esc(updInfo.notes):"Şu an #"+SURUM+" kullanıyorsun.")+'</div></span></div><div class="row" style="margin-top:8px"><button class="btn sm" data-a="updgo">'+(updState?esc(updState):"İndir ve kur")+'</button><span class="mute sp">Verilerin silinmez.</span></div></div>'}
