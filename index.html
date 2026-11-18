@@ -1965,18 +1965,18 @@ function aiNav(sc,tg){var r="";
  case"calisma_raporu":return{fn:wmReport};case"haftalik_degerlendirme":return{fn:function(){openReview(needReview()||key(monday(today())))}};case"aylik_degerlendirme":weekMode="ay";r="hafta";break;
  default:return{err:"Bilinmeyen ekran"}}
  return{tab:r}}
-function navGo2(sc,tg,msg){var nv=aiNav(sc,tg);if(nv.err)return{ok:false,msg:nv.err};if(CHATONLY){try{if(NB&&NB.finishChat)NB.finishChat()}catch(e){}return{ok:true,msg:"Bu küçük pencereden ekran açamıyorum; uygulamayı açınca aynı komutu söyleyebilirsin."}}
+function navGo2(sc,tg,msg){var nv=aiNav(sc,tg);if(nv.err)return{ok:false,msg:nv.err};if(CHATONLY){try{NB.openScreen({sc:sc,tg:tg||""})}catch(e){}return{ok:true,msg:"Uygulamayı açıyorum."}}if(false){return{ok:true,msg:"Bu küçük pencereden ekran açamıyorum; uygulamayı açınca aynı komutu söyleyebilirsin."}}
  setTimeout(function(){if(CHO&&!CHATONLY)closeChat();if(nv.fn)nv.fn();else go(nv.tab)},900);return{ok:true,msg:msg||"Açıyorum."}}
 function localNav(raw,t,words){
  if(/(^|\s)(ekle|kaydet|sil|yaptım|okudum)(\s|$)|\d+\s*sayfa/.test(t))return null;
  var open=/(^|\s)(aç|açar mısın|açsana|göster|gösterir misin|git|götür|nerede|nereden)(\s|$)/.test(t),close=/(^|\s)kapat(\s|$)/.test(t);
  var klq=/külliyat/.test(t)&&/(hangi (kitap|eser)|kitaplar|eserler|eser listesi|kitap listesi|neler var|içinde ne)/.test(t);
  if(!open&&!close&&!klq)return null;
- function go2(sc,tg,msg){var nv=aiNav(sc,tg);if(nv.err)return nv.err;if(CHATONLY){try{if(NB&&NB.finishChat)NB.finishChat()}catch(e){}return"Bu küçük pencereden ekran açamıyorum; uygulamayı açınca aynı komutu söyleyebilirsin."}
+ function go2(sc,tg,msg){var nv=aiNav(sc,tg);if(nv.err)return nv.err;if(CHATONLY){try{NB.openScreen({sc:sc,tg:tg||""})}catch(e){}return"Uygulamayı açıyorum."}
   setTimeout(function(){if(CHO&&!CHATONLY)closeChat();if(nv.fn)nv.fn();else go(nv.tab)},900);return msg}
  var lmod=open&&(/(finans|bütçe|bütçeyi|harcama)/.test(t)?"finans":/(beslenme|haftalık menü|alışveriş listesi)/.test(t)?"beslenme":/(ev işleri|ev işlerini|temizlik listesi)/.test(t)?"ev":"");
- if(lmod){if(CHATONLY)return"Bu küçük pencereden ekran açamıyorum; uygulamayı açınca aynı komutu söyleyebilirsin.";setTimeout(function(){if(CHO)closeChat();finTab="ozet";besTab="bugun";go(lmod)},900);return{finans:"Finans ekranını açıyorum.",beslenme:"Beslenme ekranını açıyorum.",ev:"Ev işlerini açıyorum."}[lmod]}
- if(/diksiyon/.test(t)&&open){if(CHATONLY)return"Bu küçük pencereden ekran açamıyorum; uygulamayı açınca aynı komutu söyleyebilirsin.";setTimeout(function(){if(CHO)closeChat();dkTab="bugun";go("diksiyon")},900);return"Diksiyon çalışmasını açıyorum."}
+ if(lmod){if(CHATONLY){try{NB.openScreen({sc:lmod,tg:""})}catch(e){}return"Uygulamayı açıyorum."}setTimeout(function(){if(CHO)closeChat();finTab="ozet";besTab="bugun";go(lmod)},900);return{finans:"Finans ekranını açıyorum.",beslenme:"Beslenme ekranını açıyorum.",ev:"Ev işlerini açıyorum."}[lmod]}
+ if(/diksiyon/.test(t)&&open){if(CHATONLY){try{NB.openScreen({sc:"diksiyon",tg:""})}catch(e){}return"Uygulamayı açıyorum."}setTimeout(function(){if(CHO)closeChat();dkTab="bugun";go("diksiyon")},900);return"Diksiyon çalışmasını açıyorum."}
  if(/külliyat/.test(t)){var k=KL();
   if(/(hangi (kitap|eser)|kitaplar|eserler|eser listesi|kitap listesi|neler var|içinde ne)/.test(t)&&!close){var kt=[],ki;for(ki=1;ki<=32;ki++)if(KB[ki])kt.push(KB[ki][2]);var cm2=curMonth(),bk2=cm2>0&&cm2<=24&&KP[cm2]?KP[cm2][0].map(function(w){return bookLbl(w[0])}).join("; "):"";if(!k.on){k.on=true;k.start=k.start||thisMonth();k.target=k.target||25;save()}return go2("kulliyat","","Külliyat'ta "+kt.length+" eser var, örneğin: "+kt.slice(0,4).join("; ")+"."+(bk2?" Bu ayın eserleri: "+bk2+".":"")+" Kütüphaneyi açıyorum.")}
   if(close&&!open){if(!k.on)return"Külliyat zaten kapalı.";mut(function(){k.on=false});if(tab==="kulliyat")go("pano");return"Külliyat modülünü kapattım. İlerlemen silinmedi."}
@@ -2008,7 +2008,7 @@ function aiTool2(name,a){
   if(kd==="chore_add"){if(!tx)return"HATA: text gerekli";EV().chores.push({id:uid(),n:cap1(tx),every:Math.max(1,a.every_days||7),last:""});save();return"Ev işi eklendi."}
   return"HATA: bilinmeyen kind"}
  if(name==="open_screen"){var nv=aiNav(a.screen,a.target);if(nv.err)return"HATA: "+nv.err;
-  AI_LASTNAV=a.screen;if(CHATONLY){try{if(NB&&NB.finishChat)NB.finishChat()}catch(e){}return"Bu küçük sohbet penceresinden ekran açamıyorum; kullanıcı uygulamayı açınca '"+a.screen+"' ekranına gidebilir. Bunu ona söyle."}
+  AI_LASTNAV=a.screen;if(CHATONLY){try{NB.openScreen({sc:a.screen,tg:a.target||""})}catch(e){}return"Uygulama '"+a.screen+"' ekranında açılıyor. Cevabını kısa tut."}
   AI_NAV=nv;AI_LASTNAV=a.screen;return"Ekran açılacak: "+a.screen+(a.target?" ("+a.target+")":"")+". Cevabını kısa tut; sohbet kapanıp ekran açılacak."}
  if(name==="set_module"){var k=KL();if(a.on){if(k.on)return"Külliyat zaten açık ("+curMonth()+". ay).";k.on=true;k.start=/^\d{4}-\d{2}$/.test(a.start_month||"")?a.start_month:(k.start||thisMonth());k.target=a.daily_pages>0?a.daily_pages:(k.target||25);return"Külliyat modülü açıldı. Başlangıç "+k.start+", günlük hedef "+k.target+" sayfa. Bu ayın eserleri: "+KP[curMonth()][0].map(function(w){return bookLbl(w[0])}).join("; ")+". Odak sekmesinde ve ana ekranda görünür."}
   if(!k.on)return"Külliyat zaten kapalı.";k.on=false;return"Külliyat modülü kapatıldı (ilerleme silinmedi)."}
@@ -2389,7 +2389,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Tesbih düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla tesbih.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #69'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #70'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3058,6 +3058,7 @@ function checkOverlay(){if(!NB)return;
   if(r.pending&&r.pending.length){mut(function(){r.pending.forEach(function(a){var L=dayLog(a.date||key(today()));if(a.type==="habit")L.h[a.id]=true;else if(a.type==="act")L.a[a.id]=true;else if(a.type==="prayer"){L.p[a.i]=true}else if(a.type==="task"){var b=L.big.filter(function(x){return!x.done&&!x.moved&&x.t===a.t})[0];if(b)b.done=true}})})}
   if(r.voice)setTimeout(function(){openChat();startVoice()},500);
   if(r.tesbih)setTimeout(openTesbih,350);
+  if(r.screen&&!CHATONLY&&r.screen!=="|")setTimeout(function(){try{var q=r.screen.split("|"),sc=q[0],tg=q[1]==null||q[1]==="null"?"":q[1];if(CHO)closeChat();if(["finans","beslenme","ev","diksiyon"].indexOf(sc)>=0){finTab="ozet";besTab="bugun";dkTab="bugun";go(sc)}else{var nv=aiNav(sc,tg);if(!nv.err){if(nv.fn)nv.fn();else go(nv.tab)}}}catch(e){}},500);
   if(r.calisma&&!CHATONLY)setTimeout(function(){if(CHO&&!CHATONLY)closeChat();openWork()},350);
   if(r.calismaq&&!CHATONLY)setTimeout(function(){if(CHO&&!CHATONLY)closeChat();if(!WM){var wl=S.settings.wmLast||{t:"",d:120};wmStart(wl.d,wl.t)}openWork()},350);
   if(r.userClosed&&mMode()==="everywhere"){setMode("app");save();render();return}
@@ -3265,7 +3266,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("69",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("70",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
