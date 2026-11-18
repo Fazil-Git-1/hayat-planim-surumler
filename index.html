@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+<script>try{if(/[?&]chat=1/.test(location.search))document.documentElement.classList.add('chatpre')}catch(e){}</script>
+<style>html.chatpre,html.chatpre body{background:transparent!important}html.chatpre #app,html.chatpre .nav,html.chatpre #nav,html.chatpre #nobet,html.chatpre #tfab,html.chatpre .toast{display:none!important}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Hayat Planım</title>
@@ -130,7 +132,7 @@ body.choopen #nobet,body.choopen #tfab{display:none}body.choopen .over,body.choo
 .ch-open{display:block;margin-top:12px;font-size:14px}
 html:has(body.chatonly),body.chatonly{background:transparent!important}body.chatonly #app,body.chatonly .nav,body.chatonly #nav,body.chatonly #nobet,body.chatonly #tfab,body.chatonly .toastx{display:none!important}
 body.chatonly #cho{background:transparent;padding:0;display:flex;flex-direction:column}body.chatonly .ch-back{flex:1;min-height:18vh}
-body.chatonly .ch-sheet{height:78vh;max-height:78vh;background:var(--bg);border-radius:24px 24px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;padding:14px 14px calc(12px + env(safe-area-inset-bottom))}
+body.chatonly .ch-sheet{height:66vh;max-height:66vh;margin:0 10px calc(10px + env(safe-area-inset-bottom));background:var(--bg);border-radius:26px;box-shadow:0 12px 40px rgba(0,0,0,.32);display:flex;flex-direction:column;padding:14px 14px 12px}
 body.chatonly .ch-sheet .ch-body{flex:1;overflow-y:auto}
 .gun .gq{font-size:16px;line-height:1.45;margin-top:4px}
 #wms{position:fixed;inset:0;z-index:40;background:#121826;color:#efe7d4;display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));overflow-y:auto}
@@ -2133,7 +2135,7 @@ function handleCmd(v,fromVoice,forceAI){v=(v||"").trim();if(!v||AI_BUSY)return;
  else if(segs.length>1&&!aiOn()){var outs=[];segs.forEach(function(sg){var x=parseCmd(sg);if(x)outs.push("• "+x)});r=outs.join("\n")||"Anlayamadım.";}
  else if(segs.length>1){r=null}
  else{PARSE_AI=true;r=parseCmd(v);PARSE_AI=false}
- function after(ans){if(!CHO&&typeof say==="function")say(ans);if((fromVoice||VLOOP)&&S.settings.tts!==false)speakOut(ans,VLOOP?loopListen:null);else if(VLOOP)setTimeout(loopListen,600);
+ function after(ans){if((!CHO||(CHATONLY&&document.hidden))&&typeof say==="function")say(ans.length>140?ans.slice(0,137)+"…":ans);if((fromVoice||VLOOP)&&S.settings.tts!==false)speakOut(ans,VLOOP?loopListen:null);else if(VLOOP)setTimeout(loopListen,600);
   if(!fromVoice)setTimeout(function(){var i2=document.getElementById(CHO?"chatin2":"chatin");if(i2)i2.focus()},30)}
  if(r===null){var m=clPush(shown,"…");AI_BUSY=true;refreshChat();
   var fin=false,guard=setTimeout(function(){if(!fin){fin=true;AI_BUSY=false;m.r="Cevap gecikti, tekrar dener misin?";clSave();refreshChat()}},45000);
@@ -2157,7 +2159,8 @@ function listenOnce(cb){micOn(true);buzz();var fin=function(t){micOn(false);cb(S
 function startVoice(){stopSpeak();listenOnce(function(t){if(t)handleCmd(t,true);else toast("Seni duyamadım, tekrar dener misin?")})}
 var VLOOP=false,CHO=null,CHATONLY=false;
 var BYE=/^(görüşürüz|hoşça kal|hoşçakal|tamam bu kadar|bu kadar|yeter|kapat|sonra konuşuruz|bitir|allah'a emanet|allaha emanet)/;
-function loopListen(){if(!VLOOP||!CHO)return;listenOnce(function(t){if(!VLOOP)return;if(!t){VLOOP=false;paintChat();toast("Sesli sohbet durdu");return}
+var LOOPWAIT=false;
+function loopListen(){if(!VLOOP||!CHO)return;if(document.hidden){LOOPWAIT=true;return}listenOnce(function(t){if(!VLOOP)return;if(!t){VLOOP=false;paintChat();toast("Sesli sohbet durdu");return}
  if(BYE.test(nrm(t))){VLOOP=false;var bye="Görüşürüz"+hi()+", Allah'a emanet ol.";clPush("🎤 "+t,bye);paintChat();render();speakOut(bye);return}
  handleCmd(t,true)})}
 function chatAvatar(){return'<div class="cav">'+mDef().svg+'</div>'}
@@ -2353,7 +2356,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Tesbih düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla tesbih.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #67'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #68'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3228,7 +3231,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("67",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("68",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
@@ -3259,6 +3262,7 @@ setTimeout(nobetTick,2500);scheduleNotifs();checkOverlay();resetTick();setTimeou
 setTimeout(function(){try{ensurePT()}catch(e){}},1200);
 try{if(NB&&NB.launchInfo)NB.launchInfo().then(function(r){if(!r||!r.chat)return;CHATONLY=true;document.body.classList.add("chatonly");openChat();if(r.voice)setTimeout(startVoice,350)}).catch(function(){})}catch(e){}
 document.addEventListener("hpChatVoice",function(){if(CHATONLY){openChat();setTimeout(startVoice,200)}});
+document.addEventListener("visibilitychange",function(){if(CHATONLY&&!document.hidden&&CHO){try{ovHide(true);paintChat();if(LOOPWAIT&&VLOOP){LOOPWAIT=false;setTimeout(loopListen,500)}}catch(e){}}});
 document.addEventListener("visibilitychange",function(){if(document.hidden||CHATONLY)return;try{var d=loadLocal();if(d&&(d._t||0)>(S._t||0)){S=migrate(d);hc={};render()}CL=JSON.parse(localStorage.getItem("hp.chat")||"[]");CHAT=clToday().slice(-1);if(CHO)paintChat()}catch(e){}});
 document.addEventListener("visibilitychange",function(){if(document.hidden)ovHide(false);else if(CHO||TB||FC)ovHide(true)});
 })();
