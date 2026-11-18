@@ -1625,7 +1625,7 @@ function parseExtra(raw,t,words,L){
  for(var a=0;a<wk.length;a++){if(wk[a][0].test(t)){var c=raw.replace(/^[^:]*:\s*/,"");if(c===raw)c=raw.split(/\s+/).slice(wk[a][0].source.indexOf("haftanın")>=0&&/^haftanın/.test(t)?2:1).join(" ");c=c.trim();if(!c)return null;S.weeks[mk]=S.weeks[mk]||{};var w=S.weeks[mk];w[wk[a][1]]=(w[wk[a][1]]?w[wk[a][1]]+"\n":"")+c;return wk[a][2]+" bölümüne yazdım."}}
  if(/^niyet(im)?\s*:?/.test(t)){var nv=raw.replace(/^\s*niyet(im)?\s*:?\s*/i,"").trim();if(nv){S.me.niyet=nv;return"Bu yılın niyetini kaydettim."}}
  var num=(t.match(/\d+/)||[])[0];
- var zl=ZK.concat(S.settings.zkx||[]),zn=null;zl.forEach(function(z){var f=nrm(z).split(" ")[0];if(f.length>=4&&words.some(function(w){return w.indexOf(f.slice(0,5))===0}))zn=z});
+ var zl=zlist(),zn=null;zl.forEach(function(z){var f=nrm(z).split(" ")[0];if(f.length>=4&&words.some(function(w){return w.indexOf(f.slice(0,5))===0}))zn=z});
  if(zn&&num&&!/ekle|liste/.test(t)){var ZD=dayLog(key(today()));ZD.z[zn]=(ZD.z[zn]||0)+parseInt(num,10);return zn+" sayacına "+num+" ekledim. Bugün toplam "+ZD.z[zn]+"."}
  if(/kaza/.test(t)){var pn=null;NV.forEach(function(n){if(words.indexOf(nrm(n[1]))>=0)pn=n[1]});if(!pn)return"Hangi vaktin kazası? Örnek: \"kaza sabah 2 ekle\" ya da \"kaza öğle kıldım\".";S.kaza=S.kaza||{};
   if(/kıl|düş|eksilt|azalt/.test(t)){S.kaza[pn]=Math.max(0,(S.kaza[pn]||0)-(num?parseInt(num,10):1));return pn+" kazası: "+S.kaza[pn]+" kaldı. Allah kabul etsin."}
@@ -2533,7 +2533,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #75'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #76'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3015,7 +3015,7 @@ document.addEventListener("click",function(e){
  case"ztap":var zn=zkName(),ZL=dayLog(key(today())),zc=(ZL.z[zn]||0)+1,ztg=S.settings.zt||33;ZL.z[zn]=zc;save();render();buzz(zc%ztg===0?"ok":"");return;
  case"ztarget":var TG=[33,99,100,1000],ci=TG.indexOf(S.settings.zt||33);S.settings.zt=TG[(ci+1)%TG.length];save();render();return;
  case"zreset":mut(function(){dayLog(key(today())).z[zkName()]=0});return;
- case"zpick":var zl=ZK.concat(S.settings.zkx||[]);sheet("Zikir seç",zl.map(function(n,j){return'<button class="wopt" data-zi="'+j+'"><b>'+esc(n)+'</b></button>'}).join("")+'<button class="wopt" data-zi="new"><b>+ Kendi zikrini ekle</b></button>',function(o){o.addEventListener("click",function(ev){var b=ev.target.closest("[data-zi]");if(!b)return;o.remove();var zi=b.getAttribute("data-zi");if(zi==="new")ask("Yeni zikir",[{label:"Zikir"}],function(r){if(r[0])mut(function(){S.settings.zkx=(S.settings.zkx||[]).concat([r[0]]);S.settings.zk=ZK.length+S.settings.zkx.length-1})},{label:"Ekle"});else mut(function(){S.settings.zk=parseInt(zi,10)})})});return;
+ case"zpick":var zl=zlist();sheet("Zikir seç",zl.map(function(n,j){return'<button class="wopt" data-zi="'+j+'"><b>'+esc(n)+'</b></button>'}).join("")+'<button class="wopt" data-zi="new"><b>+ Kendi zikrini ekle</b></button>',function(o){o.addEventListener("click",function(ev){var b=ev.target.closest("[data-zi]");if(!b)return;o.remove();var zi=b.getAttribute("data-zi");if(zi==="new")ask("Yeni zikir",[{label:"Zikir"}],function(r){if(r[0])mut(function(){S.settings.zkx=(S.settings.zkx||[]).concat([r[0]]);S.settings.zk=ZK.length+S.settings.zkx.length-1})},{label:"Ekle"});else mut(function(){S.settings.zk=parseInt(zi,10)})})});return;
  case"pton":S.settings.ptOnline=!ptOnline();save();render();if(ptOnline())ensurePT(true);if(typeof syncOverlay==="function")syncOverlay();scheduleNotifs();return;
  case"ptref":ensurePT(true);return;
  case"dsec":defterSec=v||"";render();window.scrollTo(0,0);if(v)enter();return;
@@ -3433,7 +3433,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("75",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("76",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
