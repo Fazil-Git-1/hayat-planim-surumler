@@ -788,6 +788,57 @@ function hlSheet(){closeAllSheets();var k=key(today()),H=HL(),L=H.log[k]||{},su=
  h+='<div class="mute">Son 7 gün <span style="color:#4a90d9">■ su</span> <span style="color:var(--gold)">■ uyku</span></div><div class="row" style="gap:6px;align-items:flex-end;margin:6px 0 14px">'+bars.join("")+'</div>';
  var ol=H.olc.slice(-6).reverse();h+='<div class="eyebrow">📏 Ölçülerim</div>'+(ol.length?ol.map(function(o){return'<div class="row" style="padding:4px 0"><span class="mute" style="width:70px">'+esc(o.d.slice(5))+'</span><span class="sp">'+(o.kilo?o.kilo+' kg':'')+(o.kilo&&o.bel?' · ':'')+(o.bel?'bel '+o.bel+' cm':'')+'</span></div>'}).join(""):'<div class="mute">Henüz ölçü yok.</div>')+'<div class="row" style="margin-top:8px"><button class="btn ghost sm" data-a="hlolc">+ Ölçü ekle</button></div><div class="mute" style="margin-top:10px;font-size:12px">Bu kayıtlar yalnızca senin içindir; tıbbi tavsiye değildir.</div>';
  sheet("Sağlık takibi",h)}
+/* ===== Diksiyon modülü ===== */
+var DKX=[
+ {id:"nefes",n:"Diyafram nefesi",m:2,g:"Isınma",st:["Rahat otur, bir elini karnına koy.","Burnundan 4 saniyede nefes al; karın şişsin, omuzlar kalkmasın.","Ağzından 6 saniyede yavaşça ver.","2 dakika tekrarla."],tip:"Güçlü ve titremeyen ses nefesten gelir."},
+ {id:"dudak",n:"Dudak ve dil ısınması",m:2,g:"Isınma",st:["Dudaklarını titreterek 'brrr' sesi çıkar (15 sn).","Dilini ağzının içinde büyük daireler çizerek çevir (her yöne 5 kez).","'pa-ta-ka' hecelerini önce yavaş, sonra hızlı 10 kez tekrarla.","Yanaklarını şişirip indir."],tip:"Ses organlarını ısıtmadan konuşmaya başlama."},
+ {id:"acik",n:"Ünlü harf açıklığı",m:1,g:"Artikülasyon",st:["Aynaya bak.","A - E - I - İ - O - Ö - U - Ü harflerini yavaş ve abartılı ağız şekliyle söyle.","Her harfte dudak ve çene şeklinin değiştiğini fark et."],tip:"Net ünlüler anlaşılırlığın yarısıdır."},
+ {id:"kalem",n:"Kalem egzersizi",m:3,g:"Artikülasyon",st:["Temiz bir kalemi dişlerinin arasına yatay tut (ısırmadan).","Kısa bir metni sesli oku; kelimeleri yine de net söylemeye çalış.","Sonra kalemi çıkarıp aynı metni oku."],tip:"Kalemsiz okuyunca dilin ve dudakların daha rahat çalıştığını hissedersin."},
+ {id:"tekerleme",n:"Tekerleme ve pratik cümleler",m:3,g:"Artikülasyon",kind:"tek",st:["Cümleyi önce çok yavaş, her sesi net söyleyerek oku.","Hızını biraz artır ama anlaşılırlığı bozma.","Takıldığın yeri 3 kez yavaşça tekrarla.","Her cümleyi hatasız 3 kez söylemeyi hedefle."],tip:"Hız değil netlik hedeftir."},
+ {id:"vurgu",n:"Vurgu ve tonlama",m:3,g:"Anlatım",st:["'Bugün hava çok güzel.' cümlesini seç.","Önce sevinçle, sonra şaşkınlıkla, sonra sakin bir tonla söyle.","Hangi kelimeyi vurgularsan anlam nasıl değişiyor, dene."],tip:"Monoton ses dinleyiciyi yorar; vurgu anlamı taşır."},
+ {id:"yavas",n:"Yavaş ve net okuma",m:3,g:"Anlatım",st:["Bir paragraf seç (Okuma sekmesi).","Normal hızının yaklaşık %70'inde oku.","Noktalarda bir saniye, virgüllerde yarım saniye dur."],tip:"Duraklar dinleyicinin düşünmesine zaman verir."},
+ {id:"ayna",n:"Aynada anlatma",m:3,g:"Anlatım",st:["Bir konu seç (dünün özeti, sevdiğin bir kitap).","1 dakika boyunca aynaya bakarak anlat.","Göz temasını, jestlerini ve ağız hareketlerini izle."],tip:"Kendini görmek, farkındalığın en hızlı yoludur."}];
+var DKT=["Şu köşe yaz köşesi, şu köşe kış köşesi, ortadaki su masası.","Bir berber bir berbere 'gel beraber berber dükkânı açalım' demiş.","Sabah sabah süt satan sevimli sütçü.","Keskin kılıç kınından kayıp kaydı.","Kırmızı kazaklı kız kırk kere koştu.","Tahta tarak takırdadı, taş tabak tangırdadı."];
+var DKR=[{t:"Sabah şehri",x:"Sabahın erken saatlerinde şehir yavaş yavaş uyanır. Fırınların önünde kısa kuyruklar oluşur, sokak lambaları birer birer söner. Bir bardak çayla başlayan gün, küçük ama düzenli adımlarla ilerler. Önemli olan hızlı gitmek değil, doğru yönde devam etmektir."},
+ {t:"Güçlü anlatım",x:"Konuşmak, düşüncelerimizi karşımızdakine taşıyan bir köprüdür. Bu köprü ne kadar sağlam olursa, anlatılanlar o kadar kolay anlaşılır. Kelimeleri net söylemek, cümleleri doğru yerde bölmek ve nefesi iyi kullanmak, güçlü bir anlatımın temelini oluşturur."},
+ {t:"Küçük adımlar",x:"Bir iş planlarken önce küçük bir başlangıç seçin. Sonra bu başlangıcı her gün aynı saatte tekrarlayın. Zamanla alışkanlık oluşur ve eskiden zor görünen şey kolaylaşır. Sabır, sürekli tekrar ve küçük kutlamalar bu yolun vazgeçilmez parçalarıdır."}];
+var DKPLAN=["nefes","dudak","kalem","tekerleme","yavas"],dkTab="bugun",DKRD=null;
+function DK(){if(!S.dk||typeof S.dk!=="object")S.dk={log:{},reads:[],own:[]};S.dk.log=S.dk.log||{};S.dk.reads=S.dk.reads||[];S.dk.own=S.dk.own||[];return S.dk}
+function dkEx(id){return DKX.filter(function(x){return x.id===id})[0]}
+function dkStreak(){var n=0,d=today(),g=0;var L=function(k){var l=DK().log[k];return l&&l.done&&l.done.length>=3};if(!L(key(d)))d=addDays(d,-1);while(g++<400&&L(key(d))){n++;d=addDays(d,-1)}return n}
+function dkSummary(){var l=DK().log[key(today())],n=l&&l.done?l.done.length:0,st=dkStreak();return n?"Bugün "+n+"/"+DKPLAN.length+" egzersiz"+(st>1?" · "+st+" gün seri":""):"Günlük kısa plan"+(st?" · "+st+" gün seri":"")}
+function vDiksiyon(){var h='<div class="hd"><div><div class="eyebrow">Modül</div><h1>🎙 Diksiyon</h1></div>'+gearBtn()+'</div>';
+ h+='<div class="chips" style="margin-bottom:12px">'+[["bugun","Bugün"],["egz","Egzersizler"],["okuma","Okuma"],["gecmis","Gelişim"]].map(function(t){return'<button class="chip'+(dkTab===t[0]?" on":"")+'" data-a="dktab" data-v="'+t[0]+'">'+t[1]+'</button>'}).join("")+'</div>';
+ var k=key(today()),D=DK(),L=D.log[k]||{done:[]};
+ if(dkTab==="bugun"){var dn=L.done||[],mins=0;DKPLAN.forEach(function(id){mins+=dkEx(id).m});
+  h+='<div class="card"><b>Bugünkü diksiyon planı</b><div class="mute" style="margin:4px 0 8px">Toplam yaklaşık '+mins+' dk. '+(dkStreak()?dkStreak()+' gündür düzenlisin 🔥':'Üç egzersiz yapınca gün sayılır.')+'</div>';
+  DKPLAN.forEach(function(id){var x=dkEx(id),on=dn.indexOf(id)>=0;h+='<div class="row" style="padding:7px 0;gap:10px"><button class="chk'+(on?" on":"")+'" data-a="dktog" data-v="'+id+'">'+(on?"✓":"")+'</button><span class="sp'+(on?" done":"")+'" data-a="dkex" data-v="'+id+'" style="cursor:pointer"><b>'+esc(x.n)+'</b><div class="mute">'+x.m+' dk · '+esc(x.g)+' · dokun, nasıl yapılacağını gör</div></span></div>'});
+  h+='</div><div class="chips2" style="margin-top:12px"><button data-a="dktab" data-v="okuma"><b>Okuma ölçümü</b><span class="mute">Dakikadaki kelime sayını gör</span></button><button data-a="dkrec"><b>Kendini dinle</b><span class="mute">Kaydet ve geri oynat</span></button></div>'}
+ else if(dkTab==="egz"){var gs={};DKX.forEach(function(x){(gs[x.g]=gs[x.g]||[]).push(x)});Object.keys(gs).forEach(function(g){h+='<div class="lh"><h2>'+esc(g)+'</h2></div><div class="card">'+gs[g].map(function(x){return'<div class="row lnkrow" data-a="dkex" data-v="'+x.id+'"><span class="sp"><b>'+esc(x.n)+'</b><div class="mute">'+x.m+' dk</div></span><span class="mute">›</span></div>'}).join("")+'</div>'})}
+ else if(dkTab==="okuma"){h+='<div class="mute" style="margin-bottom:8px">Metni sesli oku, süreyi ölçelim. Anlaşılır konuşma için yaklaşık 130–160 kelime/dk iyi bir hedeftir.</div><div class="card">'+DKR.map(function(r,i){return'<div class="row lnkrow" data-a="dkread" data-v="'+i+'"><span class="sp"><b>'+esc(r.t)+'</b><div class="mute">'+r.x.split(/\s+/).length+' kelime</div></span><span class="mute">›</span></div>'}).concat(D.own.map(function(r,i){return'<div class="row lnkrow" data-a="dkread" data-v="o'+i+'"><span class="sp"><b>'+esc(r.t)+'</b><div class="mute">Kendi metnin · '+r.x.split(/\s+/).length+' kelime</div></span><span class="mute">›</span></div>'})).join("")+'</div><div class="row" style="margin-top:10px"><button class="btn ghost sm" data-a="dkown">+ Kendi metnimi ekle</button></div>'}
+ else{var rd=D.reads.slice(-8),days=Object.keys(D.log).filter(function(x){return D.log[x].done&&D.log[x].done.length>=3}).length;
+  h+='<div class="chips2"><button><b>'+dkStreak()+'</b><span class="mute">gün seri</span></button><button><b>'+days+'</b><span class="mute">çalıştığın gün</span></button></div>';
+  h+='<div class="eyebrow" style="margin-top:14px">Okuma hızım (kelime/dk)</div>'+(rd.length?'<div class="spark">'+rd.map(function(r){return'<i title="'+esc(r.d)+'" style="height:'+Math.max(10,Math.min(100,r.w/200*100))+'%"></i>'}).join("")+'</div><div class="mute">Son: '+rd[rd.length-1].w+' kelime/dk · '+esc(rd[rd.length-1].d)+'</div>':'<div class="mute">Henüz ölçüm yok. Okuma sekmesinden bir metin oku.</div>')}
+ return h+'<div class="mute" style="margin-top:14px;font-size:12px">Ses kaydın yalnızca bu oturumda cihazında kalır, kaydedilmez ya da paylaşılmaz.</div>'}
+function dkExSheet(id){var x=dkEx(id);if(!x)return;var h='<div class="mute">'+esc(x.g)+' · '+x.m+' dk</div><ol class="fi-st" style="margin-top:8px">'+x.st.map(function(t){return'<li>'+esc(t)+'</li>'}).join("")+'</ol>';
+ if(x.kind==="tek")h+='<div class="eyebrow" style="margin-top:10px">Cümleler</div>'+DKT.map(function(t){return'<div class="card" style="padding:10px 12px;margin:6px 0">'+esc(t)+'</div>'}).join("");
+ h+='<div class="mute" style="margin-top:8px">💡 '+esc(x.tip)+'</div><div class="row" style="margin-top:12px;gap:8px"><button class="btn sp" data-a="dktog" data-v="'+x.id+'">Yaptım ✓</button><button class="btn ghost sp" data-a="dkrec">Kendimi dinle</button></div>';sheet(x.n,h)}
+function dkReadSheet(i){var D=DK(),r=/^o/.test(i)?D.own[+i.slice(1)]:DKR[+i];if(!r)return;DKRD={x:r.x,t:0};
+ sheet(r.t,'<div id="dkrt" style="font-size:19px;line-height:1.7;margin:4px 0 14px">'+esc(r.x)+'</div><div class="mute" id="dkrs">Hazır olunca Başla\'ya bas, metni sesli oku, bitince Bitir\'e bas.</div><div class="row" style="margin-top:12px"><button class="btn sp" id="dkrb" data-a="dkrgo">Başla</button></div>')}
+function dkReadGo(){if(!DKRD)return;var b=document.getElementById("dkrb"),st=document.getElementById("dkrs");if(!DKRD.t){DKRD.t=Date.now();if(b)b.textContent="Bitir";if(st)st.textContent="Okuyorsun… bitirince Bitir'e bas.";return}
+ var sec=(Date.now()-DKRD.t)/1000,words=DKRD.x.split(/\s+/).length,w=Math.round(words/(sec/60));DKRD.t=0;
+ if(sec<4){if(st)st.textContent="Çok kısa sürdü; metni baştan sona okuyup tekrar dene.";if(b)b.textContent="Başla";return}
+ DK().reads.push({d:key(today()),w:w});if(DK().reads.length>60)DK().reads.shift();save();
+ var tip=w<110?"Biraz yavaş. Doğal bir akış için hafifçe hızlanabilirsin.":w<=170?"İdeal aralıktasın. Netliği koruyarak devam et.":"Biraz hızlı. Noktalarda durup nefes almayı dene.";
+ if(st)st.innerHTML='<b style="font-size:22px">'+w+' kelime/dk</b><div class="mute" style="margin-top:4px">'+esc(tip)+'</div>';if(b)b.textContent="Tekrar dene"}
+var DKREC=null;
+function dkRecSheet(){sheet("Kendini dinle",'<div class="mute">Bir cümle ya da kısa bir metin söyle, kaydı durdur ve dinle. Kayıt kaydedilmez.</div><div class="row" style="margin:14px 0;gap:8px"><button class="btn sp" id="dkrcb" data-a="dkrecgo">● Kaydı başlat</button></div><div id="dkrcp"></div>')}
+async function dkRecGo(){var b=document.getElementById("dkrcb"),p=document.getElementById("dkrcp");
+ try{if(DKREC&&DKREC.state==="recording"){DKREC.stop();return}
+  if(!navigator.mediaDevices||!window.MediaRecorder){toast("Bu cihazda ses kaydı desteklenmiyor");return}
+  var st=await navigator.mediaDevices.getUserMedia({audio:true}),ch=[];DKREC=new MediaRecorder(st);DKREC.ondataavailable=function(e){if(e.data&&e.data.size)ch.push(e.data)};
+  DKREC.onstop=function(){st.getTracks().forEach(function(t){t.stop()});var bl=new Blob(ch,{type:DKREC.mimeType||"audio/webm"}),u=URL.createObjectURL(bl);if(b){b.textContent="● Yeniden kaydet"}if(p)p.innerHTML='<audio controls src="'+u+'" style="width:100%"></audio>'};
+  DKREC.start();if(b)b.textContent="■ Durdur"}catch(e){toast("Mikrofona erişilemedi. Android ayarlarından mikrofon iznini açabilirsin.")}}
 function spRest(sec){clearInterval(SPRT);var el=document.getElementById("sprest");if(!el){el=document.createElement("div");el.id="sprest";document.body.appendChild(el)}var end=Date.now()+sec*1000;
  function tick(){var l=Math.ceil((end-Date.now())/1000);if(l<=0){clearInterval(SPRT);el.remove();buzz("ok");toast("Dinlenme bitti, sıradaki sete!");return}el.innerHTML='⏱ Dinlen <b>'+l+'</b> sn <button data-a="sprestx">Geç</button>'}tick();SPRT=setInterval(tick,500)}
 function spAct(a,v){var sp=SP(),k=key(today());
@@ -1764,6 +1815,7 @@ function localNav(raw,t,words){
  if(!open&&!close&&!klq)return null;
  function go2(sc,tg,msg){var nv=aiNav(sc,tg);if(nv.err)return nv.err;if(CHATONLY){try{if(NB&&NB.finishChat)NB.finishChat()}catch(e){}return"Bu küçük pencereden ekran açamıyorum; uygulamayı açınca aynı komutu söyleyebilirsin."}
   setTimeout(function(){if(CHO&&!CHATONLY)closeChat();if(nv.fn)nv.fn();else go(nv.tab)},900);return msg}
+ if(/diksiyon/.test(t)&&open){if(CHATONLY)return"Bu küçük pencereden ekran açamıyorum; uygulamayı açınca aynı komutu söyleyebilirsin.";setTimeout(function(){if(CHO)closeChat();dkTab="bugun";go("diksiyon")},900);return"Diksiyon çalışmasını açıyorum."}
  if(/külliyat/.test(t)){var k=KL();
   if(/(hangi (kitap|eser)|kitaplar|eserler|eser listesi|kitap listesi|neler var|içinde ne)/.test(t)&&!close){var kt=[],ki;for(ki=1;ki<=32;ki++)if(KB[ki])kt.push(KB[ki][2]);var cm2=curMonth(),bk2=cm2>0&&cm2<=24&&KP[cm2]?KP[cm2][0].map(function(w){return bookLbl(w[0])}).join("; "):"";if(!k.on){k.on=true;k.start=k.start||thisMonth();k.target=k.target||25;save()}return go2("kulliyat","","Külliyat'ta "+kt.length+" eser var, örneğin: "+kt.slice(0,4).join("; ")+"."+(bk2?" Bu ayın eserleri: "+bk2+".":"")+" Kütüphaneyi açıyorum.")}
   if(close&&!open){if(!k.on)return"Külliyat zaten kapalı.";mut(function(){k.on=false});if(tab==="kulliyat")go("pano");return"Külliyat modülünü kapattım. İlerlemen silinmedi."}
@@ -2166,7 +2218,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div><div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Tesbih düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla tesbih.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #62'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #63'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -2441,7 +2493,7 @@ function I(n){return'<svg class="i" viewBox="0 0 24 24" aria-hidden="true">'+IC[
 var TABS=[["pano","pano","Bugün"],["hafta","cal","Takvim"],["hud","hud","Hüdhüd"],["odak","target","Odak"],["ben","ben","Ben"]];
 function tabs(){return TABS}
 /* ---------- Yeni bilgi mimarisi: Bugün · Takvim · Hüdhüd · Odak · Ben ---------- */
-var PARENT={hedef:"ben",defter:"ben",kulliyat:"odak",spor:"odak"};
+var PARENT={hedef:"ben",defter:"ben",kulliyat:"odak",spor:"odak",diksiyon:"odak"};
 function navTab(){return PARENT[tab]||tab}
 function backBtn(to,lbl){return'<button class="btn ghost sm" data-tab="'+to+'">‹ '+lbl+'</button>'}
 /* Yıllık plan doluluğu */
@@ -2483,6 +2535,7 @@ function vOdak(){var h='<div class="hd"><div><div class="eyebrow">Odak ve ibadet
  var ws=wmWeek(),wl=S.settings.wmLast||{},on=!!WM;
  h+='<div class="card wmhero" data-a="work"><div class="row" style="align-items:center;gap:14px"><span class="tic big" style="background:#1f2a44">'+I("clock")+'</span><span class="sp"><b style="font-size:18px">'+(on?(WM.run?"Çalışıyorsun · ":"Duraklatıldı · ")+wmFmt(wmActive()):"Çalışma modu")+'</b><div class="mute">'+(on?(WM.task?esc(WM.task)+" · ":"")+"Açmak için dokun":"Bugün "+wmFmt(ws.d*60000)+" · bu hafta "+wmFmt(ws.w*60000))+'</div></span><span class="mute">›</span></div>'+
   (!on?'<div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap"><button class="btn sm" data-a="workq">▶ '+(wl.t?"Devam: "+esc(wl.t.length>22?wl.t.slice(0,21)+"…":wl.t):"Hızlı başla")+'</button><button class="btn ghost sm" data-a="wmrep">📊 Rapor</button></div>':'')+'</div>';
+ h+='<div class="card tcard" data-a="dkopen"><span class="tic" style="background:#8a4fb3">🎙</span><span class="sp"><b>Diksiyon</b><div class="mute">'+esc(dkSummary())+'</div></span><span class="mute">›</span></div>';
  if(SP().on!==false)h+='<div class="card tcard" data-a="sporopen"><span class="tic" style="background:#2e7d4f">🏋️</span><span class="sp"><b>Spor</b><div class="mute">'+esc(spSummary())+'</div></span><span class="mute">›</span></div>';
  h+='<div class="g2">'+W.odak.r()+W.zikir.r()+'</div>';
  h+='<div class="lh"><h2>Kur\'an</h2></div>'+hatimHtml();
@@ -2530,7 +2583,7 @@ function render(){
  if(tab==="kulliyat"&&!klOn())tab="pano";
  if(tab==="hud")tab="pano";
  var bk=!setOpen&&PARENT[tab]&&!(tab==="hedef"&&openArea)&&!(tab==="defter"&&defterSec)&&!(tab==="kulliyat"&&(typeof openBook!=="undefined"&&openBook||typeof openKv!=="undefined"&&openKv))?'<div class="backbar">'+backBtn(PARENT[tab],PARENT[tab]==="ben"?"Ben":"Odak")+'</div>':"";
- a.innerHTML=bk+(setOpen?vAyar():tab==="pano"?vPano():tab==="hafta"?vHafta():tab==="hedef"?vHedef():tab==="defter"?vDefter():tab==="kulliyat"?vKulliyat():tab==="odak"?vOdak():tab==="spor"?vSpor():vBen2());
+ a.innerHTML=bk+(setOpen?vAyar():tab==="pano"?vPano():tab==="hafta"?vHafta():tab==="hedef"?vHedef():tab==="defter"?vDefter():tab==="kulliyat"?vKulliyat():tab==="odak"?vOdak():tab==="spor"?vSpor():tab==="diksiyon"?vDiksiyon():vBen2());
  document.getElementById("nav").innerHTML=tabs().map(function(t){if(t[0]==="hud")return'<button class="hud" data-tab="hud" aria-label="'+esc(mName())+' ile konuş"><b>'+mDef().svg+'</b>'+esc(mName())+'</button>';return'<button class="'+(navTab()===t[0]&&!setOpen?"on":"")+'" data-tab="'+t[0]+'"><b>'+I(t[1])+'</b>'+t[2]+'</button>'}).join("");
  if(typeof wmPill==="function")wmPill();
  var fab=document.getElementById("tfab");if(!fab){fab=document.createElement("button");fab.id="tfab";fab.setAttribute("data-a","tesbih");fab.setAttribute("aria-label","Tesbih");fab.innerHTML=I("beads");document.body.appendChild(fab)}fab.hidden=!S.onboarded||setOpen||S.settings.tfab===false;
@@ -2578,6 +2631,15 @@ document.addEventListener("click",function(e){
  case"gwin":ask("Gün aralığı",[{label:"Başlangıç",type:"time",value:minTm(dayWin().a)},{label:"Bitiş",type:"time",value:minTm(dayWin().b)}],function(r){mut(function(){S.settings.dayWin={a:r[0]||"07:00",b:r[1]||"23:00"}})},{label:"Kaydet"});return;
  case"modopen":modOpen(k,i);return;
  case"openurl":try{if(NB&&NB.openUrl)NB.openUrl({url:v}).catch(function(){window.open(v,"_blank")});else window.open(v,"_blank")}catch(e0){window.open(v,"_blank")}return;
+ case"dkopen":dkTab="bugun";go("diksiyon");return;
+ case"dktab":dkTab=v;render();window.scrollTo(0,0);return;
+ case"dkex":dkExSheet(v);return;
+ case"dktog":(function(){var D=DK(),k0=key(today()),L=D.log[k0]=D.log[k0]||{done:[]};L.done=L.done||[];var ix=L.done.indexOf(v);if(ix>=0)L.done.splice(ix,1);else{L.done.push(v);buzz();if(L.done.length===3)toast("Bugünün diksiyon çalışması sayıldı 🎙")}save();closeAllSheets();render()})();return;
+ case"dkread":dkReadSheet(v);return;
+ case"dkrgo":dkReadGo();return;
+ case"dkown":ask("Kendi metnin",[{label:"Başlık",value:"Metnim"},{label:"Metin",type:"area"}],function(r){if((r[1]||"").trim().split(/\s+/).length<5)return;DK().own.push({t:(r[0]||"Metnim").trim(),x:r[1].trim()});save();render()},{label:"Ekle"});return;
+ case"dkrec":dkRecSheet();return;
+ case"dkrecgo":dkRecGo();return;
  case"sporopen":sporTab="bugun";go("spor");return;
  case"sportog":mut(function(){SP().on=SP().on===false});return;
  case"sptab":case"spgrp":case"spset":case"sprest":case"sprestx":case"spfin":case"spquick":case"spinfo":case"spday":case"spadd":case"spadd2":case"spdel":case"spclr":case"spedit":case"sptpl":case"spnew":case"spexdel":spAct(a,v);return;
@@ -3003,7 +3065,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("62",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("63",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
