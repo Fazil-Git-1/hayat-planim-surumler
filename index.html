@@ -1080,6 +1080,9 @@ function zkAddMany(arr){var n=0;arr.forEach(function(x){if(!ZV().some(function(v
 var ZCOS=[
  {n:"Tevbe ve istiğfar (açılış)",t:25,h:"",note:"Zikre oturunca yirmi beş defa tevbe ve istiğfarla başlanır."},
  {n:"Bir Fâtiha, üç İhlâs",t:1,h:"",note:"Açılışta bir Fâtiha ve üç Kulhüvallahu ehad okunur (bittiğinde bir kez say)."},
+ {n:"Rabıta-i mevt (ölümü düşün)",t:1,h:"",note:"Zikirden önce gözler kapalı, ölümü, hesabı ve ahireti düşünüp tahayyül edilir. Rabıta burada tefekkür (düşünme, hayal etme) demektir. Bitince bir kez say."},
+ {n:"Rabıta-i mürşid (pirleri düşün)",t:1,h:"",note:"Gözler kapalı, evliyâullah pirleri ve hocalar karşında düşünülür, gönül onlara bağlanır. Sevgi ve saygı bağıdır. Bitince bir kez say."},
+ {n:"Rabıta-i huzur (Allah huzurunda)",t:1,h:"",note:"Başını kalbine eğ; Allah'ın sana şahdamarından bile yakın olduğunu düşünerek huzurunda olduğunu hisset ve dua et. Bitince bir kez say."},
  {n:"Estağfirullah",t:100,h:"",note:"Günlük vazife: 100 defa istiğfar."},
  {n:"Lâ ilâhe illallah",t:100,h:"",note:"Günlük vazife: 100 defa kelime-i tevhid."},
  {n:"Allah",t:1000,h:"İlâhî ente maksûdî ve rıdâke matlûbî",note:"Günlük vazife: 1000 defa “Allah”. Her yüz defasında “İlâhî ente maksûdî ve rıdâke matlûbî” (Yâ Rabbi! Maksudum sensin, ben senin rızanı istiyorum) denir."},
@@ -1087,12 +1090,13 @@ var ZCOS=[
  {n:"Kulhüvallahu ehad (İhlâs)",t:100,h:"",note:"Günlük vazife: 100 defa İhlâs-ı şerif."}];
 var ZSRC=["https://kotku.org/sorular/zikir-dersi-almak-istiyoruz-tarif-eder-misiniz","https://esadcosankulliyati.com/arsiv/kitap/gm1/ders.html"];
 function zkSeedCoson(){var n=zkAddMany(ZCOS.map(function(x){return{n:x.n,t:x.t,h:x.h,note:x.note}}));ZV().forEach(function(v){var c=ZCOS.filter(function(x){return x.n===v.n})[0];if(c){v.h=c.h;v.note=c.note}});S.zvSeeded=1;save();return n}
-function vZikir(){var h='<div class="hd"><div><div class="eyebrow">Modül</div><h1>📿 Zikir dersi</h1></div>'+gearBtn()+'</div>',V=ZV(),k=key(today());
+function zkRabMig(){if(S.zvRab||!S.zvSeeded)return;S.zvRab=1;var V=ZV(),i=-1;V.forEach(function(v,j){if(v.n==="Bir Fâtiha, üç İhlâs")i=j});if(i<0){save();return}ZCOS.filter(function(x){return/^Rabıta/.test(x.n)}).forEach(function(x,k){if(!V.some(function(v){return v.n===x.n}))V.splice(i+1+k,0,{id:uid(),n:x.n,t:x.t,h:x.h,note:x.note})});save()}
+function vZikir(){zkRabMig();var h='<div class="hd"><div><div class="eyebrow">Modül</div><h1>📿 Zikir dersi</h1></div>'+gearBtn()+'</div>',V=ZV(),k=key(today());
  h+='<div class="chips" style="margin-bottom:12px">'+[["vazife","Bugünkü vazife"],["tarif","Tarif"]].map(function(t){return'<button class="chip'+(zkTab===t[0]?" on":"")+'" data-a="zktab" data-v="'+t[0]+'">'+t[1]+'</button>'}).join("")+'</div>';
  if(zkTab==="tarif"){
   h+='<div class="card"><b>Mahmud Esad Coşan\'ın zikir dersi</b><div class="mute" style="margin:6px 0 8px;line-height:1.55">Zikir ders, her gün yapılması gereken günlük bir vazifedir; ara vermemeye çalış.</div>'+
-   '<ol class="fi-st"><li>Sakin, temiz, tenha bir yerde, abdestli olarak kıbleye doğru otur.</li><li>Yirmi beş defa tevbe ve istiğfarla başla.</li><li>Bir Fâtiha ve üç Kulhüvallahu ehad (İhlâs) oku.</li><li><b>100</b> defa Estağfirullah.</li><li><b>100</b> defa Lâ ilâhe illallah.</li><li><b>1000</b> defa Allah. Her yüz defasında: “İlâhî ente maksûdî ve rıdâke matlûbî”.</li><li><b>100</b> defa salevât-ı şerife.</li><li><b>100</b> defa Kulhüvallahu ehad (İhlâs-ı şerif).</li><li>Dua ile bitir.</li></ol></div>'+
-   '<div class="mute" style="margin:10px 2px;font-size:12px;line-height:1.5">Bu tarif, Esad Coşan\'ın yayımlanmış “Zikir Dersi” metinlerinden özetlenmiştir. Baskılara göre ayrıntı ve sayılar farklı olabilir; hocanın sana verdiği tarif farklıysa Bugünkü vazife sayfasında listeyi düzenle. Kaynak metinleri aşağıdan oku.</div>'+
+   '<ol class="fi-st"><li>Sakin, temiz, tenha bir yerde, abdestli olarak kıbleye doğru otur.</li><li>Yirmi beş defa tevbe ve istiğfarla başla.</li><li>Bir Fâtiha ve üç Kulhüvallahu ehad (İhlâs) oku.</li><li><b>Üç rabıta</b> (gözler kapalı, tefekkür ve tahayyül): <b>ölümü</b> düşün (rabıta-i mevt); <b>pirleri ve hocaları</b> karşında düşün (rabıta-i mürşid); <b>Allah\'ın huzurunda</b> olduğunu, sana şahdamarından yakın olduğunu düşünüp dua et (rabıta-i huzur).</li><li><b>100</b> defa Estağfirullah.</li><li><b>100</b> defa Lâ ilâhe illallah.</li><li><b>1000</b> defa Allah. Her yüz defasında: “İlâhî ente maksûdî ve rıdâke matlûbî”.</li><li><b>100</b> defa salevât-ı şerife.</li><li><b>100</b> defa Kulhüvallahu ehad (İhlâs-ı şerif).</li><li>Dua ile bitir.</li></ol></div>'+
+   '<div class="mute" style="margin:10px 2px;font-size:12px;line-height:1.5">Bu tarif, Esad Coşan\'ın yayımlanmış “Zikir Dersi” metinlerinden özetlenmiştir. Baskılara ve anlatımlara göre ayrıntı ve sayılar farklı olabilir; rabıtanın nasıl yapılacağı ise hocadan alınan talime göre değişir, burada yalnızca ana fikri verilmiştir; hocanın sana verdiği tarif farklıysa Bugünkü vazife sayfasında listeyi düzenle. Kaynak metinleri aşağıdan oku.</div>'+
    '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost sm" data-a="openurl" data-v="'+ZSRC[0]+'">Kaynak: kotku.org</button><button class="btn ghost sm" data-a="openurl" data-v="'+ZSRC[1]+'">Kaynak: Esad Coşan Külliyatı</button></div>';
   if(!V.length)h+='<div class="row" style="margin-top:12px"><button class="btn sm" data-a="zkseed">Bu tarifi vazifem olarak ekle</button></div>';
   return h}
@@ -2542,7 +2546,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #78'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #79'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3440,7 +3444,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("78",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("79",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
