@@ -2129,7 +2129,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div><div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Tesbih düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla tesbih.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #59'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #60'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -2966,7 +2966,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("59",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("60",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
@@ -2982,9 +2982,9 @@ async function startUpdate(){
  if(!updInfo||!NB||!NB.installUpdate){toast("Güncelleme başlatılamadı");return}
  try{
   if(NB.addListener&&!startUpdate.l){startUpdate.l=1;NB.addListener("updateProgress",function(ev){
-   if(ev.state==="downloading")updState="İndiriliyor… %"+(ev.pct||0);
+   if(ev.state==="downloading")updState="İndiriliyor… "+(ev.pct?"%"+ev.pct:(ev.mb||0)+" MB");
    else if(ev.state==="done")updState="Kurulum ekranı açıldı";
-   else if(ev.state==="failed"){updState="";toast("İndirme başarısız oldu. İnternetini kontrol edip tekrar dene.")}
+   else if(ev.state==="failed"){updState="";toast("İndirme başarısız ("+String(ev.error||"").slice(0,40)+"). Tarayıcıdan indiriliyor…");try{NB.openUrl({url:updInfo.url})}catch(e){}}
    var b=document.querySelector('[data-a="updgo"]');if(b)b.textContent=updState||"İndir ve kur"})}
   var r=await NB.installUpdate({url:updInfo.url,name:updInfo.name||("HayatPlanim-"+updInfo.n+".apk")});
   if(r&&r.needsPermission){sheet("Bir kerelik izin",'<div>Güncellemeyi kurabilmek için Android\'in <b>“Bilinmeyen uygulamaları yükle”</b> iznini Hayat Planım için açman gerekiyor.</div><ol class="mute" style="padding-left:18px"><li>Açılan ayarda izni aç.</li><li>Geri dön ve <b>İndir ve kur</b>\'a tekrar bas.</li></ol>')}
