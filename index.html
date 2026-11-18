@@ -505,8 +505,12 @@ function modOpen(k,i){var b=dayLog(k).big[i];if(!b)return;var id=modOf(b);if(!id
 function taskEdit(k,i){var b=dayLog(k).big[i];if(!b)return;var cur=modOf(b);
  ask(b.t,[{label:"Saat (boş bırakırsan saatsiz olur)",type:"time",value:b.tm||""},{label:"Süre (dakika)",type:"number",value:b.dur||""},{label:"Modül",type:"select",opts:modOpts(false),value:cur?MODS[cur].ico+" "+MODS[cur].n:"Yok"}],
   function(r){mut(function(){if(r[0])b.tm=r[0];else delete b.tm;var d=parseInt(r[1],10);if(d>0)b.dur=d;else delete b.dur;b.mod=modPick(r[2])||""})},{label:"Kaydet"})}
-function taskNewDlg(k,tm0,dur0){ask("Yeni iş",[{label:"Ne yapacaksın?"},{label:"Saat (isteğe bağlı)",type:"time",value:tm0||""},{label:"Süre (dakika, isteğe bağlı)",type:"number",value:dur0||""},{label:"Modül",type:"select",opts:modOpts(true),value:"Otomatik"}],
-  function(r){if(!r[0])return;mut(function(){var o={t:r[0],done:false};if(r[1])o.tm=r[1];var d=parseInt(r[2],10);if(d>0)o.dur=d;if(r[3]==="Yok")o.mod="";else{var m=modPick(r[3]);if(m)o.mod=m}dayLog(k).big.push(o)})},{label:"Ekle"})}
+function taskDayOpts(k0){var GN=["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"],t=today(),o=[];for(var i=0;i<8;i++){var d=addDays(t,i);o.push({k:key(d),l:i===0?"Bugün":i===1?"Yarın":GN[d.getDay()]+" ("+d.getDate()+"."+(d.getMonth()+1)+")"})}if(k0&&!o.some(function(x){return x.k===k0})){var d0=fromKey(k0);o.unshift({k:k0,l:d0.getDate()+"."+(d0.getMonth()+1)+"."+d0.getFullYear()})}o.push({k:"",l:"Başka tarih…"});return o}
+function taskNewDlg(k,tm0,dur0){var DO=taskDayOpts(k),cur=DO.filter(function(x){return x.k===k})[0];
+ ask("Yeni iş",[{label:"Ne yapacaksın?"},{label:"Hangi gün?",type:"select",opts:DO.map(function(x){return x.l}),value:cur?cur.l:"Bugün"},{label:"Saat (girersen o saatte bildirim gelir)",type:"time",value:tm0||""},{label:"Süre (dakika, isteğe bağlı)",type:"number",value:dur0||""},{label:"Modül",type:"select",opts:modOpts(true),value:"Otomatik"}],
+  function(r){if(!r[0])return;var dk=(DO.filter(function(x){return x.l===r[1]})[0]||{k:k}).k;
+   function put(kk){mut(function(){var o={t:r[0],done:false};if(r[2])o.tm=r[2];var d=parseInt(r[3],10);if(d>0)o.dur=d;if(r[4]==="Yok")o.mod="";else{var m=modPick(r[4]);if(m)o.mod=m}dayLog(kk).big.push(o)});if(kk!==key(today()))toast("Eklendi: "+(kk===key(addDays(today(),1))?"yarın":fromKey(kk).toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"}))+(r[2]?" · hatırlatma "+r[2]:""))}
+   if(dk)put(dk);else ask("Hangi tarih?",[{label:"Tarih",type:"date",value:key(addDays(today(),2))}],function(q){if(/^\d{4}-\d{2}-\d{2}$/.test(q[0]))put(q[0])},{label:"Ekle"})},{label:"Ekle"})}
 /* ---------- Zaman planı: süreler, boş aralıklar, doldurma ---------- */
 var PRAY_MIN=20,HAB_MIN=15,DEF_MIN=30;
 function tmMin(s){var p=String(s).split(":");return(+p[0]||0)*60+(+p[1]||0)}
@@ -1201,7 +1205,7 @@ var W={
  gunun:{t:"Günün ayeti ve hadisi",d:"Her gün bir ayet ve bir hadis, kaynağıyla.",r:function(){var di=dayIndex(),a=AYAT[di%AYAT.length],hd=HADISLER[di%HADISLER.length];
   return'<div class="gun"><div class="eyebrow">Ayet</div><div class="gq">“'+esc(a[0])+'”</div><div class="mute">— '+esc(a[1])+'</div><div class="eyebrow" style="margin-top:12px">Hadis</div><div class="gq">“'+esc(hd[0])+'”</div><div class="mute">— '+esc(hd[1])+'</div></div>'}},
  odak:{t:"Odak ve Nur Puanı",d:"Kitap, Kur'an, ders ya da iş için odak sayacı; her dakika 1 Nur.",r:function(){var fs=focusStats(),run=FOC&&FOC.end;
-  return'<button class="tcard" data-a="focus"><span class="tic" style="background:var(--acc)">'+I("target")+'</span><span class="sp"><b>'+(run?"Odak sürüyor · "+focusLeftTxt():"Odaklan")+'</b><div class="mute">Bugün '+fs.d+' dk · bu hafta '+fs.w+' dk · '+fs.y+' Nur</div></span><span class="mute">›</span></button>'}},
+  return'<button class="tcard" data-a="focus"><span class="tic" style="background:var(--acc)">'+I("target")+'</span><span class="sp"><b>'+(run?"Odak sürüyor · "+focusLeftTxt():"Odak sayacı")+'</b><div class="mute">Bugün '+fs.d+' dk · bu hafta '+fs.w+' dk · '+fs.y+' Nur</div></span><span class="mute">›</span></button>'}},
  calisma:{t:"Çalışma modu",d:"Büyük saat; 30 dk'da bir kalk, 20 dk'da bir göz, saatte bir su hatırlatması; ezanda duraklar.",r:function(){var on=!!WM,A=on?wmActive():0,ws=wmWeek(),wl=S.settings.wmLast;
   return'<button class="tcard" data-a="work"><span class="tic" style="background:#1f2a44">'+I("clock")+'</span><span class="sp"><b>'+(on?(WM.run?"Çalışıyorsun · ":"Duraklatıldı · ")+wmFmt(A):"Çalışma modu")+'</b><div class="mute">'+(on?(WM.task?esc(WM.task)+" · ":"")+"Açmak için dokun":"Bugün "+wmFmt(ws.d*60000)+" · bu hafta "+wmFmt(ws.w*60000))+'</div></span><span class="mute">›</span></button>'+
   (!on?'<div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap"><button class="btn sm" data-a="workq">▶ '+(wl&&wl.t?"Devam: "+esc(wl.t.length>22?wl.t.slice(0,21)+"…":wl.t):"Hızlı başla")+' · '+(wl&&wl.d===0?"süresiz":wmFmt((wl?wl.d:120)*60000))+'</button>'+(wmCfg().sched?'<span class="mute" style="align-self:center">📅 '+esc(wmSchedTxt())+'</span>':'')+'<button class="btn ghost sm" data-a="wmrep">📊 Rapor</button></div>':'')}},
@@ -1698,6 +1702,11 @@ function statusReport(L){var dn=L.big.filter(function(b){return b.done&&!b.moved
  if(op.length||ho.length)o.push("Kalanlar: "+op.concat(ho).join(", ")+".");else o.push("Kalan yok, hepsi tamam. Eline sağlık!");return o.join(" ")}
 function dayListReport(L){var tm=L.big.filter(function(b){return!b.moved}).slice().sort(function(a,b){return(a.tm||"99")<(b.tm||"99")?-1:1}).map(function(b){return(b.tm?b.tm+" ":"")+b.t+(b.done?" ✓":"")}),hb=habitsFor(key(today())).map(function(x){return x.name+(L.h[x.id]?" ✓":"")});
  if(!tm.length&&!hb.length)return"Bugün için iş ya da alışkanlık yok. Eklememi ister misin?";return(tm.length?"İşlerin: "+tm.join(", ")+". ":"Bugün için iş yok. ")+(hb.length?"Alışkanlıkların: "+hb.join(", ")+".":"")}
+function taskDateIn(txt){var AY=["ocak","şubat","mart","nisan","mayıs","haziran","temmuz","ağustos","eylül","ekim","kasım","aralık"],d,m,mt;
+ mt=txt.match(new RegExp("(^|\\s)(\\d{1,2})\\s+("+AY.join("|")+")(\\s*'?\\s*(?:da|de|ta|te|ında|inde|unda|ünde))?(?=\\s|$)","i"));
+ if(mt){d=+mt[2];m=AY.indexOf(mt[3].toLocaleLowerCase("tr"))}else{mt=txt.match(/(^|\s)(\d{1,2})[./](\d{1,2})([./]\d{2,4})?('?(?:da|de|ta|te))?(?=\s|$)/i);if(!mt||!(mt[3].length===2||mt[4]||mt[5])||/^\s*(saat(?!\s*\d)|dk|dakika|kilo|kg|km|lt|litre|tl|lira|sayfa)/i.test(txt.slice(mt.index+mt[0].length)))return null;d=+mt[2];m=+mt[3]-1}
+ if(!(d>=1&&d<=31&&m>=0&&m<=11))return null;var t=today(),x=new Date(t.getFullYear(),m,d);if(x<t)x=new Date(t.getFullYear()+1,m,d);
+ return{off:Math.round((x-t)/864e5),txt:txt.replace(mt[0]," ")}}
 function parseCmd(raw){
  var t=nrm(raw),words=t.split(" "),tk=key(today()),L=dayLog(tk);
  if(!t)return"";
@@ -1736,11 +1745,13 @@ function parseCmd(raw){
  var off=0,txt=raw.replace(/^\s*ekle\s*:?\s*/i,"");
  if(/(^|\s)yarından sonra(\s|$)|(^|\s)öbür gün(\s|$)/.test(t)){off=2;txt=txt.replace(/yarından sonra|öbür gün/i,"")}
  else if(/(^|\s)yarın(\s|$)/.test(t)){off=1;txt=txt.replace(/(^|\s)yarın(\s|$)/i," ")}
- else{Object.keys(DAYW).sort(function(a,b){return b.length-a.length}).some(function(dn){if(words.indexOf(dn)>=0){var dd=(DAYW[dn]-today().getDay()+7)%7;off=dd||7;txt=txt.replace(new RegExp("(^|\\s)"+dn+"(\\s|$)","i")," ");return true}})}
+ else if(taskDateIn(txt)){var tdi=taskDateIn(txt);off=tdi.off;txt=tdi.txt}
+ else{Object.keys(DAYW).sort(function(a,b){return b.length-a.length}).some(function(dn){if(words.indexOf(dn)>=0){var dd=(DAYW[dn]-today().getDay()+7)%7;off=dd||7;txt=txt.replace(new RegExp("(^|\\s)"+dn+"(\\s+g[üu]n[üu](ne)?)?(\\s|$)","i")," ");return true}})}
+ var hat=/\s+(bana\s+)?(diye\s+)?hat[ıi]rlat(ır m[ıi]s[ıi]n|ırsın|ın|)\s*[?!.]*$/i;if(hat.test(txt)){txt=txt.replace(hat,"").trim();txt=txt.replace(/(m[ae])y[ıi]$/i,"$1k")}
  txt=txt.replace(/(^|\s)bugün(\s|$)/i," ").replace(/\s+/g," ").trim();if(!txt)return"Ne eklememi istersin?";
  txt=txt.replace(/\s+(istiyorum|lazım|gerek|gerekiyor)$/i,"").split(/\s+/).map(futToInf).join(" ");txt=txt.charAt(0).toLocaleUpperCase("tr")+txt.slice(1);
  txt=txt.replace(/\s+(var\s+)?ekle(r misin)?$/i,"").trim()||txt;var tt=takeTime(txt);txt=tt.txt;var td0=takeDur(txt);txt=td0.txt;txt=txt.charAt(0).toLocaleUpperCase("tr")+txt.slice(1);var dk=key(addDays(today(),off)),no={t:txt,done:false};if(tt.tm)no.tm=tt.tm;if(td0.d)no.dur=td0.d;dayLog(dk).big.push(no);
- return(off===0?"Bugüne":off===1?"Yarına":WD[addDays(today(),off).getDay()]+" gününe")+" ekledim: "+(tt.tm?tt.tm+" ":"")+txt+(tt.tm?". O saatte hatırlatacağım.":"")}
+ return(off===0?"Bugüne":off===1?"Yarına":off>6?addDays(today(),off).toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"})+" gününe":WD[addDays(today(),off).getDay()]+" gününe")+" ekledim: "+(tt.tm?tt.tm+" ":"")+txt+(tt.tm?". O saatte hatırlatacağım.":"")}
 var PARSE_AI=false,AI_HIST=[],AI_BUSY=false,AI_LASTERR="";
 (function(){try{var h=JSON.parse(localStorage.getItem("hp.aih")||"{}");if(h.d===key(today()))AI_HIST=h.h||[]}catch(e){}})();
 function aiHistFix(h){var o=[],i,pf=function(m,k){return(m.parts||[]).some(function(p){return p[k]})};
@@ -2411,7 +2422,7 @@ function vHafta(){
  var m=monday(weekRef),e=addDays(m,6),hm=H(m),he=H(e),mk=key(m),w=S.weeks[mk]||{};
  var hr=hm.m===he.m?HM[hm.m-1].toUpperCase()+" "+hm.d+"–"+he.d:HM[hm.m-1].toUpperCase()+" "+hm.d+" – "+HM[he.m-1].toUpperCase()+" "+he.d;
  var gr=m.getMonth()===e.getMonth()?GM[m.getMonth()]+" "+m.getDate()+"–"+e.getDate():m.getDate()+" "+GM[m.getMonth()]+" – "+e.getDate()+" "+GM[e.getMonth()];
- h+='<div class="hd"><button class="ico" data-a="wprev" aria-label="Önceki hafta">'+I("prev")+'</button><div style="text-align:center"><div class="big2">'+esc(hr)+'</div><div class="pill">'+esc(gr)+(key(m)===key(monday(today()))?"":' · <a href="#" data-a="wnow">bu hafta</a>')+'</div></div><button class="ico" data-a="wnext" aria-label="Sonraki hafta">'+I("next")+'</button></div>';
+ h+='<div class="hd"><button class="ico" data-a="wprev" aria-label="Önceki hafta">'+I("prev")+'</button><div style="text-align:center"><div class="big2">'+esc(gr).toLocaleUpperCase("tr")+'</div><div class="pill">'+esc(hm.m===he.m?hm.d+"–"+he.d+" "+HM[hm.m-1]:hm.d+" "+HM[hm.m-1]+" – "+he.d+" "+HM[he.m-1])+(key(m)===key(monday(today()))?"":' · <a href="#" data-a="wnow">bu hafta</a>')+'</div></div><button class="ico" data-a="wnext" aria-label="Sonraki hafta">'+I("next")+'</button></div>';
  var tk=key(today()),WS=["Pz","Pt","Sa","Ça","Pe","Cu","Ct"];
  h+='<nav class="strip">'+[0,1,2,3,4,5,6].map(function(j){var d=addDays(m,j),kk=key(d),pr=dayProg(kk),ln=peek(kk).big.length;return'<button data-a="dayjump" data-k="'+kk+'" class="'+(kk===tk?"t":"")+'">'+WS[d.getDay()]+'<b>'+d.getDate()+'</b><i class="'+(ln&&pr.p>=1?"f":ln?"p":"")+'"></i></button>'}).join("")+'</nav>';
  h+='<div class="card row"><span class="sp"><b>'+Ii("compass")+'Haftalık gözden geçirme</b><div class="mute">'+(w.review?"Yapıldı ✓ "+esc(w.review.at||""):"Haftanı 3 soruyla değerlendir.")+'</div></span><button class="btn '+(w.review?"ghost ":"")+'sm" data-a="review" data-k="'+mk+'">'+(w.review?"Görüntüle":"Başla")+'</button></div>';
@@ -2420,8 +2431,8 @@ function vHafta(){
  for(var i=0;i<7;i++){
   var d=addDays(m,i),k=key(d),sp=specials(d),c=sp.length?"c-"+sp[0].c:"";
   var dop=k===key(today())||dayOpen[k];
-  if(!dop){var pr2=dayProg(k),nb=peek(k).big.filter(function(b){return!b.moved}).length,nt=peek(k).note;h+='<div class="card day mini" id="d-'+k+'" data-a="dayopen" data-k="'+k+'"><div class="dh"><span class="hn '+c+'">'+H(d).d+' – '+WD[d.getDay()].toLocaleUpperCase("tr")+'</span><span class="mute '+c+'">'+d.getDate()+' '+GM[d.getMonth()]+'</span></div><div class="mute" style="margin-top:2px">'+(sp.length?esc(sp[0].t)+' · ':'')+(nb?nb+' iş · '+pr2.d+' tamam':'Boş · dokun ve ekle')+(nt?' · not var':'')+'</div></div>';continue}
-  h+='<div class="card day'+(k===key(today())?" today":"")+'" id="d-'+k+'"><div class="dh"><span class="hn '+c+'">'+H(d).d+' – '+WD[d.getDay()].toLocaleUpperCase("tr")+'</span><span class="mute '+c+'">'+d.getDate()+' '+GM[d.getMonth()]+'</span></div>'+tagsHtml(d)+'<div style="margin-top:6px">'+taskList(k)+'</div><textarea class="small" data-bind="day:'+k+':note" placeholder="Not">'+esc(peek(k).note)+'</textarea></div>';
+  if(!dop){var pr2=dayProg(k),nb=peek(k).big.filter(function(b){return!b.moved}).length,nt=peek(k).note;h+='<div class="card day mini" id="d-'+k+'" data-a="dayopen" data-k="'+k+'"><div class="dh"><span class="hn '+c+'">'+d.getDate()+' – '+WD[d.getDay()].toLocaleUpperCase("tr")+'</span><span class="mute '+c+'">'+H(d).d+' '+HM[H(d).m-1]+'</span></div><div class="mute" style="margin-top:2px">'+(sp.length?esc(sp[0].t)+' · ':'')+(nb?nb+' iş · '+pr2.d+' tamam':'Boş · dokun ve ekle')+(nt?' · not var':'')+'</div></div>';continue}
+  h+='<div class="card day'+(k===key(today())?" today":"")+'" id="d-'+k+'"><div class="dh"><span class="hn '+c+'">'+d.getDate()+' – '+WD[d.getDay()].toLocaleUpperCase("tr")+'</span><span class="mute '+c+'">'+H(d).d+' '+HM[H(d).m-1]+'</span></div>'+tagsHtml(d)+'<div style="margin-top:6px">'+taskList(k)+'</div><textarea class="small" data-bind="day:'+k+':note" placeholder="Not">'+esc(peek(k).note)+'</textarea></div>';
  }
  var wf=[["ozet","Haftanın özeti"],["notlar","Notlar, fikirler, hatırlatıcılar, güzel hatıralar"],["ayet","Haftanın ayeti"],["dersler","Kendime dersler"]],wn=wf.filter(function(f){return w[f[0]]}).length;
  h+='<details class="fold" data-fold="wk:'+mk+'"'+(folds["wk:"+mk]?" open":"")+'><summary>Haftanın notları <span class="n">'+wn+'/4</span></summary>';
@@ -2547,7 +2558,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #80'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #81'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -2864,11 +2875,12 @@ function vOdak(){var h='<div class="hd"><div><div class="eyebrow">Odak ve ibadet
  var ws=wmWeek(),wl=S.settings.wmLast||{},on=!!WM;
  h+='<div class="card wmhero" data-a="work"><div class="row" style="align-items:center;gap:14px"><span class="tic big" style="background:#1f2a44">'+I("clock")+'</span><span class="sp"><b style="font-size:18px">'+(on?(WM.run?"Çalışıyorsun · ":"Duraklatıldı · ")+wmFmt(wmActive()):"Çalışma modu")+'</b><div class="mute">'+(on?(WM.task?esc(WM.task)+" · ":"")+"Açmak için dokun":"Bugün "+wmFmt(ws.d*60000)+" · bu hafta "+wmFmt(ws.w*60000))+'</div></span><span class="mute">›</span></div>'+
   (!on?'<div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap"><button class="btn sm" data-a="workq">▶ '+(wl.t?"Devam: "+esc(wl.t.length>22?wl.t.slice(0,21)+"…":wl.t):"Hızlı başla")+'</button><button class="btn ghost sm" data-a="wmrep">📊 Rapor</button></div>':'')+'</div>';
+ h+='<div class="g2">'+W.odak.r()+W.zikir.r()+'</div>';
+ h+='<div class="lh"><h2>Kur\'an</h2></div>'+hatimHtml();
+ h+='<div class="lh"><h2>Hayat modülleri</h2></div>';
  h+='<div class="card tcard" data-a="finopen"><span class="tic" style="background:#2e7d4f">💰</span><span class="sp"><b>Finans</b><div class="mute">'+esc(finBudgetLine())+'</div></span><span class="mute">›</span></div><div class="card tcard" data-a="besopen"><span class="tic" style="background:#d1792c">🥗</span><span class="sp"><b>Beslenme</b><div class="mute">'+esc((function(){var D=BES().log[key(today())],n=D?BESM.filter(function(m){return(D.m[m]||[]).length}).length:0;return n?"Bugün "+n+" öğün kaydı":"Öğün, menü ve alışveriş"})())+'</div></span><span class="mute">›</span></div><div class="card tcard" data-a="evopen"><span class="tic" style="background:#4a7fb0">🏠</span><span class="sp"><b>Ev işleri</b><div class="mute">'+esc(EV().chores.length?(evDue().length?evDue().length+" iş zamanı":"Hepsi tamam"):"Hazır listeyle başla")+'</div></span><span class="mute">›</span></div>';
  h+='<div class="card tcard" data-a="dkopen"><span class="tic" style="background:#8a4fb3">🎙</span><span class="sp"><b>Diksiyon</b><div class="mute">'+esc(dkSummary())+'</div></span><span class="mute">›</span></div>';
  if(SP().on!==false)h+='<div class="card tcard" data-a="sporopen"><span class="tic" style="background:#2e7d4f">🏋️</span><span class="sp"><b>Spor</b><div class="mute">'+esc(spSummary())+'</div></span><span class="mute">›</span></div>';
- h+='<div class="g2">'+W.odak.r()+W.zikir.r()+'</div>';
- h+='<div class="lh"><h2>Kur\'an</h2></div>'+hatimHtml();
  h+='<div class="lh"><h2>Okuduğum kitap</h2></div><div class="card">'+W.okuma.r()+'</div>';
  if(klOn())h+='<div class="lh"><h2>Külliyat</h2></div><div class="card" data-tab="kulliyat">'+(W.kulliyat?W.kulliyat.r():"")+'</div>';
  return h}
@@ -3445,7 +3457,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("80",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("81",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
