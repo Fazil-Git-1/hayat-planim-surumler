@@ -496,9 +496,9 @@ var MODS={
  tesbih:{n:"Zikir dersi",ico:"📿",kw:/(tesbih|zikir|salavat|istigfar|vird)/},
  kuran:{n:"Kur'an hatmi",ico:"📗",kw:/(kuran|kur an|hatim|cuz)/},
  finans:{n:"Finans",ico:"💰",kw:/(fatura|odeme|butce|maas|kira|borc|aidat|vergi|banka|kredi|taksit)/},
- beslenme:{n:"Beslenme",ico:"🥗",kw:/(market|alisveris|yemek|menu|kahvalti|diyet|mutfak)/},
+ beslenme:{n:"Beslenme",ico:"🥗",kw:/(market|yemek|menu|kahvalti|diyet|mutfak)/},
  diksiyon:{n:"Diksiyon",ico:"🎙",kw:/(diksiyon|tekerleme)/},
- ev:{n:"Ev işleri",ico:"🏠",kw:/(temizlik|bulasik|camasir|supur|(^|\s)utu|utule|toz al|ev isi|ev isleri|banyo|(^|\s)cop|buzdolabi)/}};
+ ev:{n:"Ev & Alışveriş",ico:"🏠",kw:/(alisveris|temizlik|bulasik|camasir|supur|(^|\s)utu|utule|toz al|ev isi|ev isleri|banyo|(^|\s)cop|buzdolabi)/}};
 function modAvail(id){if(id==="spor")return SP().on!==false;if(id==="kulliyat")return klOn();return true}
 function modOf(b){if(b.mod!==undefined)return b.mod&&MODS[b.mod]&&modAvail(b.mod)?b.mod:"";var t=nluFold(b.t);for(var id in MODS){var m=MODS[id];if(m.kw&&m.kw.test(t)&&modAvail(id))return id}return""}
 function modChip(b,k,i){var id=modOf(b);return id?'<button class="mod-chip" data-a="modopen" data-k="'+k+'" data-i="'+i+'">'+MODS[id].ico+' '+MODS[id].n+'</button>':""}
@@ -507,7 +507,7 @@ function modPick(label){return Object.keys(MODS).filter(function(id){return MODS
 function modOpen(k,i){var b=dayLog(k).big[i];if(!b)return;var id=modOf(b);if(!id)return;
  if(id==="spor"){SPCTX={k:k,i:i};sporTab="bugun";go("spor")}
  else if(id==="calisma"){openWork(b.dur||undefined);if(WMO){WMO._task=b.t;WMO._tk={k:k,i:i};if(b.dur)WMO._dur=b.dur;WMO._h="";wmPaint()}}
- else if(id==="finans"){finTab="ozet";go("finans")}else if(id==="beslenme"){besTab="bugun";go("beslenme")}else if(id==="ev"){go("ev")}else if(id==="diksiyon"){dkTab="bugun";go("diksiyon")}
+ else if(id==="finans"){finTab="ozet";go("finans")}else if(id==="beslenme"){besTab="bugun";go("beslenme")}else if(id==="ev"){if(b.auto==="bes:shop"||/alışveriş/i.test(b.t))evTab="alis";go("ev")}else if(id==="diksiyon"){dkTab="bugun";go("diksiyon")}
  else if(id==="tesbih"){zkTab="vazife";if(!ZV().length&&!S.zvSeeded)zkSeedCoson();go("zikir")}else if(id==="kuran")go("odak");else if(id==="kulliyat"){klSec="ay";openBook=null;openKv=null;go("kulliyat")}}
 function taskEdit(k,i){var b=dayLog(k).big[i];if(!b)return;var cur=modOf(b);
  ask(b.t,[{label:"Saat (boş bırakırsan saatsiz olur)",type:"time",value:b.tm||""},{label:"Süre (dakika)",type:"number",value:b.dur||""},{label:"Modül",type:"select",opts:modOpts(false),value:cur?MODS[cur].ico+" "+MODS[cur].n:"Yok"}],
@@ -639,7 +639,7 @@ function gkMark(k,on){var o=gkO();o.log=o.log||{};if(on)o.log[k]=1;else delete o
  if(on&&k===key(today())){var L=dayLog(k),hb=(S.habits||[]).filter(function(x){return/kur.?an/i.test(x.name||"")})[0];if(hb){L.h=L.h||{};if(!L.h[hb.id]){L.h[hb.id]=true}}}
  save()}
 function gkCard(odak){try{if(!S.onboarded||editing)return"";var o=gkO(),k=key(today());
- if(!o||!o.start){if(S.settings.gkHide&&!odak)return"";return'<div class="card close"><span style="flex:none;font-size:22px">📖</span><span class="sp"><b>Grup okuması</b><div class="mute">Her cüzde sana denk gelen sayfayı günlük göstereyim mi?</div></span><button class="btn sm" data-a="gkset">Kur</button><button class="x" data-a="gksnz" aria-label="Bir daha gösterme">×</button></div>'}
+ if(!o||!o.start){if(!odak)return"";return'<div class="card close"><span style="flex:none;font-size:22px">📖</span><span class="sp"><b>Grup okuması</b><div class="mute">Her cüzde sana denk gelen sayfayı günlük göstereyim mi?</div></span><button class="btn sm" data-a="gkset">Kur</button><button class="x" data-a="gksnz" aria-label="Bir daha gösterme">×</button></div>'}
  var f=gkInfo(k);if(!f)return"";
  if(!f.pg)return'<div class="card close"><span style="flex:none;font-size:22px">📖</span><span class="sp"><b>Yeni tur başladı</b><div class="mute">Bu turdaki sayfa numaranı gir; bugün '+f.cuz+'. cüz.</div></span><button class="btn sm" data-a="gkpage">Gir</button></div>';
  var rd=!!(o.log||{})[k],n=gkReadN(f.cyc);
@@ -649,7 +649,7 @@ function gkGrid(){var o=gkO(),f=gkInfo(key(today()));if(!f)return;closeAllSheets
  sheet("Bu tur · sayfa "+f.pg,'<div class="mute" style="margin-bottom:8px">Cüz numarasına dokununca o günün sayfasını okundu/okunmadı yaparsın (kaçırdığını sonradan işaretleyebilirsin).</div><div style="display:flex;flex-wrap:wrap">'+cells+'</div><div class="row" style="margin-top:12px;gap:8px"><button class="btn ghost sm" data-a="gkpage">Sayfa numarasını değiştir</button><button class="btn ghost sm" data-a="gkset">Başlangıcı ayarla</button><button class="btn ghost sm" data-a="gkoff">Kapat</button></div>')}
 function spCard(){try{if(SP().on===false||!modOn("spor"))return"";var k=key(today()),lg=SP().log[k]||{},list=spTodayList();if(lg.done)return"";
  if(typeof SPM!=="undefined"&&SPM)return'<div class="card close"><span style="flex:none;font-size:22px">🏋️</span><span class="sp"><b>Antrenman sürüyor</b><div class="mute">Kaldığın yerden devam et.</div></span><button class="btn sm" data-a="spmgo">Aç</button></div>';
- if(!list.length){if(Object.keys(SP().log).length||Object.keys(SP().plan).length)return"";return'<div class="card close"><span style="flex:none;font-size:22px">🏋️</span><span class="sp"><b>Spor modu</b><div class="mute">Plan gerekmez: 15 dk hızlı antrenmanla dene.</div></span><button class="btn sm" data-a="spquickgo">▶ Başla</button></div>'}var any=lg.sets&&Object.keys(lg.sets).some(function(i){return(lg.sets[i]||[]).some(Boolean)});
+ if(!list.length)return"";var any=lg.sets&&Object.keys(lg.sets).some(function(i){return(lg.sets[i]||[]).some(Boolean)});
  return'<div class="card close"><span style="flex:none;font-size:22px">🏋️</span><span class="sp"><b>'+(any?"Antrenmana devam":"Bugün antrenman var")+'</b><div class="mute">'+esc(spSummary())+'</div></span><button class="btn sm" data-a="spmgo">'+(any?"Devam":"▶ Başla")+'</button></div>'}catch(e){return""}}
 function spSummary(){var arr=spTodayList();if(!arr.length)return"Bugün plan yok · plan oluştur";return arr.slice(0,3).map(function(e){return(spEx(e.e)||{n:"?"}).n}).join(", ")+(arr.length>3?" +"+(arr.length-3):"")+" · ~"+spEst(arr)+" dk"}
 function vSpor(){var h='<div class="hd"><div><div class="eyebrow">Modül</div><h1>🏋️ Spor</h1></div>'+gearBtn()+'</div>';
@@ -1011,22 +1011,28 @@ var BESM=["Kahvaltı","Öğle","Akşam","Ara öğün"],BESD=["Pazartesi","Salı"
 function BES(){if(!S.bes||typeof S.bes!=="object")S.bes={log:{},menu:{},shop:[]};S.bes.log=S.bes.log||{};S.bes.menu=S.bes.menu||{};S.bes.shop=S.bes.shop||[];return S.bes}
 function besDay(k){var b=BES();return b.log[k]=b.log[k]||{m:{},c:{}}}
 function besLog(meal,txt){var D=besDay(key(today()));(D.m[meal]=D.m[meal]||[]).push(txt);save()}
-function vBeslenme(){var h='<div class="hd"><div><div class="eyebrow">Modül</div><h1>🥗 Beslenme</h1></div>'+gearBtn()+'</div>',B=BES();
- h+='<div class="chips" style="margin-bottom:12px">'+[["bugun","Bugün"],["menu","Haftalık menü"],["alis","Alışveriş"]].map(function(t){return'<button class="chip'+(besTab===t[0]?" on":"")+'" data-a="bestab" data-v="'+t[0]+'">'+t[1]+'</button>'}).join("")+'</div>';
+function vBeslenme(){if(besTab==="alis"){besTab="bugun";evTab="alis";tab="ev";return vEv()}var h='<div class="hd"><div><div class="eyebrow">Modül</div><h1>🥗 Beslenme</h1></div>'+gearBtn()+'</div>',B=BES();
+ h+='<div class="chips" style="margin-bottom:12px">'+[["bugun","Bugün"],["menu","Haftalık menü"]].map(function(t){return'<button class="chip'+(besTab===t[0]?" on":"")+'" data-a="bestab" data-v="'+t[0]+'">'+t[1]+'</button>'}).join("")+'</div>';
  if(besTab==="bugun"){var k=key(today()),D=besDay(k),wi=(today().getDay()+6)%7,pm=B.menu[wi]||{},su=(HL().log[k]||{}).su||0;
   BESM.forEach(function(mn,i){var items=D.m[mn]||[],pl=[pm.k,pm.o,pm.a,""][i];h+='<div class="card"><div class="row"><b class="sp">'+mn+'</b><button class="btn ghost sm" data-a="besadd" data-v="'+esc(mn)+'">+ Ekle</button></div>'+(items.length?items.map(function(t,j){return'<div class="row" style="padding:3px 0"><span class="sp">• '+esc(t)+'</span><button class="x" data-a="besdel" data-v="'+esc(mn)+':'+j+'">×</button></div>'}).join(""):'<div class="mute">'+(pl?'Planlanan: '+esc(pl):'Kayıt yok')+'</div>')+'</div>'});
   h+='<div class="card"><b>Dengeli tabak</b><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px">'+[["sebze","🥦 Sebze"],["protein","🍗 Protein"],["meyve","🍎 Meyve"]].map(function(c){return'<button class="chip'+(D.c[c[0]]?" on":"")+'" data-a="beschk" data-v="'+c[0]+'">'+c[1]+'</button>'}).join("")+'<button class="chip'+(su>=8?" on":"")+'" data-a="hl">💧 Su '+su+'/8</button></div></div>'}
  else if(besTab==="menu"){var ti=(today().getDay()+6)%7;h+='<div class="mute" style="margin-bottom:8px">Güne dokun, öğünleri yaz. Bugünün menüsü Bugün sekmesinde "Planlanan" olarak görünür.</div><div class="card">'+BESD.map(function(d,i){var m=B.menu[i]||{};return'<div class="row lnkrow" data-a="besmenu" data-v="'+i+'"><span class="sp"><b>'+d+(i===ti?" · bugün":"")+'</b><div class="mute" style="font-size:12px">'+esc([m.k,m.o,m.a].filter(Boolean).join(" · ")||"Boş")+'</div></span><span class="mute">›</span></div>'}).join("")+'</div>'}
- else{h+='<div class="row" style="margin-bottom:8px;gap:8px"><button class="btn sm" data-a="shopadd">+ Ekle</button><button class="btn ghost sm" data-a="shopclr">Alınanları sil</button></div>'+(B.shop.length?'<div class="card">'+B.shop.map(function(x){return'<div class="row" style="padding:6px 0;gap:8px"><button class="chk'+(x.done?" on":"")+'" data-a="shoptog" data-v="'+x.id+'">'+(x.done?"✓":"")+'</button><span class="sp'+(x.done?" done":"")+'">'+esc(x.t)+'</span><button class="x" data-a="shopdel" data-v="'+x.id+'">×</button></div>'}).join("")+'</div>':'<div class="mute">Liste boş. Sohbette "alışveriş listesine süt ekle" diyebilirsin.</div>')}
+ else{}
  return h+'<div class="mute" style="margin-top:14px;font-size:12px">Genel bir takip aracıdır; diyet ya da sağlık tavsiyesi değildir.</div>'}
-/* ---- Ev işleri ---- */
+function shopHtml(){var h="",B=BES();
+ h+='<div class="row" style="margin-bottom:8px;gap:8px"><button class="btn sm" data-a="shopadd">+ Ekle</button><button class="btn ghost sm" data-a="shopclr">Alınanları sil</button></div>'+(B.shop.length?'<div class="card">'+B.shop.map(function(x){return'<div class="row" style="padding:6px 0;gap:8px"><button class="chk'+(x.done?" on":"")+'" data-a="shoptog" data-v="'+x.id+'">'+(x.done?"✓":"")+'</button><span class="sp'+(x.done?" done":"")+'">'+esc(x.t)+'</span><button class="x" data-a="shopdel" data-v="'+x.id+'">×</button></div>'}).join("")+'</div>':'<div class="mute">Liste boş. Sohbette "alışveriş listesine süt ekle" diyebilirsin.</div>')
+ return h}
+/* ---- Ev ve alışveriş ---- */
 var EVSEED=[["Bulaşık",1],["Yatak toplama",1],["Çöp çıkarma",2],["Çamaşır",3],["Süpürme",3],["Banyo temizliği",7],["Toz alma",7],["Çarşaf değiştirme",14],["Buzdolabı temizliği",30],["Cam silme",30]];
 function EV(){if(!S.ev||typeof S.ev!=="object")S.ev={chores:[]};S.ev.chores=S.ev.chores||[];return S.ev}
 function evDays(c){if(!c.last)return 9999;return Math.floor((today()-fromKey(c.last))/864e5)}
 function evDue(){return EV().chores.filter(function(c){return evDays(c)>=c.every}).sort(function(a,b){return(evDays(b)-b.every)-(evDays(a)-a.every)})}
 function evDone(c){c.prev=c.last;c.last=key(today());c.n2=(c.n2||0)+1;save()}
 function evCard(){if(editing||!modOn("ev"))return"";var d=evDue();if(!d.length||S.settings.evHide===key(today()))return"";return'<div class="card banner"><div class="row" style="gap:10px;align-items:flex-start"><span style="font-size:22px">🏠</span><span class="sp"><b>Ev işleri: '+d.length+' iş zamanı</b><div class="mute" style="margin:2px 0 8px">'+esc(d.slice(0,3).map(function(c){return c.n}).join(", ")+(d.length>3?"…":""))+'</div><div class="row" style="gap:8px"><button class="btn sm" data-a="evopen">Aç</button><button class="btn ghost sm" data-a="evhide">Bugün gizle</button></div></span></div></div>'}
-function vEv(){var h='<div class="hd"><div><div class="eyebrow">Modül</div><h1>🏠 Ev işleri</h1></div>'+gearBtn()+'</div>',E=EV();
+function vEv(){var h='<div class="hd"><div><div class="eyebrow">Modül</div><h1>🏠 Ev & Alışveriş</h1></div>'+gearBtn()+'</div>',E=EV();
+ if(evTab!=="alis")evTab="ev";
+ h+='<div class="chips" style="margin-bottom:12px">'+[["ev","Ev işleri"],["alis","Alışveriş"+(BES().shop.filter(function(x){return!x.done}).length?" ("+BES().shop.filter(function(x){return!x.done}).length+")":"")]].map(function(t){return'<button class="chip'+(evTab===t[0]?" on":"")+'" data-a="evtab" data-v="'+t[0]+'">'+t[1]+'</button>'}).join("")+'</div>';
+ if(evTab==="alis")return h+shopHtml();
  if(!E.chores.length)return h+'<div class="card"><b>Henüz ev işi yok</b><div class="mute" style="margin:4px 0 10px">Hazır listeyi ekleyip düzenleyebilirsin: bulaşık, çamaşır, süpürme, banyo…</div><div class="row" style="gap:8px"><button class="btn sm" data-a="evseed">Hazır liste ekle</button><button class="btn ghost sm" data-a="evnew">+ Kendi işim</button></div></div>';
  var due=evDue();h+='<div class="eyebrow">Zamanı gelenler ('+due.length+')</div>'+(due.length?'<div class="card">'+due.map(function(c){var od=evDays(c)-c.every;return'<div class="row" style="padding:7px 0;gap:10px"><button class="chk" data-a="evdone" data-v="'+c.id+'"></button><span class="sp"><b>'+esc(c.n)+'</b><div class="mute" style="font-size:12px">'+(c.last?(od>0?od+" gün gecikti":"bugün")+" · her "+c.every+" günde":"hiç yapılmadı · her "+c.every+" günde")+'</div></span><button class="btn ghost sm" data-a="evtask" data-v="'+c.id+'">İşe ekle</button></div>'}).join("")+'</div>':'<div class="mute">Hepsi tamam, eline sağlık! 🎉</div>');
  var rest=E.chores.filter(function(c){return due.indexOf(c)<0});h+='<div class="eyebrow" style="margin-top:14px">Sonraki</div>'+(rest.length?'<div class="card">'+rest.map(function(c){return'<div class="row" style="padding:6px 0;gap:8px"><span class="sp"><b>'+esc(c.n)+'</b><div class="mute" style="font-size:12px">'+(c.every-evDays(c))+' gün sonra · her '+c.every+' günde</div></span><button class="btn ghost sm" data-a="evdone" data-v="'+c.id+'">Yaptım</button><button class="x" data-a="evdel" data-v="'+c.id+'">×</button></div>'}).join("")+'</div>':'<div class="mute">—</div>');
@@ -1049,7 +1055,7 @@ function autoItems(d,isT){var o=[];
  REC().forEach(function(c){if(recMatch(c,d))o.push({src:"rec",sid:c.id,t:c.t,dur:c.dur||0,mod:undefined,tm:c.tm})});
  if(isT&&autoOn("zk")&&ZV().length)o.push({src:"zk",sid:"zk",tm:ZD().tm||"",t:"Günlük zikir vazifesi",dur:Math.max(10,Math.min(60,Math.round(ZV().reduce(function(s,x){return s+x.t},0)/30))),mod:"tesbih"});
  if(isT&&autoOn("dk"))o.push({src:"dk",sid:"dk",t:"Diksiyon çalışması",dur:10,mod:"diksiyon"});
- if(isT&&autoOn("shop")){var n=BES().shop.filter(function(x){return!x.done}).length;if(n)o.push({src:"bes",sid:"shop",t:"Alışveriş listesi ("+n+" ürün)",dur:30,mod:"beslenme"})}
+ if(isT&&autoOn("shop")){var n=BES().shop.filter(function(x){return!x.done}).length;if(n)o.push({src:"bes",sid:"shop",t:"Alışveriş listesi ("+n+" ürün)",dur:30,mod:"ev"})}
  return o}
 function autoDup(L,it){return L.big.some(function(b){if(b.auto||b.moved)return false;if(it.src==="rec")return nluFold(b.t)===nluFold(it.t);if(it.src==="spor")return modOf(b)==="spor";if(it.src==="ev")return nluFold(b.t).indexOf(nluFold(it.t))>=0;if(it.src==="dk")return modOf(b)==="diksiyon";if(it.src==="zk")return modOf(b)==="tesbih"&&/zikir|vazife/.test(nluFold(b.t));if(it.src==="bes")return/alisveris/.test(nluFold(b.t));return false})}
 function autoState(b,k){var p=b.auto.split(":"),src=p[0],sid=p.slice(1).join(":"),d=fromKey(k),isT=k===key(today());
@@ -2319,7 +2325,7 @@ function localNav(raw,t,words){
  if(/yıllık plan|yıllık hedef|hedeflerim|hedefler/.test(t))return go2("yillik_plan","","Yıllık planı açıyorum.");
  var DF=[[/alışkanlık/,"aliskanlik","Alışkanlık geçmişini"],[/kaza|namaz geçmiş/,"namaz","Namaz ve kaza kayıtlarını"],[/kitap/,"kitap","Kitap listeni"],[/(^|\s)dua/,"dua","Dualarını"],[/gezi/,"gezi","Gezi listeni"],[/insan|kişi/,"insan","İnsanlar listeni"],[/yayın/,"yayin","Yayınlarını"]];
  for(var i=0;i<DF.length;i++)if(DF[i][0].test(t))return go2("defter",DF[i][1],DF[i][2]+" açıyorum.");
- if(/kur ?an|hatim|okuduğum kitap/.test(t))return go2("odak","","Odak sekmesini açıyorum.");
+ if(/kur ?an|hatim|okuduğum kitap/.test(t))return go2("odak","","Hayat sekmesini açıyorum.");
  if(/niyet|değerlerim|yıllık planım/.test(t)||/(^|\s)ben(\s|$)/.test(t))return go2("ben","","Ben sekmesini açıyorum.");
  if(/ana ekran|ana sayfa|bugün(ü)?(\s|$)/.test(t))return go2("bugun","","Bugün ekranını açıyorum.");
  return null}
@@ -2550,13 +2556,29 @@ function paintChat(){if(!CHO)return;var st=CHO.querySelector(".ch-st");st.textCo
  if(!msgs.length)h='<div class="msgs"><div class="r">'+esc(greet()+hi()+"! Ben "+mName()+". Senin kişisel asistanınım: günün, işlerin, rutinlerin ve hedeflerin için buradayım.")+'</div></div><div class="sgs">'+(CHATONLY?[]:[WM?"Çalışma moduna dön":"Çalışma modunu aç"]).concat(["Bugün ne var?","Günümü planla","Haftamı nasıl daha verimli geçiririm?","Hangi rutinleri aksatıyorum?"]).map(function(x){return'<button data-sg="'+esc(x)+'">'+esc(x)+'</button>'}).join("")+'</div>';
  else{h='<div class="msgs">';msgs.forEach(function(m){var dk=key(new Date(m.at));if(dk!==lastDay){lastDay=dk;h+='<span class="ch-day">'+(dk===key(today())?"Bugün":new Date(m.at).toLocaleDateString("tr-TR",{day:"numeric",month:"long"}))+'</span>'}h+='<div class="u">'+esc(m.u)+'</div><div class="r'+(m.r==="…"?" wait":"")+'">'+fmtMsg(m.r)+acHtml(m)+srcHtml(m)+(m.ai&&m===msgs[msgs.length-1]&&!AI_BUSY?(m.fb?'<span class="fbk">'+(m.fb>0?'👍 Teşekkürler':'👎 Öğrendim')+'</span>':'<span class="fbk"><button data-fb="'+m.at+':1" aria-label="İyi cevap">👍</button><button data-fb="'+m.at+':0" aria-label="Kötü cevap, öğret">👎</button></span>'):'')+'</div>'});h+='</div>';var lm=msgs[msgs.length-1];h+=opHtml(lm);if(lm&&lm.sg&&lm.sg.length&&!AI_BUSY&&!(lm.op&&lm.op.length))h+='<div class="sgs">'+lm.sg.map(function(x){return'<button data-sg="'+esc(x)+'">'+esc(x)+'</button>'}).join("")+'</div>'}
  body.innerHTML=h;body.scrollTop=body.scrollHeight}
+function shopAddDlg(){ask("Alışveriş listesi",[{label:"Ne alınacak?"}],function(r){if(!(r[0]||"").trim())return;BES().shop.push({id:uid(),t:cap1(r[0].trim()),done:false});save();render()},{label:"Ekle"})}
+function finAddDlg(v){ask(v==="g"?"Harcama ekle":"Gelir ekle",[{label:"Tutar (₺)",type:"number"},{label:"Kategori",type:"select",opts:v==="g"?FINC:FINI,value:v==="g"?"Market":"Maaş"},{label:"Not (isteğe bağlı)"}],function(r){var a=finNum(r[0]);if(!a)return;finAdd(v==="g"?"g":"i",a,r[1],(r[2]||"").trim());render()},{label:"Ekle"})}
+/* Hızlı ekle: Bugün'deki ＋ düğmesi */
+function qaSheet(){closeAllSheets();var it=[["task","📝","İş ekle","Bugüne ya da başka güne"]];
+ if(modOn("ev")||modOn("beslenme"))it.push(["shop","🛒","Alışverişe ürün ekle","Listeye bir ürün yaz"]);
+ if(modOn("finans"))it.push(["exp","💸","Harcama ekle","Tutar ve kategori"]);
+ if(SP().on!==false)it.push(["spor","🏋️","Antrenman başlat","Bugünün planı ya da 15 dk hızlı"]);
+ sheet("Hızlı ekle",it.map(function(x){return'<div class="row lnkrow" data-a="qgo" data-v="'+x[0]+'" style="padding:12px 0;gap:12px"><span style="font-size:22px">'+x[1]+'</span><span class="sp"><b>'+x[2]+'</b><div class="mute">'+x[3]+'</div></span><span class="mute">›</span></div>'}).join(""))}
+function qaGo(v){if(v==="task")setTimeout(function(){taskNewDlg(key(today()))},50);
+ else if(v==="shop")setTimeout(shopAddDlg,50);
+ else if(v==="exp")setTimeout(function(){finAddDlg("g")},50);
+ else if(v==="spor"){if(spTodayList().length)spmGo();else{var sp=SP(),k=key(today()),lq=sp.log[k]=sp.log[k]||{};lq.adhoc=[{e:"jj",s:2},{e:"squat",s:2,r:12},{e:"sinav",s:2,r:8},{e:"plank",s:2,r:30}];save();spmGo()}}}
+function inviteCard(){if(editing||S.settings.invHide||!S.onboarded)return"";var a=[];
+ if(SP().on!==false&&modOn("spor")&&!Object.keys(SP().log).length&&!Object.keys(SP().plan).length)a.push('<button class="btn sm" data-a="spquickgo">🏋️ Spor modunu dene</button>');
+ var o=gkO();if(!(o&&o.start)&&!S.settings.gkHide)a.push('<button class="btn sm" data-a="gkset">📖 Grup okuması</button>');
+ if(!a.length)return"";return'<div class="card close"><span class="sp"><b>Yeni özellikler</b><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px">'+a.join("")+'</div></span><button class="x" data-a="invhide" aria-label="Bir daha gösterme">×</button></div>'}
 function vPano(){
- var d=today(),h='<div class="hd"><div><div class="eyebrow">Hayat Planım</div><div class="big">'+esc(d.getDate()+" "+GM[d.getMonth()])+' · '+WD[d.getDay()]+'</div><div class="pill">'+esc(hstr(d))+(function(){var nx=nextMajor(d),sp=specials(d);return sp.length?' · <b class="c-'+sp[0].c+'">'+esc(sp[0].t)+'</b>':nx&&nx.days<=30?' · '+esc(nx.t)+' '+(nx.days===1?"yarın":nx.days+" gün sonra"):""})()+'</div></div><div class="row" style="gap:8px;flex:none">'+(editing?'<button class="btn sm" data-a="edit">Bitti</button>':'<button class="btn ghost sm" data-a="edit" title="Ana ekranda hangi kartlar görünsün, sırası ne olsun" aria-label="Ana ekranı düzenle" style="gap:6px">'+I("edit")+'Düzenle</button>')+gearBtn()+'</div></div>';
+ var d=today(),h='<div class="hd"><div><div class="eyebrow">Hayat Planım</div><div class="big">'+esc(d.getDate()+" "+GM[d.getMonth()])+' · '+WD[d.getDay()]+'</div><div class="pill">'+esc(hstr(d))+(function(){var nx=nextMajor(d),sp=specials(d);return sp.length?' · <b class="c-'+sp[0].c+'">'+esc(sp[0].t)+'</b>':nx&&nx.days<=30?' · '+esc(nx.t)+' '+(nx.days===1?"yarın":nx.days+" gün sonra"):""})()+'</div></div><div class="row" style="gap:8px;flex:none">'+(editing?'<button class="btn sm" data-a="edit">Bitti</button>':'<button class="btn sm" data-a="qadd" aria-label="Hızlı ekle" title="Hızlı ekle" style="font-size:22px;line-height:1;padding:6px 14px">＋</button><button class="btn ghost sm" data-a="edit" title="Ana ekranda hangi kartlar görünsün, sırası ne olsun" aria-label="Ana ekranı düzenle" style="gap:6px">'+I("edit")+'Düzenle</button>')+gearBtn()+'</div></div>';
  var ban=updCard(),tkc=key(today()),evh=parseInt((S.settings.evening||"21:00").split(":")[0],10)-2;
  var CARDS=[];
  if(!editing&&new Date().getHours()>=Math.min(19,evh)&&!(S.log[tkc]&&S.log[tkc].closed))CARDS.push('<div class="card close"><span style="flex:none">'+I("moon")+'</span><span class="sp"><b>Günü kapat</b><div class="mute">1 dakika: bugünü değerlendir, yarını hazırla.</div></span><button class="btn sm" data-a="dayclose">Başla</button></div>');
  if(!editing)h+=wmBanner();
- if(!editing)CARDS.push(spCard(),morningHtml(),ramHtml(),calHtml(),evCard());
+ if(!editing)CARDS.push(spCard(),morningHtml(),ramHtml(),calHtml(),evCard(),inviteCard());
  if(!editing)h+=CARDS.filter(Boolean).slice(0,2).join("");
  if(!editing)h+=gkCard();
  if(!editing)h+=heroHtml();
@@ -2711,7 +2733,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #96'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #97'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -2901,7 +2923,7 @@ function timerSheet(title,sec,body,doneLabel,onDone){
   o.addEventListener("click",function(e){if(e.target===o||(e.target.hasAttribute&&e.target.hasAttribute("data-close")))clearInterval(iv)});
  })}
 
-var MODX=[["finans","💰","Finans","Gelir, gider, bütçe"],["beslenme","🥗","Beslenme","Öğün, su, menü, alışveriş"],["ev","🏠","Ev işleri","Tekrarlayan ev işleri"],["diksiyon","🎙","Diksiyon","Günlük kısa çalışma"]];
+var MODX=[["finans","💰","Finans","Gelir, gider, bütçe"],["beslenme","🥗","Beslenme","Öğün, su, haftalık menü"],["ev","🏠","Ev & Alışveriş","Ev işleri ve alışveriş listesi"],["diksiyon","🎙","Diksiyon","Günlük kısa çalışma"]];
 function modOn(id){return!(S.settings.modOff&&S.settings.modOff[id])}
 function klModCard(){var k=KL();
  var h='<div class="mute" style="margin:0 2px 8px">Kullanmadığın modülü kapat; Odak sayfasından ve ana ekrandan kalkar, verilerin silinmez.</div><div class="card">'+MODX.map(function(m,i){var on=modOn(m[0]);return'<div class="row"'+(i?' style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)"':'')+'><span class="sp"><b>'+m[1]+' '+m[2]+'</b><div class="mute">'+m[3]+'</div></span><button class="btn '+(on?"ghost ":"")+'sm" data-a="modtog" data-v="'+m[0]+'">'+(on?"Kapat":"Aç")+'</button></div>'}).join("")+'</div><div class="card"><div class="row"><span class="sp"><b>📚 İlim, İrfan ve Medeniyet Külliyatı</b><div class="mute">32 eser, 24 aylık okuma programı ve hafıza protokolü.</div></span><button class="btn '+(k.on?"ghost ":"")+'sm" data-a="'+(k.on?"k_off":"k_on")+'">'+(k.on?"Kapat":"Aç")+'</button></div>';
@@ -2985,7 +3007,7 @@ kulliyat:'<path d="M4 4.5h4v15H4zM10 4.5h4v15h-4z"/><path d="M15.6 5.3l3.8-1 3.6
 prev:'<path d="M14.5 5.5L8 12l6.5 6.5"/>',next:'<path d="M9.5 5.5L16 12l-6.5 6.5"/>'};
 function Ii(n){return'<svg class="i ii" viewBox="0 0 24 24" aria-hidden="true">'+IC[n]+'</svg>'}
 function I(n){return'<svg class="i" viewBox="0 0 24 24" aria-hidden="true">'+IC[n]+'</svg>'}
-var TABS=[["pano","pano","Bugün"],["hafta","cal","Takvim"],["hud","hud","Hüdhüd"],["odak","target","Odak"],["ben","ben","Ben"]];
+var TABS=[["pano","pano","Bugün"],["hafta","cal","Takvim"],["hud","hud","Hüdhüd"],["odak","target","Hayat"],["ben","ben","Ben"]];
 function tabs(){return TABS}
 /* ---------- Yeni bilgi mimarisi: Bugün · Takvim · Hüdhüd · Odak · Ben ---------- */
 var PARENT={hedef:"ben",defter:"ben",kulliyat:"odak",spor:"odak",diksiyon:"odak",finans:"odak",beslenme:"odak",ev:"odak",zikir:"odak"};
@@ -3026,20 +3048,22 @@ function nudgeNotifs(){var o=[],ph=planHealth(),now=new Date();
 function goalOfDay(){var g=[];S.areas.forEach(function(a){a.goals.forEach(function(x){if(x.durum!=="tamam")g.push({a:a,g:x})})});if(!g.length)return"";var x=g[dayIndex()%g.length];
  return'<button class="god" data-a="openarea" data-id="'+x.a.id+'"><span>🎯</span><span class="sp">Yıllık hedefin: <b>'+esc(x.g.t)+'</b> <span class="mute">· '+esc(x.a.name)+'</span></span><span class="mute">›</span></button>'}
 /* Odak sekmesi */
-function vOdak(){var h='<div class="hd"><div><div class="eyebrow">Odak ve ibadet</div><h1>Odak</h1></div>'+gearBtn()+'</div>';
+function vOdak(){var h='<div class="hd"><div><div class="eyebrow">Alanlarım</div><h1>Hayat</h1></div>'+gearBtn()+'</div>';
  var ws=wmWeek(),wl=S.settings.wmLast||{},on=!!WM;
  h+='<div class="card wmhero" data-a="work"><div class="row" style="align-items:center;gap:14px"><span class="tic big" style="background:#1f2a44">'+I("clock")+'</span><span class="sp"><b style="font-size:18px">'+(on?(WM.run?"Çalışıyorsun · ":"Duraklatıldı · ")+wmFmt(wmActive()):"Çalışma modu")+'</b><div class="mute">'+(on?(WM.task?esc(WM.task)+" · ":"")+"Açmak için dokun":"Bugün "+wmFmt(ws.d*60000)+" · bu hafta "+wmFmt(ws.w*60000))+'</div></span><span class="mute">›</span></div>'+
   (!on?'<div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap"><button class="btn sm" data-a="workq">▶ '+(wl.t?"Devam: "+esc(wl.t.length>22?wl.t.slice(0,21)+"…":wl.t):"Hızlı başla")+'</button><button class="btn ghost sm" data-a="wmrep">📊 Rapor</button></div>':'')+'</div>';
- h+='<div class="g2">'+W.odak.r()+W.zikir.r()+'</div>';
- h+='<div class="lh"><h2>Kur\'an</h2></div>'+hatimHtml()+gkCard(true);
- if(MODX.some(function(m){return modOn(m[0])})||SP().on!==false)h+='<div class="lh"><h2>Hayat modülleri</h2></div>';
- if(modOn("finans"))h+='<div class="card tcard" data-a="finopen"><span class="tic" style="background:#2e7d4f">💰</span><span class="sp"><b>Finans</b><div class="mute">'+esc(finBudgetLine())+'</div></span><span class="mute">›</span></div>';
- if(modOn("beslenme"))h+='<div class="card tcard" data-a="besopen"><span class="tic" style="background:#d1792c">🥗</span><span class="sp"><b>Beslenme</b><div class="mute">'+esc((function(){var D=BES().log[key(today())],n=D?BESM.filter(function(m){return(D.m[m]||[]).length}).length:0;return n?"Bugün "+n+" öğün kaydı":"Öğün, menü ve alışveriş"})())+'</div></span><span class="mute">›</span></div>';
- if(modOn("ev"))h+='<div class="card tcard" data-a="evopen"><span class="tic" style="background:#4a7fb0">🏠</span><span class="sp"><b>Ev işleri</b><div class="mute">'+esc(EV().chores.length?(evDue().length?evDue().length+" iş zamanı":"Hepsi tamam"):"Hazır listeyle başla")+'</div></span><span class="mute">›</span></div>';
- if(modOn("diksiyon"))h+='<div class="card tcard" data-a="dkopen"><span class="tic" style="background:#8a4fb3">🎙</span><span class="sp"><b>Diksiyon</b><div class="mute">'+esc(dkSummary())+'</div></span><span class="mute">›</span></div>';
- if(SP().on!==false)h+='<div class="card tcard" data-a="sporopen"><span class="tic" style="background:#2e7d4f">🏋️</span><span class="sp"><b>Spor</b><div class="mute">'+esc(spSummary())+'</div></span><span class="mute">›</span></div>';
- h+='<div class="lh"><h2>Okuduğum kitap</h2></div><div class="card">'+W.okuma.r()+'</div>';
- if(klOn())h+='<div class="lh"><h2>Külliyat</h2></div><div class="card" data-tab="kulliyat">'+(W.kulliyat?W.kulliyat.r():"")+'</div>';
+ var cOdak=W.odak.r(),cZk=W.zikir.r(),cFin="",cBes="",cEv="",cDk="",cSp="",cShop="",cKl="";
+ var cKur=hatimHtml()+gkCard(true);
+  if(modOn("finans"))cFin='<div class="card tcard" data-a="finopen"><span class="tic" style="background:#2e7d4f">💰</span><span class="sp"><b>Finans</b><div class="mute">'+esc(finBudgetLine())+'</div></span><span class="mute">›</span></div>';
+ if(modOn("beslenme"))cBes='<div class="card tcard" data-a="besopen"><span class="tic" style="background:#d1792c">🥗</span><span class="sp"><b>Beslenme</b><div class="mute">'+esc((function(){var D=BES().log[key(today())],n=D?BESM.filter(function(m){return(D.m[m]||[]).length}).length:0;return n?"Bugün "+n+" öğün kaydı":"Öğün, su ve haftalık menü"})())+'</div></span><span class="mute">›</span></div>';
+ if(modOn("ev")||modOn("beslenme")){var unS=BES().shop.filter(function(x){return!x.done}).length;cShop='<div class="card tcard" data-a="shopopen"><span class="tic" style="background:#b5651d">🛒</span><span class="sp"><b>Alışveriş</b><div class="mute">'+(unS?unS+" ürün alınacak":"Liste boş")+'</div></span><span class="mute">›</span></div>'}
+ if(modOn("ev"))cEv='<div class="card tcard" data-a="evopen"><span class="tic" style="background:#4a7fb0">🏠</span><span class="sp"><b>Ev işleri</b><div class="mute">'+esc(EV().chores.length?(evDue().length?evDue().length+" iş zamanı":"Hepsi tamam"):"Hazır listeyle başla")+'</div></span><span class="mute">›</span></div>';
+ if(modOn("diksiyon"))cDk='<div class="card tcard" data-a="dkopen"><span class="tic" style="background:#8a4fb3">🎙</span><span class="sp"><b>Diksiyon</b><div class="mute">'+esc(dkSummary())+'</div></span><span class="mute">›</span></div>';
+ if(SP().on!==false)cSp='<div class="card tcard" data-a="sporopen"><span class="tic" style="background:#2e7d4f">🏋️</span><span class="sp"><b>Spor</b><div class="mute">'+esc(spSummary())+'</div></span><span class="mute">›</span></div>';
+ var cBook='<div class="card">'+W.okuma.r()+'</div>';
+ if(klOn())cKl='<div class="card" data-tab="kulliyat">'+(W.kulliyat?W.kulliyat.r():"")+'</div>';
+ function G(t,a){var x=a.filter(Boolean).join("");return x?'<div class="lh"><h2>'+t+'</h2></div>'+x:""}
+ h+=cOdak+G("İbadet",[cZk,cKur,cKl])+G("Beden",[cSp,cBes])+G("Ev & Para",[cShop,cEv,cFin])+G("Öğrenme",[cDk,cBook]);
  return h}
 /* Ben sekmesi: seyrek kullanılan her şey tek yerde */
 function vBen2(){var h='<div class="hd"><div><div class="eyebrow">Kişisel</div><h1>Ben</h1></div>'+gearBtn()+'</div>';
@@ -3080,7 +3104,7 @@ function render(){
  if(!S.onboarded){a.innerHTML=vOnb();document.getElementById("nav").innerHTML="";if(typeof nobetSync==="function")nobetSync();return}
  if(tab==="kulliyat"&&!klOn())tab="pano";
  if(tab==="hud")tab="pano";
- var bk=!setOpen&&PARENT[tab]&&!(tab==="hedef"&&openArea)&&!(tab==="defter"&&defterSec)&&!(tab==="kulliyat"&&(typeof openBook!=="undefined"&&openBook||typeof openKv!=="undefined"&&openKv))?'<div class="backbar">'+backBtn(PARENT[tab],PARENT[tab]==="ben"?"Ben":"Odak")+'</div>':"";
+ var bk=!setOpen&&PARENT[tab]&&!(tab==="hedef"&&openArea)&&!(tab==="defter"&&defterSec)&&!(tab==="kulliyat"&&(typeof openBook!=="undefined"&&openBook||typeof openKv!=="undefined"&&openKv))?'<div class="backbar">'+backBtn(PARENT[tab],PARENT[tab]==="ben"?"Ben":"Hayat")+'</div>':"";
  a.innerHTML=bk+(setOpen?vAyar():tab==="pano"?vPano():tab==="hafta"?vHafta():tab==="hedef"?vHedef():tab==="defter"?vDefter():tab==="kulliyat"?vKulliyat():tab==="odak"?vOdak():tab==="spor"?vSpor():tab==="diksiyon"?vDiksiyon():tab==="finans"?vFinans():tab==="beslenme"?vBeslenme():tab==="ev"?vEv():tab==="zikir"?vZikir():vBen2());
  document.getElementById("nav").innerHTML=tabs().map(function(t){if(t[0]==="hud")return'<button class="hud" data-tab="hud" aria-label="'+esc(mName())+' ile konuş"><b>'+mDef().svg+'</b>'+esc(mName())+'</button>';return'<button class="'+(navTab()===t[0]&&!setOpen?"on":"")+'" data-tab="'+t[0]+'"><b>'+I(t[1])+'</b>'+t[2]+'</button>'}).join("");
  if(typeof wmPill==="function")wmPill();
@@ -3151,7 +3175,7 @@ document.addEventListener("click",function(e){
  case"evhide":S.settings.evHide=key(today());save();render();return;
  case"fintab":finTab=v;render();window.scrollTo(0,0);return;
  case"bestab":besTab=v;render();window.scrollTo(0,0);return;
- case"finadd":ask(v==="g"?"Harcama ekle":"Gelir ekle",[{label:"Tutar (₺)",type:"number"},{label:"Kategori",type:"select",opts:v==="g"?FINC:FINI,value:v==="g"?"Market":"Maaş"},{label:"Not (isteğe bağlı)"}],function(r){var a=finNum(r[0]);if(!a)return;finAdd(v==="g"?"g":"i",a,r[1],(r[2]||"").trim());render()},{label:"Ekle"});return;
+ case"finadd":finAddDlg(v);return;
  case"finlimit":ask("Aylık bütçe",[{label:"Tutar (₺, 0 = kapat)",type:"number",value:FIN().limit||""}],function(r){FIN().limit=finNum(r[0]);save();render()},{label:"Kaydet"});return;
  case"findel":FIN().tx=FIN().tx.filter(function(x){return x.id!==v});save();render();return;
  case"finbadd":ask("Borç / alacak",[{label:"Kişi"},{label:"Tutar (₺)",type:"number"},{label:"Tür",type:"select",opts:["Borcum","Alacağım"],value:"Borcum"},{label:"Not (isteğe bağlı)"}],function(r){var a=finNum(r[1]);if(!r[0]||!a)return;FIN().debts.push({id:uid(),who:r[0].trim(),a:a,dir:r[2]==="Borcum"?"b":"a",note:(r[3]||"").trim(),done:false});save();render()},{label:"Ekle"});return;
@@ -3162,8 +3186,12 @@ document.addEventListener("click",function(e){
  case"beschk":(function(){var D=besDay(key(today()));D.c[v]=!D.c[v];save();render();buzz()})();return;
  case"besmenu":(function(){var i=+v,m=BES().menu[i]||{};ask(BESD[i],[{label:"Kahvaltı",value:m.k||""},{label:"Öğle",value:m.o||""},{label:"Akşam",value:m.a||""}],function(r){BES().menu[i]={k:(r[0]||"").trim(),o:(r[1]||"").trim(),a:(r[2]||"").trim()};save();render()},{label:"Kaydet"})})();return;
  case"shopkeep":return;
- case"shopopen":besTab="alis";go("beslenme");return;
- case"shopadd":ask("Alışveriş listesi",[{label:"Ne alınacak?"}],function(r){if(!(r[0]||"").trim())return;BES().shop.push({id:uid(),t:cap1(r[0].trim()),done:false});save();render()},{label:"Ekle"});return;
+ case"shopopen":evTab="alis";go("ev");return;
+ case"evtab":evTab=v;render();return;
+ case"invhide":S.settings.invHide=true;save();render();return;
+ case"qadd":qaSheet();return;
+ case"qgo":closeAllSheets();qaGo(v);return;
+ case"shopadd":shopAddDlg();return;
  case"shoptog":BES().shop.forEach(function(x){if(x.id===v)x.done=!x.done});save();render();return;
  case"shopdel":BES().shop=BES().shop.filter(function(x){return x.id!==v});save();render();return;
  case"shopclr":BES().shop=BES().shop.filter(function(x){return!x.done});save();render();return;
@@ -3637,7 +3665,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("96",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("97",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
