@@ -585,11 +585,19 @@ var SPX=[["sinav","Şınav","Göğüs",3,10,"tekrar","Eller omuz genişliğinde,
 ["boyun","Boyun ve omuz esnetme","Esneme",1,5,"dk","Yavaşça, ağrı eşiğine kadar; zorlama."],
 ["hamstring","Arka bacak esnetme","Esneme",2,30,"sn","Oturarak öne uzan, dizi kilitleme."],
 ["cocuk","Çocuk pozu","Esneme",2,30,"sn","Dizler yerde, kalçanı topuklara bırak, kollar önde."],
-["kedideve","Kedi–deve","Esneme",2,10,"tekrar","Dört ayak; sırtı sırayla yuvarla ve çukurlaştır."]];
+["kedideve","Kedi–deve","Esneme",2,10,"tekrar","Dört ayak; sırtı sırayla yuvarla ve çukurlaştır."],
+["esn_gogus","Göğüs ve ön omuz esnetme","Esneme",1,30,"sn","Ayakta, ellerini arkada kenetle; omuzlarını geriye ve aşağı çekip göğsünü aç. Ağrı eşiğini geçme."],
+["esn_onbacak","Ön bacak esnetme","Esneme",1,30,"sn","Ayakta bir ayağını arkadan tut, topuğu kalçana yaklaştır; dizlerin yan yana kalsın. Gerekirse duvara tutun. İki tarafı da yap."],
+["isi_yuru","Yerinde tempolu yürüyüş","Isınma",1,40,"sn","Yerinde yürü, kollarını salla; dizlerini giderek biraz daha yukarı kaldır."],
+["isi_kol","Kol çevirme","Isınma",1,30,"sn","Kollar yanlara açık; küçük dairelerle başla, yavaşça büyüt. Yarıda yön değiştir."],
+["isi_omuz","Omuz çevirme","Isınma",1,30,"sn","Omuzlarını yukarı, geri, aşağı doğru yavaşça çevir. Yarıda yön değiştir."],
+["isi_kalca","Kalça çevirme","Isınma",1,30,"sn","Eller belde, ayaklar omuz genişliğinde; kalçanla geniş daireler çiz. Yarıda yön değiştir."],
+["isi_govde","Gövde çevirme","Isınma",1,30,"sn","Ayaklar sabit, kollar rahat; gövdeni sağa sola yavaşça çevir."],
+["isi_diz","Yerinde diz çekme","Isınma",1,30,"sn","Dizlerini sırayla bele doğru çek; sırtın dik, kollar hareketle salınsın."]];
 var SPT=[{id:"ev3",n:"Evde tüm vücut · haftada 3 gün",d:{1:["sinav","squat","plank","kopru","bisiklet"],3:["dizsinav","lunge","superman","mekik","jj"],5:["sinav","squat","plank","kopru","burpee"]}},
  {id:"ustalt",n:"Üst / alt vücut · haftada 4 gün",d:{1:["sinav","pike","dips","plank"],2:["squat","lunge","kopru","baldir"],4:["darsinav","superman","curl","bisiklet"],5:["squat","duvar","legraise","mekik"]}},
  {id:"yuru",n:"Yürüyüş ve esneme · haftada 5 gün",d:{1:["yuruyus","boyun"],2:["yuruyus","hamstring"],3:["yuruyus","kedideve"],4:["yuruyus","cocuk"],6:["kosu","hamstring"]}}];
-var SPG=["Göğüs","Sırt","Bacak","Omuz","Kol","Karın","Kardiyo","Esneme","Diğer"],SPU={tekrar:"tekrar",sn:"sn",dk:"dk"};
+var SPG=["Göğüs","Sırt","Bacak","Omuz","Kol","Karın","Kardiyo","Isınma","Esneme","Diğer"],SPU={tekrar:"tekrar",sn:"sn",dk:"dk"};
 var sporTab="bugun",SPCTX=null,SPRT=null,spGrp="";
 function SP(){if(!S.spor)S.spor={on:true,lib:[],plan:{},log:{}};var s=S.spor;s.lib=s.lib||[];s.plan=s.plan||{};s.log=s.log||{};return s}
 function spLib(){return SPX.map(function(x){return{id:x[0],n:x[1],g:x[2],s:x[3],r:x[4],u:x[5],note:x[6],bi:1}}).concat(SP().lib)}
@@ -609,6 +617,7 @@ function spTodayHtml(){var d=today(),k=key(d),lg=SP().log[k]||{},list=spTodayLis
  var anyDone=lg.sets&&Object.keys(lg.sets).some(function(i){return(lg.sets[i]||[]).some(Boolean)}),tip=spFbTip();
  if(tip)h+='<div class="card" style="background:var(--acc2)">💡 '+esc(tip)+'</div>';
  if(!lg.done)h+='<button class="btn" style="width:100%;margin-bottom:10px;padding:14px;font-size:17px" data-a="spmgo">'+(SPM?"▶ Antrenman sürüyor · Aç":anyDone?"▶ Antrenmana devam et":"▶ Antrenmana başla")+'</button>';
+ if(!lg.done&&!SPM)h+='<div class="chips" style="margin:-2px 0 10px"><button class="chip'+(SP().warm!==false?" on":"")+'" data-a="spwarm">Isınma '+(SP().warm!==false?"✓":"yok")+'</button><button class="chip'+(SP().cool!==false?" on":"")+'" data-a="spcool">Soğuma '+(SP().cool!==false?"✓":"yok")+'</button></div>';
  list.forEach(function(e,ix){var x=spEx(e.e);if(!x)return;var s=e.s||x.s,ds=(lg.sets&&lg.sets[ix])||[];
   h+='<div class="card sp-ex"><div class="row">'+(SPD[x.id]?'<span class="sp-mini">'+figSvg(x.id,64,false,0)+'</span>':'')+'<span class="sp"><b>'+esc(x.n)+'</b><div class="mute">'+spRx(e,x)+' · '+esc(x.g)+'</div></span><button class="x" data-a="spinfo" data-v="'+esc(x.id)+'" aria-label="Nasıl yapılır">ⓘ</button></div><div class="sp-sets">'+Array.apply(null,Array(s)).map(function(_,j){return'<button class="sp-set'+(ds[j]?" on":"")+'" data-a="spset" data-v="'+ix+':'+j+'">'+(j+1)+'</button>'}).join("")+'</div></div>'});
  return h+'<div class="row" style="gap:8px;margin-top:10px"><button class="btn ghost sm" data-a="sprest">⏱ Dinlen 60 sn</button><span class="sp"></span>'+(lg.done?'':'<button class="btn sm" data-a="spfin">Antrenmanı bitir</button>')+'</div>'}
@@ -1138,17 +1147,23 @@ document.addEventListener("visibilitychange",function(){if(SPM&&SPMO&&!document.
 function spmSay(t){try{if(SPM&&!SPM.paused&&SP().voice)speakOut(t)}catch(e){}}
 function spmRestFor(x){var q=SPD[x.id]&&SPD[x.id].eq;return SPM&&SPM.rest?SPM.rest:q==="Dambıl"?90:x.g==="Kardiyo"?30:45}
 function spmSteps(){var lg=SP().log[key(today())]||{},list=spTodayList(),st=[];list.forEach(function(e,ix){var x=spEx(e.e);if(!x)return;var s=e.s||x.s,ds=(lg.sets&&lg.sets[ix])||[];for(var j=0;j<s;j++)st.push({ix:ix,j:j,s:s,x:x,e:e,done:!!ds[j]})});return st}
-function spmCur(){var st=spmSteps(),c=null;for(var i=0;i<st.length;i++){if(!st[i].done&&!(SPM&&SPM.skip[st[i].ix])){c=st[i];break}}return{st:st,c:c}}
+function spmQueue(kind){var gs={},ids=[];spTodayList().forEach(function(e){var x=spEx(e.e);if(x)gs[x.g]=1});var up=gs["Göğüs"]||gs["Omuz"]||gs["Kol"]||gs["Sırt"],lo=gs["Bacak"]||gs["Kardiyo"],cr=gs["Karın"]||gs["Sırt"],q=[];
+ function add(id,sec,side){var x=spEx(id);if(!x)return;q.push({x:{id:x.id,n:x.n+(side?" · "+side:""),g:x.g,u:"sn",r:sec,note:x.note},r:sec})}
+ if(kind==="wu"){add("isi_yuru",40);if(up){add("isi_kol",30);add("isi_omuz",30)}if(lo||!up)add("isi_kalca",30);if(lo)add("isi_diz",30);if(cr&&q.length<5)add("isi_govde",30)}
+ else{if(lo){add("hamstring",30);add("esn_onbacak",30,"sağ");add("esn_onbacak",30,"sol")}if(up){add("esn_gogus",30);add("boyun",30)}add("cocuk",30)}
+ return q.slice(0,6)}
+function spmCur(){if(SPM&&SPM.stage&&SPM.stage!=="main"){var it=SPM.q[SPM.qi];return{st:spmSteps(),c:it?{ix:-1,j:0,s:1,x:it.x,e:{r:it.r}}:null}}var st=spmSteps(),c=null;for(var i=0;i<st.length;i++){if(!st[i].done&&!(SPM&&SPM.skip[st[i].ix])){c=st[i];break}}return{st:st,c:c}}
 function spmDur(c){var r=c.e.r||c.x.r;return c.x.u==="dk"?r*60:r}
 function spmPhase(ph,ms){SPM.ph=ph;SPM.tot=ms||0;SPM.end=ms?Date.now()+ms:0;SPM.lastl=null;SPM.rem=0}
-function spmEnter(){var q=spmCur();if(!q.c){spmEnd();return}var c=q.c,x=c.x,pr=spPrList(x.id),lw=SPM.lastw[x.id],ld=pr[pr.length-1];
+function spmEnter(){var q=spmCur();if(!q.c){if(SPM.stage==="wu"){SPM.stage="main";spmEnter();return}if(SPM.stage==="cd"){spmFinal();return}spmEnd();return}var c=q.c,x=c.x,pr=spPrList(x.id),lw=SPM.lastw[x.id],ld=pr[pr.length-1];
  SPM.cw=lw?lw.w:(ld?ld.w||0:0);SPM.cr=lw?lw.r:(ld&&ld.r?ld.r:(c.e.r||x.r));
  SPM.track=x.u==="tekrar"&&((SPD[x.id]&&SPD[x.id].eq==="Dambıl")||pr.some(function(p){return p.w>0}));
  if(x.u!=="tekrar"){spmPhase("ready",3000);spmSay(x.n+", "+spmDur(c)+(x.u==="dk"?" dakika":" saniye"))}
  else{spmPhase("work",0);spmSay(x.n+", "+(c.j+1)+". set, "+(c.e.r||x.r)+" tekrar")}
  spmPaint()}
 function spmAdvance(){var now=Date.now();if(SPM.ph==="ready"){var c=spmCur().c;if(!c){spmEnter();return}spmPhase("work",spmDur(c)*1000);spBeep(1175,260);buzz("mid");spmPaint()}
- else if(SPM.ph==="work")spmDone();else if(SPM.ph==="rest")spmEnter()}
+ else if(SPM.ph==="work")spmWorkEnd();else if(SPM.ph==="rest")spmEnter()}
+function spmWorkEnd(){if(SPM.stage!=="main"){SPM.qi++;buzz("mid");spBeep(660,160);spmEnter()}else spmDone()}
 function spmDone(){var q=spmCur(),c=q.c;if(!c)return;var sp=SP(),k=key(today()),lg=sp.log[k]=sp.log[k]||{};lg.sets=lg.sets||{};var ds=lg.sets[c.ix]=lg.sets[c.ix]||[];ds[c.j]=true;if(!lg.st)lg.st=Date.now();
  if(SPM.track){lg.w=lg.w||{};(lg.w[c.ix]=lg.w[c.ix]||{})[c.j]={w:SPM.cw,r:SPM.cr};SPM.lastw[c.x.id]={w:SPM.cw,r:SPM.cr}}
  SPM.hist.push({ix:c.ix,j:c.j});lg.act=SPM.act;save();buzz("ok");spBeep(660,160);
@@ -1159,14 +1174,16 @@ function spFinish(min){var sp=SP(),k=key(today()),lg=sp.log[k]=sp.log[k]||{},lis
  dayLog(k).big.forEach(function(b){if(!b.done&&!b.moved&&modOf(b)==="spor"){b.done=true;nn++}});
  if(first&&lg.w){lg.prs=[];Object.keys(lg.w).forEach(function(ix){var e=list[ix],x=e&&spEx(e.e);if(!x)return;var best=null;Object.keys(lg.w[ix]).forEach(function(j){var s=lg.w[ix][j];if(!best||(s.w||1)*s.r>(best.w||1)*best.r)best=s});if(!best||!(best.r>0))return;var pl=spPrList(x.id),pm=0;pl.forEach(function(p){pm=Math.max(pm,(p.w||1)*(p.r||1))});if(pl.length&&(best.w||1)*best.r>pm)lg.prs.push({n:x.n,w:best.w,r:best.r});pl.push({d:k,w:best.w||0,r:best.r})})}
  save();return{min:lg.min,nn:nn,prs:lg.prs||[]}}
-function spmEnd(){var q=spmSteps().filter(function(s){return s.done}).length;if(!q){spmClose(true);toast("Hiç set yapılmadı");return}
- var r=spFinish(Math.max(1,Math.round(SPM.act/60000)));SPM.res=r;spmPhase("end",0);buzz("ok");spBeep(880,120);setTimeout(function(){spBeep(1175,200)},160);spmSay("Antrenman bitti. Aferin!");spmPaint();render()}
+function spmEnd(){if(SPM.stage==="cd"){spmFinal();return}var n=spmSteps().filter(function(s){return s.done}).length;if(!n){spmClose(true);toast("Hiç set yapılmadı");return}
+ SPM.res=spFinish(Math.max(1,Math.round(SPM.act/60000)));var q=SP().cool!==false?spmQueue("cd"):[];if(q.length){SPM.stage="cd";SPM.q=q;SPM.qi=0;spmSay("Şimdi soğuma");spmEnter();return}spmFinal()}
+function spmFinal(){SPM.stage="main";var lg=SP().log[key(today())];if(lg){lg.min=Math.max(lg.min||1,Math.round(SPM.act/60000));lg.act=SPM.act;save()}if(SPM.res)SPM.res.min=lg&&lg.min;spmPhase("end",0);buzz("ok");spBeep(880,120);setTimeout(function(){spBeep(1175,200)},160);spmSay("Antrenman bitti. Aferin!");spmPaint();render()}
 function spmGo(){if(SPM){spmOpen();return}var list=spTodayList();if(!list.length){toast("Bugün için hareket yok");return}var sp=SP(),k=key(today()),lg=sp.log[k]=sp.log[k]||{};
- SPM={ph:"work",act:lg.act||0,last:Date.now(),paused:false,skip:{},hist:[],lastw:{},end:0,tot:0,cw:0,cr:0,rest:0};lg.done=false;
+ var anyD=lg.sets&&Object.keys(lg.sets).some(function(i){return(lg.sets[i]||[]).some(Boolean)}),wq=(SP().warm!==false&&!anyD)?spmQueue("wu"):[];
+ SPM={stage:wq.length?"wu":"main",q:wq,qi:0,ph:"work",act:lg.act||0,last:Date.now(),paused:false,skip:{},hist:[],lastw:{},end:0,tot:0,cw:0,cr:0,rest:0};lg.done=false;
  clearInterval(SPMT);SPMT=setInterval(spmTick,250);spmOpen(true);spmEnter();spBeep(0,1)}
 function spmOpen(np){if(SPMO)return;closeAllSheets();SPMO=document.createElement("div");SPMO.id="spm";document.body.appendChild(SPMO);document.body.classList.add("tbopen");ovHide(true);spmAwake(true);SPMO.addEventListener("click",spmClick);if(!np)spmPaint();spmPill()}
 function spmMin(){if(!SPMO)return;SPMO.remove();SPMO=null;document.body.classList.remove("tbopen");if(!CHO)ovHide(false);spmAwake(false);spmPill()}
-function spmClose(quiet){if(SPM){var lg=SP().log[key(today())];if(lg&&SPM.ph!=="end")lg.act=SPM.act;save()}clearInterval(SPMT);SPMT=null;var had=SPM&&SPM.ph!=="end"&&spmSteps().some(function(s){return s.done});SPM=null;if(SPMO){SPMO.remove();SPMO=null}document.body.classList.remove("tbopen");if(!CHO)ovHide(false);spmAwake(false);spmPill();render();if(had&&!quiet)toast("Kaldığın yerden devam edebilirsin")}
+function spmClose(quiet){if(SPM){var lg=SP().log[key(today())];if(lg&&SPM.ph!=="end")lg.act=SPM.act;save()}clearInterval(SPMT);SPMT=null;var lg0=SP().log[key(today())],had=SPM&&SPM.ph!=="end"&&!(lg0&&lg0.done)&&spmSteps().some(function(s){return s.done});SPM=null;if(SPMO){SPMO.remove();SPMO=null}document.body.classList.remove("tbopen");if(!CHO)ovHide(false);spmAwake(false);spmPill();render();if(had&&!quiet)toast("Kaldığın yerden devam edebilirsin")}
 function spmTick(){if(!SPM)return;var now=Date.now();if(!SPM.paused&&SPM.ph!=="end")SPM.act+=now-SPM.last;SPM.last=now;
  if(!SPM.paused&&SPM.end){var l=Math.ceil((SPM.end-now)/1000);if(l!==SPM.lastl){SPM.lastl=l;if(l>=1&&l<=3&&(SPM.ph!=="work"||SPM.tot)){spBeep(880,110);buzz()}}if(now>=SPM.end){spmAdvance();return}}
  spmUpd()}
@@ -1181,12 +1198,12 @@ function spmPaint(){if(!SPMO||!SPM)return;var q=spmCur(),st=q.st.filter(function
   h+='<div class="mute2" style="margin-top:6px">Nasıl geçti?</div><div class="row" style="gap:8px;justify-content:center">'+[["easy","Kolaydı"],["ok","Tam"],["hard","Zordu"]].map(function(f){return'<button class="ghost'+(lg.fb===f[0]?" on":"")+'" data-sm="fb" data-v="'+f[0]+'">'+f[1]+'</button>'}).join("")+'</div><button class="go" data-sm="exit" style="margin-top:14px">Kapat</button>'}
  else if(c){var x=c.x,d=SPD[x.id],cur=c.ix+1;
   if(ph==="rest"){h+='<div class="mute2">Dinlen</div><div class="big" id="spmt">'+spmFmtL(Math.max(0,Math.ceil((SPM.paused?SPM.rem:SPM.end-Date.now())/1000)))+'</div><div class="spm-bar" style="width:70%"><i id="spmcb" style="width:100%;background:#d9a441"></i></div><div class="row" style="gap:8px;justify-content:center"><button class="ghost" data-sm="rs" data-v="-15">−15 sn</button><button class="ghost" data-sm="rs" data-v="15">+15 sn</button><button class="ghost" data-sm="rskip">Geç ⏭</button></div><div class="mute2" style="margin-top:10px">Sıradaki · Set '+(c.j+1)+'/'+c.s+'</div>'+(d&&d.f?'<div class="fig-box">'+figSvg(x.id,Math.round(w*.7),true)+'</div>':'')+'<h2 style="font-size:22px">'+esc(x.n)+'</h2><div class="mute2">'+spRx(c.e,x)+(SPM.track&&SPM.cw?' · son '+SPM.cw+' kg':'')+'</div>'}
-  else{h+='<div class="mute2">Hareket '+cur+' · Set '+(c.j+1)+' / '+c.s+'</div>'+(d&&d.f?'<div class="fig-box">'+figSvg(x.id,w,true)+'</div>':'')+'<h2>'+esc(x.n)+'</h2>';
+  else{h+='<div class="mute2">'+(SPM.stage==='wu'?'Isınma · '+(SPM.qi+1)+' / '+SPM.q.length:SPM.stage==='cd'?'Soğuma · '+(SPM.qi+1)+' / '+SPM.q.length:'Hareket '+cur+' · Set '+(c.j+1)+' / '+c.s)+'</div>'+(d&&d.f?'<div class="fig-box">'+figSvg(x.id,w,true)+'</div>':'')+'<h2>'+esc(x.n)+'</h2>';
    if(x.u!=="tekrar"){h+='<div class="big" id="spmt">'+spmFmtL(Math.max(0,Math.ceil((SPM.paused?SPM.rem:SPM.end-Date.now())/1000)))+'</div><div class="spm-bar" style="width:70%"><i id="spmcb" style="width:100%;background:#d9a441"></i></div><div class="mute2">'+(ph==="ready"?"Hazırlan…":"süre doluyor (sn)")+'</div>'+(ph==="ready"?'<button class="ghost" data-sm="done">Hemen başla</button>':'<button class="go" data-sm="done">✓ Bitti</button>')}
    else{h+='<div class="mute2" style="font-size:18px">'+(c.e.r||x.r)+' tekrar</div>';
     if(SPM.track)h+='<div class="row" style="gap:18px;justify-content:center"><div class="stp"><button class="ghost" data-sm="st" data-v="w:-1">−</button><span><b id="spmcw">'+SPM.cw+'</b><div class="mute2">kg</div></span><button class="ghost" data-sm="st" data-v="w:1">+</button></div><div class="stp"><button class="ghost" data-sm="st" data-v="r:-1">−</button><span><b id="spmcr">'+SPM.cr+'</b><div class="mute2">tekrar</div></span><button class="ghost" data-sm="st" data-v="r:1">+</button></div></div>';
     h+='<button class="go" data-sm="done">✓ Set bitti</button>'}}
-  h+='<div class="row" style="gap:14px;justify-content:center;margin-top:8px">'+(SPM.hist.length?'<button class="lnk" data-sm="undo">↩ Geri al</button>':'')+'<button class="lnk" data-sm="skip">Hareketi atla</button><button class="lnk" data-sm="fin">Şimdi bitir</button></div>'}
+  h+='<div class="row" style="gap:14px;justify-content:center;margin-top:8px">'+(SPM.hist.length&&SPM.stage==="main"?'<button class="lnk" data-sm="undo">↩ Geri al</button>':'')+'<button class="lnk" data-sm="skip">'+(SPM.stage==="main"?"Hareketi atla":"Bunu atla")+'</button><button class="lnk" data-sm="fin">'+(SPM.stage==="wu"?"Isınmayı geç":SPM.stage==="cd"?"Soğumayı bitir":"Şimdi bitir")+'</button></div>'}
  h+='</div>';SPMO.innerHTML=h}
 function spmClick(e){var b=e.target.closest("[data-sm]");if(!b||!SPM)return;var a=b.getAttribute("data-sm"),v=b.getAttribute("data-v"),sp=SP(),now=Date.now();
  if(a==="min")spmMin();
@@ -1195,13 +1212,13 @@ function spmClick(e){var b=e.target.closest("[data-sm]");if(!b||!SPM)return;var 
  else if(a==="beep"){sp.beep=sp.beep===false;save();spmPaint()}
  else if(a==="voice"){sp.voice=!sp.voice;save();spmPaint();if(sp.voice)spmSay("Sesli yönlendirme açık")}
  else if(a==="pause"){if(SPM.ph==="end")return;if(SPM.paused){SPM.paused=false;SPM.last=now;if(SPM.rem)SPM.end=now+SPM.rem}else{SPM.paused=true;SPM.rem=SPM.end?Math.max(0,SPM.end-now):0}spmPaint();spmPill()}
- else if(a==="done"){if(SPM.paused)return;if(SPM.ph==="ready")spmAdvance();else if(SPM.ph==="work")spmDone()}
+ else if(a==="done"){if(SPM.paused)return;if(SPM.ph==="ready")spmAdvance();else if(SPM.ph==="work")spmWorkEnd()}
  else if(a==="st"){var p=v.split(":"),d=+p[1];if(p[0]==="w")SPM.cw=Math.max(0,Math.round((SPM.cw+d)*10)/10);else SPM.cr=Math.max(1,SPM.cr+d);var el=document.getElementById(p[0]==="w"?"spmcw":"spmcr");if(el)el.textContent=p[0]==="w"?SPM.cw:SPM.cr;buzz()}
  else if(a==="rs"){if(SPM.ph!=="rest")return;var dd=+v*1000;if(SPM.paused)SPM.rem=Math.max(1000,SPM.rem+dd);else SPM.end=Math.max(now+1000,SPM.end+dd);SPM.tot=Math.max(SPM.tot+dd,1000);SPM.rest=Math.max(15,Math.round((SPM.tot)/1000));spmUpd()}
  else if(a==="rskip"){if(SPM.ph==="rest")spmEnter()}
  else if(a==="undo")spmUndo();
- else if(a==="skip"){var c=spmCur().c;if(c){SPM.skip[c.ix]=true;spmEnter()}}
- else if(a==="fin")spmEnd();
+ else if(a==="skip"){var c=spmCur().c;if(c){if(SPM.stage!=="main")SPM.qi++;else SPM.skip[c.ix]=true;spmEnter()}}
+ else if(a==="fin"){if(SPM.stage==="wu"){SPM.stage="main";spmEnter()}else spmEnd()}
  else if(a==="fb"){var lg=sp.log[key(today())];if(lg){lg.fb=v;save();spmPaint()}}}
 function spFbTip(){var lg=SP().log,ks=Object.keys(lg).filter(function(k){return lg[k].done&&lg[k].fb}).sort().slice(-2);if(!ks.length)return"";var f=ks.map(function(k){return lg[k].fb}),last=f[f.length-1];if(f.length===2&&f[0]==="easy"&&f[1]==="easy")return"Son iki antrenmanı «kolaydı» dedin. İstersen bugün bir hareketin ağırlığını ya da tekrarını biraz artır.";if(last==="hard")return"Geçen antrenman zordu. Bugün aynı seviyede kal, formu koru.";return""}
 function spAct(a,v){var sp=SP(),k=key(today());
@@ -1211,6 +1228,8 @@ function spAct(a,v){var sp=SP(),k=key(today());
  else if(a==="sprest")spRest(60);else if(a==="sprestx"){clearInterval(SPRT);var el=document.getElementById("sprest");if(el)el.remove()}
  else if(a==="spfin"){var rf=spFinish(0);buzz("ok");toast("Aferin! "+rf.min+" dk antrenman"+(rf.nn?" · işin de tamamlandı ✓":"")+(rf.prs.length?" · 🏅 yeni rekor":""));render()}
  else if(a==="spmgo")spmGo();
+ else if(a==="spwarm"){sp.warm=sp.warm===false;save();render()}
+ else if(a==="spcool"){sp.cool=sp.cool===false;save();render()}
  else if(a==="spquick"){var lg3=sp.log[k]=sp.log[k]||{};lg3.adhoc=[{e:"jj",s:2},{e:"squat",s:2,r:12},{e:"sinav",s:2,r:8},{e:"plank",s:2,r:30}];save();render()}
  else if(a==="spinfo")spInfo(v);
  else if(a==="sptplv")spTplSheet(v);
@@ -2638,7 +2657,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #90'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #91'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3108,7 +3127,7 @@ document.addEventListener("click",function(e){
  case"dkrecgo":dkRecGo();return;
  case"sporopen":sporTab="bugun";go("spor");return;
  case"sportog":mut(function(){SP().on=SP().on===false});return;
- case"sptab":case"spgrp":case"spset":case"sprest":case"sprestx":case"spfin":case"spmgo":case"spquick":case"spinfo":case"spday":case"spadd":case"spadd2":case"spdel":case"spclr":case"spedit":case"sptpl":case"sptplv":case"sptplgo":case"sptplmerge":case"spundo":case"spequip":case"spmv":case"spcopy":case"spadd3":case"spaddok":case"spnew":case"spexdel":spAct(a,v);return;
+ case"sptab":case"spgrp":case"spset":case"sprest":case"sprestx":case"spfin":case"spmgo":case"spwarm":case"spcool":case"spquick":case"spinfo":case"spday":case"spadd":case"spadd2":case"spdel":case"spclr":case"spedit":case"sptpl":case"sptplv":case"sptplgo":case"sptplmerge":case"spundo":case"spequip":case"spmv":case"spcopy":case"spadd3":case"spaddok":case"spnew":case"spexdel":spAct(a,v);return;
  case"gprev":gunRef=addDays(gunRef,-1);render();return;
  case"gnext":gunRef=addDays(gunRef,1);render();return;
  case"gnow":gunRef=today();render();return;
@@ -3542,7 +3561,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("90",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("91",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
