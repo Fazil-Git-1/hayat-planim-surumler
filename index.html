@@ -606,6 +606,10 @@ function spDay(d){return SP().plan[d]||[]}
 function spEst(arr){var sec=0;arr.forEach(function(e){var x=spEx(e.e);if(!x)return;var r=e.r||x.r,s=e.s||x.s,w=x.u==="tekrar"?r*3:x.u==="sn"?r:r*60;sec+=s*(w+(x.u==="dk"?0:60))});return Math.max(5,Math.round(sec/60))}
 function spRx(e,x){return(e.s||x.s)+" × "+(e.r||x.r)+" "+SPU[x.u]}
 function spTodayList(){var k=key(today()),lg=SP().log[k]||{};return lg.adhoc||spDay(today().getDay())}
+function spCard(){try{if(SP().on===false||!modOn("spor"))return"";var k=key(today()),lg=SP().log[k]||{},list=spTodayList();if(lg.done)return"";
+ if(typeof SPM!=="undefined"&&SPM)return'<div class="card close"><span style="flex:none;font-size:22px">🏋️</span><span class="sp"><b>Antrenman sürüyor</b><div class="mute">Kaldığın yerden devam et.</div></span><button class="btn sm" data-a="spmgo">Aç</button></div>';
+ if(!list.length){if(Object.keys(SP().log).length||Object.keys(SP().plan).length)return"";return'<div class="card close"><span style="flex:none;font-size:22px">🏋️</span><span class="sp"><b>Spor modu</b><div class="mute">Plan gerekmez: 15 dk hızlı antrenmanla dene.</div></span><button class="btn sm" data-a="spquickgo">▶ Başla</button></div>'}var any=lg.sets&&Object.keys(lg.sets).some(function(i){return(lg.sets[i]||[]).some(Boolean)});
+ return'<div class="card close"><span style="flex:none;font-size:22px">🏋️</span><span class="sp"><b>'+(any?"Antrenmana devam":"Bugün antrenman var")+'</b><div class="mute">'+esc(spSummary())+'</div></span><button class="btn sm" data-a="spmgo">'+(any?"Devam":"▶ Başla")+'</button></div>'}catch(e){return""}}
 function spSummary(){var arr=spTodayList();if(!arr.length)return"Bugün plan yok · plan oluştur";return arr.slice(0,3).map(function(e){return(spEx(e.e)||{n:"?"}).n}).join(", ")+(arr.length>3?" +"+(arr.length-3):"")+" · ~"+spEst(arr)+" dk"}
 function vSpor(){var h='<div class="hd"><div><div class="eyebrow">Modül</div><h1>🏋️ Spor</h1></div>'+gearBtn()+'</div>';
  h+='<div class="chips" style="margin-bottom:12px">'+[["bugun","Bugün"],["plan","Planım"],["hareket","Hareketler"],["gecmis","Geçmiş"]].map(function(t){return'<button class="chip'+(sporTab===t[0]?" on":"")+'" data-a="sptab" data-v="'+t[0]+'">'+t[1]+'</button>'}).join("")+'</div>';
@@ -1228,6 +1232,7 @@ function spAct(a,v){var sp=SP(),k=key(today());
  else if(a==="sprest")spRest(60);else if(a==="sprestx"){clearInterval(SPRT);var el=document.getElementById("sprest");if(el)el.remove()}
  else if(a==="spfin"){var rf=spFinish(0);buzz("ok");toast("Aferin! "+rf.min+" dk antrenman"+(rf.nn?" · işin de tamamlandı ✓":"")+(rf.prs.length?" · 🏅 yeni rekor":""));render()}
  else if(a==="spmgo")spmGo();
+ else if(a==="spquickgo"){var lq=sp.log[k]=sp.log[k]||{};lq.adhoc=[{e:"jj",s:2},{e:"squat",s:2,r:12},{e:"sinav",s:2,r:8},{e:"plank",s:2,r:30}];save();spmGo()}
  else if(a==="spwarm"){sp.warm=sp.warm===false;save();render()}
  else if(a==="spcool"){sp.cool=sp.cool===false;save();render()}
  else if(a==="spquick"){var lg3=sp.log[k]=sp.log[k]||{};lg3.adhoc=[{e:"jj",s:2},{e:"squat",s:2,r:12},{e:"sinav",s:2,r:8},{e:"plank",s:2,r:30}];save();render()}
@@ -2503,7 +2508,7 @@ function vPano(){
  var CARDS=[];
  if(!editing&&new Date().getHours()>=Math.min(19,evh)&&!(S.log[tkc]&&S.log[tkc].closed))CARDS.push('<div class="card close"><span style="flex:none">'+I("moon")+'</span><span class="sp"><b>Günü kapat</b><div class="mute">1 dakika: bugünü değerlendir, yarını hazırla.</div></span><button class="btn sm" data-a="dayclose">Başla</button></div>');
  if(!editing)h+=wmBanner();
- if(!editing)CARDS.push(morningHtml(),ramHtml(),calHtml(),evCard());
+ if(!editing)CARDS.push(spCard(),morningHtml(),ramHtml(),calHtml(),evCard());
  if(!editing)h+=CARDS.filter(Boolean).slice(0,2).join("");
  if(!editing)h+=heroHtml();
  var pp=pendingPast();
@@ -2657,7 +2662,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #91'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #92'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3127,7 +3132,7 @@ document.addEventListener("click",function(e){
  case"dkrecgo":dkRecGo();return;
  case"sporopen":sporTab="bugun";go("spor");return;
  case"sportog":mut(function(){SP().on=SP().on===false});return;
- case"sptab":case"spgrp":case"spset":case"sprest":case"sprestx":case"spfin":case"spmgo":case"spwarm":case"spcool":case"spquick":case"spinfo":case"spday":case"spadd":case"spadd2":case"spdel":case"spclr":case"spedit":case"sptpl":case"sptplv":case"sptplgo":case"sptplmerge":case"spundo":case"spequip":case"spmv":case"spcopy":case"spadd3":case"spaddok":case"spnew":case"spexdel":spAct(a,v);return;
+ case"sptab":case"spgrp":case"spset":case"sprest":case"sprestx":case"spfin":case"spmgo":case"spquickgo":case"spwarm":case"spcool":case"spquick":case"spinfo":case"spday":case"spadd":case"spadd2":case"spdel":case"spclr":case"spedit":case"sptpl":case"sptplv":case"sptplgo":case"sptplmerge":case"spundo":case"spequip":case"spmv":case"spcopy":case"spadd3":case"spaddok":case"spnew":case"spexdel":spAct(a,v);return;
  case"gprev":gunRef=addDays(gunRef,-1);render();return;
  case"gnext":gunRef=addDays(gunRef,1);render();return;
  case"gnow":gunRef=today();render();return;
@@ -3561,7 +3566,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("91",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("92",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
