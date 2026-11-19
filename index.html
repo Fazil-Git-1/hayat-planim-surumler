@@ -2568,27 +2568,37 @@ function qaGo(v){if(v==="task")setTimeout(function(){taskNewDlg(key(today()))},5
  else if(v==="shop")setTimeout(shopAddDlg,50);
  else if(v==="exp")setTimeout(function(){finAddDlg("g")},50);
  else if(v==="spor"){if(spTodayList().length)spmGo();else{var sp=SP(),k=key(today()),lq=sp.log[k]=sp.log[k]||{};lq.adhoc=[{e:"jj",s:2},{e:"squat",s:2,r:12},{e:"sinav",s:2,r:8},{e:"plank",s:2,r:30}];save();spmGo()}}}
+/* Bugünün planı: spor ve grup okuması tek kartta, satır satır */
+function planRow(ic,t,sub,btn,act){return'<div class="row" style="padding:8px 0;gap:12px;align-items:center"><span style="font-size:22px;flex:none">'+ic+'</span><span class="sp"'+(act?' data-a="'+act+'" style="cursor:pointer"':'')+'><b>'+t+'</b><div class="mute" style="font-size:13px">'+sub+'</div></span>'+btn+'</div>'}
+function planCardHtml(){try{var rows=[],k=key(today());
+ if(SP().on!==false&&modOn("spor")){var lg=SP().log[k]||{},list=spTodayList();
+  if(!lg.done){var any=lg.sets&&Object.keys(lg.sets).some(function(i){return(lg.sets[i]||[]).some(Boolean)});
+   if(typeof SPM!=="undefined"&&SPM)rows.push(planRow("🏋️","Antrenman sürüyor","Kaldığın yerden devam et",'<button class="btn sm" data-a="spmgo">Aç</button>'));
+   else if(list.length)rows.push(planRow("🏋️",any?"Antrenmana devam":"Bugün antrenman var",esc(spSummary()),'<button class="btn sm" data-a="spmgo">'+(any?"Devam":"▶ Başla")+'</button>'))}}
+ var o=gkO();if(o&&o.start){var f=gkInfo(k);if(f){
+  if(!f.pg)rows.push(planRow("📖","Yeni tur başladı","Sayfa numaranı gir · bugün "+f.cuz+". cüz",'<button class="btn sm" data-a="gkpage">Gir</button>'));
+  else{var rd=!!(o.log||{})[k];rows.push(planRow("📖","Bugün: "+f.cuz+". cüz · "+f.pg+". sayfa","Bu turda "+gkReadN(f.cyc)+" / 30"+(gkStreak()>1?" · "+gkStreak()+" gün üst üste":""),rd?'<button class="btn ghost sm" data-a="gkdone">✓ Okudun</button>':'<button class="btn sm" data-a="gkdone">Okudum</button>',"gkgrid"))}}}
+ var inv=[];if(!S.settings.invHide){
+  if(SP().on!==false&&modOn("spor")&&!Object.keys(SP().log).length&&!Object.keys(SP().plan).length)inv.push('<button class="btn ghost sm" data-a="spquickgo">🏋️ Spor modunu dene</button>');
+  if(!(o&&o.start)&&!S.settings.gkHide)inv.push('<button class="btn ghost sm" data-a="gkset">📖 Grup okuması</button>')}
+ if(!rows.length&&!inv.length)return"";
+ return'<div class="card"><div class="eyebrow">Bugünün planı</div>'+rows.join("")+(inv.length?'<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:'+(rows.length?"8":"4")+'px;align-items:center"><span class="mute">Yeni:</span>'+inv.join("")+'<button class="x" data-a="invhide" aria-label="Bir daha gösterme">×</button></div>':'')+'</div>'}catch(e){return""}}
 function inviteCard(){if(editing||S.settings.invHide||!S.onboarded)return"";var a=[];
  if(SP().on!==false&&modOn("spor")&&!Object.keys(SP().log).length&&!Object.keys(SP().plan).length)a.push('<button class="btn sm" data-a="spquickgo">🏋️ Spor modunu dene</button>');
  var o=gkO();if(!(o&&o.start)&&!S.settings.gkHide)a.push('<button class="btn sm" data-a="gkset">📖 Grup okuması</button>');
  if(!a.length)return"";return'<div class="card close"><span class="sp"><b>Yeni özellikler</b><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px">'+a.join("")+'</div></span><button class="x" data-a="invhide" aria-label="Bir daha gösterme">×</button></div>'}
 function vPano(){
- var d=today(),h='<div class="hd"><div><div class="eyebrow">Hayat Planım</div><div class="big">'+esc(d.getDate()+" "+GM[d.getMonth()])+' · '+WD[d.getDay()]+'</div><div class="pill">'+esc(hstr(d))+(function(){var nx=nextMajor(d),sp=specials(d);return sp.length?' · <b class="c-'+sp[0].c+'">'+esc(sp[0].t)+'</b>':nx&&nx.days<=30?' · '+esc(nx.t)+' '+(nx.days===1?"yarın":nx.days+" gün sonra"):""})()+'</div></div><div class="row" style="gap:8px;flex:none">'+(editing?'<button class="btn sm" data-a="edit">Bitti</button>':'<button class="btn sm" data-a="qadd" aria-label="Hızlı ekle" title="Hızlı ekle" style="font-size:22px;line-height:1;padding:6px 14px">＋</button><button class="btn ghost sm" data-a="edit" title="Ana ekranda hangi kartlar görünsün, sırası ne olsun" aria-label="Ana ekranı düzenle" style="gap:6px">'+I("edit")+'Düzenle</button>')+gearBtn()+'</div></div>';
- var ban=updCard(),tkc=key(today()),evh=parseInt((S.settings.evening||"21:00").split(":")[0],10)-2;
- var CARDS=[];
- if(!editing&&new Date().getHours()>=Math.min(19,evh)&&!(S.log[tkc]&&S.log[tkc].closed))CARDS.push('<div class="card close"><span style="flex:none">'+I("moon")+'</span><span class="sp"><b>Günü kapat</b><div class="mute">1 dakika: bugünü değerlendir, yarını hazırla.</div></span><button class="btn sm" data-a="dayclose">Başla</button></div>');
- if(!editing)h+=wmBanner();
- if(!editing)CARDS.push(spCard(),morningHtml(),ramHtml(),calHtml(),evCard(),inviteCard());
- if(!editing)h+=CARDS.filter(Boolean).slice(0,2).join("");
- if(!editing)h+=gkCard();
- if(!editing)h+=heroHtml();
- var pp=pendingPast();
- if(!ban&&pp.length&&!editing)ban='<div class="card banner"><b>Önceki günlerden '+pp.length+' iş kaldı</b><div class="mute" style="margin:4px 0 8px">'+pp.slice(0,3).map(function(x){return"• "+esc(x.t)}).join("<br>")+(pp.length>3?"<br>…":"")+'</div><div class="row"><button class="btn sm" data-a="carry">Bugüne taşı</button><button class="btn ghost sm" data-a="carryskip">Bırak</button></div></div>';
- var nr=needReview();
- if(!ban&&nr&&!editing)ban='<div class="card banner row"><span class="sp"><b>'+Ii("compass")+'Haftalık gözden geçirme zamanı</b><div class="mute">“Kontrol ve teftiş”: 3 dakika sürer.</div></span><button class="btn sm" data-a="review" data-k="'+nr+'">Başla</button></div>';
- if(!ban&&!editing)ban=nudgeHtml();
- h+=ban;
- if(!editing&&ban.indexOf("data-nudge-goal")<0)h+=goalOfDay();
+ var d=today(),h='<div class="hd"><div><div class="eyebrow">Hayat Planım</div><div class="big">'+esc(d.getDate()+" "+GM[d.getMonth()])+' · '+WD[d.getDay()]+'</div><div class="pill">'+esc(hstr(d))+(function(){var nx=nextMajor(d),sp=specials(d);return sp.length?' · <b class="c-'+sp[0].c+'">'+esc(sp[0].t)+'</b>':nx&&nx.days<=30?' · '+esc(nx.t)+' '+(nx.days===1?"yarın":nx.days+" gün sonra"):""})()+'</div></div><div class="row" style="gap:8px;flex:none">'+(editing?'<button class="btn sm" data-a="edit">Bitti</button>':'<button class="btn sm" data-a="qadd" aria-label="Hızlı ekle" title="Hızlı ekle" style="font-size:22px;line-height:1;padding:6px 14px">＋</button>')+gearBtn()+'</div></div>';
+ var tkc=key(today()),evh=parseInt((S.settings.evening||"21:00").split(":")[0],10)-2;
+ if(!editing){h+=wmBanner();
+  var pp=pendingPast(),nr=needReview(),B=[updCard()];
+  if(pp.length)B.push('<div class="card banner"><b>Önceki günlerden '+pp.length+' iş kaldı</b><div class="mute" style="margin:4px 0 8px">'+pp.slice(0,3).map(function(x){return"• "+esc(x.t)}).join("<br>")+(pp.length>3?"<br>…":"")+'</div><div class="row"><button class="btn sm" data-a="carry">Bugüne taşı</button><button class="btn ghost sm" data-a="carryskip">Bırak</button></div></div>');
+  if(nr)B.push('<div class="card banner row"><span class="sp"><b>'+Ii("compass")+'Haftalık gözden geçirme zamanı</b><div class="mute">“Kontrol ve teftiş”: 3 dakika sürer.</div></span><button class="btn sm" data-a="review" data-k="'+nr+'">Başla</button></div>');
+  if(new Date().getHours()>=Math.min(19,evh)&&!(S.log[tkc]&&S.log[tkc].closed))B.push('<div class="card close"><span style="flex:none">'+I("moon")+'</span><span class="sp"><b>Günü kapat</b><div class="mute">1 dakika: bugünü değerlendir, yarını hazırla.</div></span><button class="btn sm" data-a="dayclose">Başla</button></div>');
+  B.push(morningHtml(),ramHtml(),calHtml(),evCard());
+  h+=B.filter(Boolean)[0]||"";
+  h+=heroHtml();
+  h+=planCardHtml()}
  h+='<div class="'+(editing?"edit":"")+'">';
  var BV=boardView(),wsec=function(t){var i=S.board.indexOf(t),w=W[t];if(!w||(w.mod&&!w.mod()))return"";return'<section class="card w" data-w="'+t+'"><div class="wh">'+'<span class="eyebrow">'+esc(w.t)+'</span>'+(editing?'<span class="ctl"><button data-a="wup" data-i="'+i+'">↑</button><button data-a="wdown" data-i="'+i+'">↓</button><button data-a="wdel" data-i="'+i+'">×</button></span>':'')+'</div>'+(editing?'<div class="mute">'+esc(w.d)+'</div>':w.r())+'</section>'};
  (editing?S.board:BV.main).forEach(function(t){h+=wsec(t)});
@@ -2596,6 +2606,7 @@ function vPano(){
  if(false)S.board.forEach(function(t,i){var w=W[t];if(!w||(w.mod&&!w.mod()))return;
   h+='<section class="card w"><div class="wh"><span class="eyebrow">'+esc(w.t)+'</span>'+(editing?'<span class="ctl"><button data-a="wup" data-i="'+i+'">↑</button><button data-a="wdown" data-i="'+i+'">↓</button><button data-a="wdel" data-i="'+i+'">×</button></span>':'')+'</div>'+(editing?'<div class="mute">'+esc(w.d)+'</div>':w.r())+'</section>'});
  h+='</div>';
+ if(!editing){var nd=nudgeHtml();h+=nd;if(nd.indexOf("data-nudge-goal")<0)h+=goalOfDay();h+='<div style="text-align:center;margin:18px 0 6px"><button class="btn ghost sm" data-a="edit">✎ Ekranı düzenle</button></div>'}
  if(editing||!S.board.length)h+='<button class="btn ghost wide" data-a="wadd">+ Widget ekle</button>';
  if(editing)h+='<button class="btn ghost wide" style="margin-top:8px" data-a="adapt">'+(S.settings.adapt===false?'Kullanımıma göre sırala':'✓ Kullanımıma göre sıralanıyor · sabitle')+'</button><div class="mute" style="margin-top:6px;font-size:13px">Hangi kartı ne sıklıkla kullandığın yalnızca bu telefonda tutulur.</div>';
  return h}
@@ -2733,7 +2744,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #97'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #98'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3665,7 +3676,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("97",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("98",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
