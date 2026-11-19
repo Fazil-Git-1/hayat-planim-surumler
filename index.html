@@ -606,6 +606,27 @@ function spDay(d){return SP().plan[d]||[]}
 function spEst(arr){var sec=0;arr.forEach(function(e){var x=spEx(e.e);if(!x)return;var r=e.r||x.r,s=e.s||x.s,w=x.u==="tekrar"?r*3:x.u==="sn"?r:r*60;sec+=s*(w+(x.u==="dk"?0:60))});return Math.max(5,Math.round(sec/60))}
 function spRx(e,x){return(e.s||x.s)+" × "+(e.r||x.r)+" "+SPU[x.u]}
 function spTodayList(){var k=key(today()),lg=SP().log[k]||{};return lg.adhoc||spDay(today().getDay())}
+/* ===== Adım sayacı (telefonun adım sensörü; Android) ===== */
+var STB=0;
+function stO(){var o=S.steps;if(!o)o=S.steps={on:false,goal:8000,last:null,day:{}};o.day=o.day||{};return o}
+function stAvail(){return!!(NB&&NB.steps)}
+function stToday(){return(stO().day[key(today())])||0}
+function stFmt(n){try{return Math.round(n).toLocaleString("tr-TR")}catch(e){return String(Math.round(n))}}
+function stRefresh(ask,force){if(!stAvail())return;var o=stO();if(!o.on&&!ask)return;if(STB)return;if(!force&&!ask&&o.last&&Date.now()-o.last.t<45000)return;STB=1;
+ try{NB.steps({ask:!!ask}).then(function(r){STB=0;r=r||{};var o=stO();
+  if(r.perm!=="ok"){o.err=r.perm==="no"||r.perm==="denied"?"Adım izni verilmedi. Telefon Ayarlar › Uygulamalar › Hayat Planım › İzinler › Fiziksel aktivite.":r.perm==="nosensor"?"Bu telefonda adım sensörü yok.":"Sensör şu an cevap vermedi, biraz sonra tekrar dene.";if(r.perm!=="timeout")o.on=false;save();stPaint();return}
+  o.err="";o.on=true;var k=key(today()),v=r.v,t=r.t||Date.now(),L=o.last;
+  if(L){var gap=t-L.t,d=v>=L.v?v-L.v:v;if(gap>0&&gap<=36*3600000&&d>=0&&d<200000)o.day[k]=(o.day[k]||0)+d}
+  else o.day[k]=o.day[k]||0;
+  o.last={v:v,t:t};var ks=Object.keys(o.day).sort();while(ks.length>150)delete o.day[ks.shift()];save();stPaint()}).catch(function(){STB=0})}catch(e){STB=0}}
+function stPaint(){try{if(tab==="spor"&&!SPMO&&!editing)render()}catch(e){}}
+document.addEventListener("visibilitychange",function(){if(!document.hidden)stRefresh()});
+function stCardHtml(){if(!stAvail())return"";var o=stO();
+ if(!o.on)return'<div class="card row"><span style="font-size:22px;flex:none">👟</span><span class="sp"><b>Adım sayacı</b><div class="mute">Telefonun kendi adım sensörünü kullanır; ek uygulama gerekmez.'+(o.err?'<br><b>'+esc(o.err)+'</b>':'')+'</div></span><button class="btn sm" data-a="stopen">Aç</button></div>';
+ setTimeout(function(){stRefresh()},0);var n=stToday(),g=o.goal||8000,pc=Math.min(100,Math.round(n/g*100));
+ return'<div class="card" data-a="stgoal" style="cursor:pointer"><div class="row"><span style="font-size:22px;flex:none">👟</span><span class="sp"><b>'+stFmt(n)+' adım</b><div class="mute">hedef '+stFmt(g)+' · dokunup değiştir</div></span>'+(n>=g?'<span class="badge">hedef ✓</span>':'')+'</div><div style="height:8px;border-radius:4px;background:var(--line);margin-top:10px;overflow:hidden"><div style="height:100%;width:'+pc+'%;background:var(--acc,#2e7d4f)"></div></div>'+(o.err?'<div class="mute" style="margin-top:6px;font-size:12px">'+esc(o.err)+'</div>':'')+'</div>'}
+function stWeekHtml(){if(!stAvail()||!stO().on)return"";var o=stO(),d=addDays(today(),-6),a=[],mx=o.goal||8000;for(var i=0;i<7;i++){var k=key(d),v=o.day[k]||0;a.push({d:d,v:v});mx=Math.max(mx,v);d=addDays(d,1)}
+ return'<div class="card"><div class="eyebrow">Son 7 gün adım</div><div class="row" style="align-items:flex-end;gap:6px;height:90px;margin-top:8px">'+a.map(function(x){return'<div style="flex:1;text-align:center"><div style="height:'+Math.max(3,Math.round(x.v/mx*64))+'px;background:'+(x.v>=(o.goal||8000)?"var(--acc,#2e7d4f)":"var(--line)")+';border-radius:4px"></div><div class="mute" style="font-size:10px;margin-top:2px">'+["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"][x.d.getDay()]+'</div></div>'}).join("")+'</div><div class="mute" style="margin-top:6px;font-size:12px">Telefon cebindeyken sayar; telefondan ayrı kaldığın adımlar görünmez. Sayım uygulamayı açtığın anlarda güncellenir.</div></div>'}
 function spCard(){try{if(SP().on===false||!modOn("spor"))return"";var k=key(today()),lg=SP().log[k]||{},list=spTodayList();if(lg.done)return"";
  if(typeof SPM!=="undefined"&&SPM)return'<div class="card close"><span style="flex:none;font-size:22px">🏋️</span><span class="sp"><b>Antrenman sürüyor</b><div class="mute">Kaldığın yerden devam et.</div></span><button class="btn sm" data-a="spmgo">Aç</button></div>';
  if(!list.length){if(Object.keys(SP().log).length||Object.keys(SP().plan).length)return"";return'<div class="card close"><span style="flex:none;font-size:22px">🏋️</span><span class="sp"><b>Spor modu</b><div class="mute">Plan gerekmez: 15 dk hızlı antrenmanla dene.</div></span><button class="btn sm" data-a="spquickgo">▶ Başla</button></div>'}var any=lg.sets&&Object.keys(lg.sets).some(function(i){return(lg.sets[i]||[]).some(Boolean)});
@@ -616,8 +637,9 @@ function vSpor(){var h='<div class="hd"><div><div class="eyebrow">Modül</div><h
  h+=sporTab==="plan"?spPlanHtml():sporTab==="hareket"?(setTimeout(spFilterRows,0),spLibHtml()):sporTab==="gecmis"?spHistHtml():spTodayHtml();
  return h+'<div class="mute" style="margin-top:14px;font-size:12px">Ağrı ya da baş dönmesi olursa bırak. Sağlık sorunun varsa başlamadan doktoruna danış.</div>'}
 function spTodayHtml(){var d=today(),k=key(d),lg=SP().log[k]||{},list=spTodayList(),h="";
- if(!list.length)return'<div class="card"><b>Bugün için plan yok</b><div class="mute" style="margin:6px 0 10px">Planına bugünü ekle, bir şablonla başla ya da kısa bir antrenman yap.</div><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm" data-a="sptab" data-v="plan">Planıma git</button><button class="btn ghost sm" data-a="spquick">Hızlı antrenman (~15 dk)</button></div></div>';
+ if(!list.length)return stCardHtml()+'<div class="card"><b>Bugün için plan yok</b><div class="mute" style="margin:6px 0 10px">Planına bugünü ekle, bir şablonla başla ya da kısa bir antrenman yap.</div><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm" data-a="sptab" data-v="plan">Planıma git</button><button class="btn ghost sm" data-a="spquick">Hızlı antrenman (~15 dk)</button></div></div>';
  h+='<div class="card"><div class="row"><span class="sp"><b>'+WD[d.getDay()]+(lg.adhoc?" · hızlı antrenman":" antrenmanı")+'</b><div class="mute">'+list.length+' hareket · yaklaşık '+spEst(list)+' dk</div></span>'+(lg.done?'<span class="badge">tamam ✓ '+(lg.min||"")+' dk</span>':'')+'</div>'+(function(){var tot=0,dn=0;list.forEach(function(e,ix){var x=spEx(e.e);if(!x)return;tot+=e.s||x.s;dn+=((lg.sets&&lg.sets[ix])||[]).filter(Boolean).length});return tot?'<div style="height:8px;border-radius:4px;background:var(--line);margin-top:10px;overflow:hidden"><div style="height:100%;width:'+Math.round(dn/tot*100)+'%;background:var(--acc,#2e7d4f)"></div></div><div class="mute" style="margin-top:4px;font-size:12px">'+dn+' / '+tot+' set</div>':''})()+'</div>';
+ h+=stCardHtml();
  var anyDone=lg.sets&&Object.keys(lg.sets).some(function(i){return(lg.sets[i]||[]).some(Boolean)}),tip=spFbTip();
  if(tip)h+='<div class="card" style="background:var(--acc2)">💡 '+esc(tip)+'</div>';
  if(!lg.done)h+='<button class="btn" style="width:100%;margin-bottom:10px;padding:14px;font-size:17px" data-a="spmgo">'+(SPM?"▶ Antrenman sürüyor · Aç":anyDone?"▶ Antrenmana devam et":"▶ Antrenmana başla")+'</button>';
@@ -649,7 +671,7 @@ function spLibHtml(){var all=spLib(),eqs=["","Ekipmansız","Dambıl","Diğer"];
 function spFilterRows(){var q=nluFold(spQ||"");[].forEach.call(document.querySelectorAll(".sp-row"),function(r){r.style.display=!q||r.getAttribute("data-n").indexOf(q)>=0?"":"none"})}
 function spHistHtml(){var lg=SP().log,ks=Object.keys(lg).filter(function(k){return lg[k].done}).sort().reverse(),w=0,mk=key(monday(today())),tot=0;ks.forEach(function(k){if(k>=mk)w++;tot+=lg[k].min||0});
  var st=0,d=today();if(!(lg[key(d)]||{}).done)d=addDays(d,-1);while(st<400&&(lg[key(d)]||{}).done){st++;d=addDays(d,-1)}
- return'<div class="card"><div class="bud-n"><div><b>'+w+'</b><span class="mute">bu hafta</span></div><div><b>'+ks.length+'</b><span class="mute">toplam antrenman</span></div><div><b>'+st+'</b><span class="mute">gün üst üste</span></div></div></div>'+
+ return stWeekHtml()+'<div class="card"><div class="bud-n"><div><b>'+w+'</b><span class="mute">bu hafta</span></div><div><b>'+ks.length+'</b><span class="mute">toplam antrenman</span></div><div><b>'+st+'</b><span class="mute">gün üst üste</span></div></div></div>'+
   '<div class="card">'+(ks.length?ks.slice(0,20).map(function(k){var l=lg[k],d2=fromKey(k),ex=(l.adhoc||spDay(d2.getDay())).length;return'<div class="row lnkrow"><span class="sp"><b>'+d2.getDate()+' '+GM[d2.getMonth()]+' · '+WD[d2.getDay()]+'</b><div class="mute">'+ex+' hareket · '+(l.min||"?")+' dk</div></span><span>✓</span></div>'}).join(""):'<div class="mute">Henüz tamamlanan antrenman yok. İlkini Bugün sekmesinden bitir.</div>')+'</div>'}
 function spDaySheet(d){closeAllSheets();var arr=spDay(d),body='<div class="mute" style="margin-bottom:8px">'+(arr.length?arr.length+" hareket · ~"+spEst(arr)+" dk":"Bu gün dinlenme günü. Hareket ekleyerek antrenman günü yap.")+'</div>'+
  arr.map(function(e,ix){var x=spEx(e.e);if(!x)return"";return'<div class="row" style="padding:5px 0;gap:6px">'+spMini(x.id)+'<span class="sp"><b>'+esc(x.n)+'</b><div class="mute">'+spRx(e,x)+'</div></span><span style="display:flex;flex-direction:column;gap:2px"><button class="x" data-a="spmv" data-v="'+d+':'+ix+':-1" aria-label="Yukarı"'+(ix?'':' disabled')+'>↑</button><button class="x" data-a="spmv" data-v="'+d+':'+ix+':1" aria-label="Aşağı"'+(ix<arr.length-1?'':' disabled')+'>↓</button></span><button class="x" data-a="spedit" data-v="'+d+':'+ix+'" aria-label="Düzenle">✎</button><button class="x" data-a="spdel" data-v="'+d+':'+ix+'" aria-label="Çıkar">×</button></div>'}).join("")+
@@ -1232,6 +1254,8 @@ function spAct(a,v){var sp=SP(),k=key(today());
  else if(a==="sprest")spRest(60);else if(a==="sprestx"){clearInterval(SPRT);var el=document.getElementById("sprest");if(el)el.remove()}
  else if(a==="spfin"){var rf=spFinish(0);buzz("ok");toast("Aferin! "+rf.min+" dk antrenman"+(rf.nn?" · işin de tamamlandı ✓":"")+(rf.prs.length?" · 🏅 yeni rekor":""));render()}
  else if(a==="spmgo")spmGo();
+ else if(a==="stopen")stRefresh(true,true);
+ else if(a==="stgoal"){ask("Günlük adım hedefi",[{label:"Adım",type:"number",value:stO().goal||8000}],function(r){var g=parseInt(r[0],10);if(g>=500&&g<=100000){stO().goal=g;save();render()}},{label:"Kaydet"})}
  else if(a==="spquickgo"){var lq=sp.log[k]=sp.log[k]||{};lq.adhoc=[{e:"jj",s:2},{e:"squat",s:2,r:12},{e:"sinav",s:2,r:8},{e:"plank",s:2,r:30}];save();spmGo()}
  else if(a==="spwarm"){sp.warm=sp.warm===false;save();render()}
  else if(a==="spcool"){sp.cool=sp.cool===false;save();render()}
@@ -2662,7 +2686,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #92'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #93'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3132,7 +3156,7 @@ document.addEventListener("click",function(e){
  case"dkrecgo":dkRecGo();return;
  case"sporopen":sporTab="bugun";go("spor");return;
  case"sportog":mut(function(){SP().on=SP().on===false});return;
- case"sptab":case"spgrp":case"spset":case"sprest":case"sprestx":case"spfin":case"spmgo":case"spquickgo":case"spwarm":case"spcool":case"spquick":case"spinfo":case"spday":case"spadd":case"spadd2":case"spdel":case"spclr":case"spedit":case"sptpl":case"sptplv":case"sptplgo":case"sptplmerge":case"spundo":case"spequip":case"spmv":case"spcopy":case"spadd3":case"spaddok":case"spnew":case"spexdel":spAct(a,v);return;
+ case"sptab":case"spgrp":case"spset":case"sprest":case"sprestx":case"spfin":case"spmgo":case"stopen":case"stgoal":case"spquickgo":case"spwarm":case"spcool":case"spquick":case"spinfo":case"spday":case"spadd":case"spadd2":case"spdel":case"spclr":case"spedit":case"sptpl":case"sptplv":case"sptplgo":case"sptplmerge":case"spundo":case"spequip":case"spmv":case"spcopy":case"spadd3":case"spaddok":case"spnew":case"spexdel":spAct(a,v);return;
  case"gprev":gunRef=addDays(gunRef,-1);render();return;
  case"gnext":gunRef=addDays(gunRef,1);render();return;
  case"gnow":gunRef=today();render();return;
@@ -3566,7 +3590,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("92",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("93",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
