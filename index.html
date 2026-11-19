@@ -2707,7 +2707,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #94'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #95'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3105,7 +3105,7 @@ document.addEventListener("change",function(e){
  if(id0==="scity"){var c=CITIES.filter(function(x){return x[0]===e.target.value})[0];if(c){S.settings.city=c[0];S.settings.lat=c[1];S.settings.lng=c[2];save();render();ensurePT()}return}
  if(id0==="bfin"){var f=e.target.files&&e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var d=JSON.parse(rd.result);if(!d||!d.v)throw 0;S=migrate(d);hc={};save();render();toast("Yedek yüklendi ✓")}catch(er){toast("Bu dosya geçerli bir yedek değil.")}};rd.readAsText(f);e.target.value="";return}if(e.target.id==="tmorning"||e.target.id==="tevening"){S.settings[e.target.id==="tmorning"?"morning":"evening"]=e.target.value;save();return}if(e.target.id==="hoff"){S.settings.hijriOffset=parseInt(e.target.value,10)||0;hc={};save();render()}});
 document.addEventListener("click",function(e){
- var tb=e.target.closest("[data-tab]");if(tb&&tb.getAttribute("data-tab")==="hud"){buzz();openChat();return}if(tb){openArea=tb.getAttribute("data-tab")==="hedef"&&tab==="hedef"?null:openArea;if(tb.getAttribute("data-tab")==="defter"&&tab==="defter")defterSec="";if(tb.getAttribute("data-tab")==="kulliyat"&&tab==="kulliyat"){openBook=null;openKv=null}go(tb.getAttribute("data-tab"));return}
+ var tb=e.target.closest("[data-tab]");if(tb&&tb.getAttribute("data-tab")==="hud"){buzz();if(CHO&&!CHATONLY)closeChat();else openChat();return}if(tb){openArea=tb.getAttribute("data-tab")==="hedef"&&tab==="hedef"?null:openArea;if(tb.getAttribute("data-tab")==="defter"&&tab==="defter")defterSec="";if(tb.getAttribute("data-tab")==="kulliyat"&&tab==="kulliyat"){openBook=null;openKv=null}go(tb.getAttribute("data-tab"));return}
  var el=e.target.closest("[data-a]");if(!el)return;
  var a=el.getAttribute("data-a"),id=el.getAttribute("data-id"),i=parseInt(el.getAttribute("data-i"),10),k=el.getAttribute("data-k"),p=el.getAttribute("data-p"),v=el.getAttribute("data-v");
  switch(a){
@@ -3320,6 +3320,7 @@ document.addEventListener("click",function(e){
  case"msnd":S.settings.msound=S.settings.msound===false;save();render();if(S.settings.msound!==false)mChirp("happy");return;
  case"bubyes":applyAct(JSON.parse(el.getAttribute("data-act")));var bb=el.closest(".bub");if(bb)bb.remove();return;
  case"bubno":var bn=el.closest(".bub");if(bn)bn.remove();return;
+ case"hudgo":(function(){var bh=el.closest(".bub");if(bh)bh.remove()})();hudDo(v);return;
  case"hudname":var hn=document.getElementById("hudname");if(hn&&hn.value.trim()){S.settings.userName=hn.value.trim();save();var nb0=document.getElementById("nobetBody");if(nb0)nb0.innerHTML=nobetBody();render();say("Memnun oldum "+uName()+"! "+mDef().e,true)}return;
  case"mdesign":var oldN=mName(),onb=!S.onboarded;S.settings.mascot=v;if(!S.settings.mascotName||S.settings.mascotName===oldN)S.settings.mascotName="";save();if(onb){var nn0=document.getElementById("onbn"),tt0=document.getElementById("onbt"),a1=nn0?nn0.value:"",a2=tt0?tt0.value:"";render();if(nn0){document.getElementById("onbn").value=a1;document.getElementById("onbt").value=a2}}else render();var ov4=el.closest(".over");if(ov4)ov4.remove();if(S.onboarded)setTimeout(function(){say("Merhaba"+hi(" ")+"! Ben "+mName()+", "+mDef().intro+". "+mDef().e,true)},250);return;
  case"updcheck":checkUpdate(true);return;
@@ -3397,7 +3398,7 @@ function nobetData(){
   tasks:st.left,habitsTotal:S.habits.length,habits:st.hu.map(function(x){return{type:"habit",id:x.id,t:x.name}}),
   special:sp.map(function(x){return x.t}).join(", "),
   next:(nx&&nx.days<=3)?nx.t+" "+(nx.days===1?"yarın":nx.days+" gün sonra")+".":"",
-  extra:extraMsgs(),prayers:prayerList(),userName:uName(),mascot:mName(),mascotDesign:mKey(),mascotEmoji:mDef().e,hijri:hstr(today()),greetHint:'',
+  extra:[],acts:extraActs(),prayers:prayerList(),userName:uName(),mascot:mName(),mascotDesign:mKey(),mascotEmoji:mDef().e,hijri:hstr(today()),greetHint:'',
   quietFrom:S.settings.quietFrom==null?23:S.settings.quietFrom,quietTo:S.settings.quietTo==null?6:S.settings.quietTo,every:S.settings.every==null?20:S.settings.every,
   allDone:(st.t+S.habits.length)>0&&!st.left.length&&!st.hu.length}}
 
@@ -3408,7 +3409,7 @@ function checkOverlay(){if(!NB)return;
   if(r.pending&&r.pending.length){mut(function(){r.pending.forEach(function(a){var L=dayLog(a.date||key(today()));if(a.type==="habit")L.h[a.id]=true;else if(a.type==="act")L.a[a.id]=true;else if(a.type==="prayer"){L.p[a.i]=true}else if(a.type==="task"){var b=L.big.filter(function(x){return!x.done&&!x.moved&&x.t===a.t})[0];if(b)b.done=true}})})}
   if(r.voice)setTimeout(function(){openChat();startVoice()},500);
   if(r.tesbih)setTimeout(openTesbih,350);
-  if(r.screen&&!CHATONLY&&r.screen!=="|")setTimeout(function(){try{var q=r.screen.split("|"),sc=q[0],tg=q[1]==null||q[1]==="null"?"":q[1];if(CHO)closeChat();if(["finans","beslenme","ev","diksiyon"].indexOf(sc)>=0){finTab="ozet";besTab="bugun";dkTab="bugun";go(sc)}else{var nv=aiNav(sc,tg);if(!nv.err){if(nv.fn)nv.fn();else go(nv.tab)}}}catch(e){}},500);
+  if(r.screen&&!CHATONLY&&r.screen!=="|")setTimeout(function(){try{var q=r.screen.split("|"),sc=q[0],tg=q[1]==null||q[1]==="null"?"":q[1];if(CHO)closeChat();if(sc==="hudhud"){hudDo(tg);return}if(["finans","beslenme","ev","diksiyon"].indexOf(sc)>=0){finTab="ozet";besTab="bugun";dkTab="bugun";go(sc)}else{var nv=aiNav(sc,tg);if(!nv.err){if(nv.fn)nv.fn();else go(nv.tab)}}}catch(e){}},500);
   if(r.calisma&&!CHATONLY)setTimeout(function(){if(CHO&&!CHATONLY)closeChat();openWork()},350);
   if(r.calismaq&&!CHATONLY)setTimeout(function(){if(CHO&&!CHATONLY)closeChat();if(!WM){var wl=S.settings.wmLast||{t:"",d:120};wmStart(wl.d,wl.t)}openWork()},350);
   if(r.userClosed&&mMode()==="everywhere"){setMode("app");save();render();return}
@@ -3441,27 +3442,39 @@ var nEl=document.getElementById("nobet"),bubT=null,msgI=0,lastAll=null,lastRank=
 function sleeping(){var h=new Date().getHours(),f=S.settings.quietFrom==null?23:S.settings.quietFrom,t=S.settings.quietTo==null?6:S.settings.quietTo;if(f===t)return false;return f<t?(h>=f&&h<t):(h>=f||h<t)}
 function say(txt,salute,act){
  if(!nobetOn())return;
- if(overlayOn()&&NB&&NB.say){try{var pp=NB.say({t:txt,salute:!!salute});if(pp&&pp.catch)pp.catch(function(){})}catch(e){}return}var old=document.querySelector(".bub");if(old)old.remove();
- var b=document.createElement("div");b.className="bub";b.innerHTML=esc(txt)+(act&&act.pray!==undefined?'<div class="bb"><button class="y" data-a="praydone" data-v="'+act.pray+'">Kıldım ✓</button><button data-a="pqlater" data-v="'+act.pray+'">Henüz</button></div>':act==="upd"?'<div class="bb"><button class="y" data-a="updgo">⬇ İndir ve kur</button><button data-a="bubno">Sonra</button></div>':act?'<div class="bb"><button class="y" data-a="bubyes" data-act="'+esc(JSON.stringify(act))+'">✓ Yaptım</button><button data-a="bubno">Sonra</button></div>':'');
+ if(overlayOn()&&NB&&NB.say){try{var gx=act==='upd'?{go:'upd',l:'⬇ İndir ve kur'}:(act&&act.go?act:null),pp=NB.say({t:txt,salute:!!salute,l:gx?gx.l:'',c:gx?gx.go:''});if(pp&&pp.catch)pp.catch(function(){})}catch(e){}return}var old=document.querySelector(".bub");if(old)old.remove();
+ var b=document.createElement("div");b.className="bub";b.innerHTML=esc(txt)+(act&&act.go?'<div class="bb"><button class="y" data-a="hudgo" data-v="'+esc(act.go)+'">'+esc(act.l||"Tamam")+'</button><button data-a="bubno">Sonra</button></div>':act&&act.pray!==undefined?'<div class="bb"><button class="y" data-a="praydone" data-v="'+act.pray+'">Kıldım ✓</button><button data-a="pqlater" data-v="'+act.pray+'">Henüz</button></div>':act==="upd"?'<div class="bb"><button class="y" data-a="hudgo" data-v="upd">⬇ İndir ve kur</button><button data-a="bubno">Sonra</button></div>':act?'<div class="bb"><button class="y" data-a="bubyes" data-act="'+esc(JSON.stringify(act))+'">✓ Yaptım</button><button data-a="bubno">Sonra</button></div>':'');
  if(!act)b.onclick=function(){b.remove()};document.body.appendChild(b);mSpeak(true,Math.min(4500,900+String(txt).length*45));nEl.classList.add("talk");setTimeout(function(){nEl.classList.remove("talk")},act?15000:8000);
  if(salute){nEl.classList.add("salute");setTimeout(function(){nEl.classList.remove("salute")},1800)}
  clearTimeout(bubT);bubT=setTimeout(function(){b.remove()},act?15000:8000)}
-function extraMsgs(){var o=[],nr=needReview(),th=H(today());
- if(nr)o.push("Haftalık gözden geçirme zamanı. 3 dakikanı ayır, haftanı değerlendirelim. 🧭");
- if(th.m&&th.d>=27&&!S.hrev[hijriKey(today())])o.push(HM[th.m-1]+" ayı bitiyor. Ayını değerlendirmeye ne dersin? 🌙");
- var pp=pendingPast();if(pp.length)o.push("Önceki günlerden "+pp.length+" iş kaldı. Bugüne taşıyalım mı?");
+function extraList(){var o=[],nr=needReview(),th=H(today());
+ if(nr)o.push({t:"Haftalık gözden geçirme zamanı. 3 dakikanı ayır, haftanı değerlendirelim. 🧭",l:"Başla",c:"review"});
+ if(th.m&&th.d>=27&&!S.hrev[hijriKey(today())])o.push({t:HM[th.m-1]+" ayı bitiyor. Ayını değerlendirmeye ne dersin? 🌙",l:"Değerlendir",c:"review"});
+ var pp=pendingPast();if(pp.length)o.push({t:"Önceki günlerden "+pp.length+" iş kaldı. Bugüne taşıyalım mı?",l:"Bugüne taşı",c:"carry"});
  return o}
+function extraMsgs(){return extraList().map(function(x){return x.t})}
+function extraActs(){return extraList().map(function(x){return{t:x.t,l:x.l,c:x.c}})}
+/* Hüdhüd'ün önerdiği eylemi doğrudan yapar (balon düğmesi ya da maskota dokunma) */
+function hudDo(c){c=String(c||"");try{
+ if(c==="upd"){if(updInfo){go("pano");startUpdate()}else checkUpdate(true).then(function(){if(updInfo){go("pano");startUpdate()}});return}
+ if(c==="addtask"){go("pano");setTimeout(function(){taskNewDlg(key(today()))},250);return}
+ if(c==="today"){go("pano");return}
+ if(c==="carry"){mut(function(){var tk=key(today());pendingPast().forEach(function(x){var b=S.log[x.k].big[x.i];b.moved=true;dayLog(tk).big.push({t:b.t,done:false,from:x.k})})});go("pano");toast("İşler bugüne taşındı");return}
+ if(c==="review"){var nr=needReview();if(nr)openReview(nr);else go("hafta");return}
+ if(c==="plan"){openChat();setTimeout(function(){handleCmd("günümü planla",false,true)},250);return}
+}catch(e){}}
+
 function nobetMsgs(){
  var st=dayStats(),h=new Date().getHours(),m=[],sp=specials(today()),nx=nextMajor(today());
  function M(t,a){m.push({t:t,a:a||null})}
  if(!uName())M("Merhaba! Ben "+mName()+", "+mDef().intro+". Sana nasıl hitap edeyim? Bana dokun. "+mDef().e);
- if(h<12&&!st.t)M(greet()+hi()+"! Bugünün işlerini henüz yazmadın. Bana dokun, birlikte planlayalım.");
+ if(h<12&&!st.t)M(greet()+hi()+"! Bugünün işlerini henüz yazmadın. Birlikte planlayalım mı?",{go:"addtask",l:"İş ekle"});
  if(st.left.length){var f=st.left[0];M((uName()?uName()+", b":"B")+"ugün "+st.left.length+" iş seni bekliyor. Sıradaki: “"+f.t+"”",f)}
  if(st.hu.length)M((uName()?uName()+", ":"")+st.hu[0].name+" için hâlâ vakit var. Yaptıysan işaretleyeyim mi?",{type:"habit",id:st.hu[0].id,t:st.hu[0].name});
  if(h>=20)M("Gün bitmeden küçük bir özet"+hi()+": "+st.d+"/"+st.t+" iş, "+st.hd+"/"+S.habits.length+" alışkanlık tamam. Gün notunu yazmayı unutma.");
  if(sp.length)M("Bugün "+sp.map(function(x){return x.t}).join(", ")+".");
  if(nx&&nx.days<=3)M(nx.t+" "+(nx.days===1?"yarın":nx.days+" gün sonra")+".");
- extraMsgs().forEach(function(x){M(x)});
+ extraList().forEach(function(x){M(x.t,{go:x.c,l:x.l})});
  var nv=nextPrayer();if(nv&&nv.mins<=30&&nv.mins>0)M(nv.name+" vaktine "+nv.mins+" dakika var. 🕌");
  var km=klMsg(new Date().getHours());if(km)M(km);
  if(!m.length)M("Her şey yolunda görünüyor"+hi()+". Ben buradayım. 🌿");
@@ -3501,7 +3514,7 @@ function nobetSync(){try{prayerBarSync()}catch(e){}
  var st=dayStats(),all=(st.t+S.habits.length)>0&&!st.left.length&&!st.hu.length;
  if(lastAll===false&&all)say("Maşallah"+hi(" ")+"! Bugünkü bütün işler ve alışkanlıklar tamam. 🎉",true);lastAll=all;
  var nb=document.getElementById("nobetBody");if(nb)nb.innerHTML=nobetBody()}
-nEl.addEventListener("click",function(){var b=document.querySelector(".bub");if(b)b.remove();var now=Date.now();TAPS=TAPS.filter(function(t){return now-t<1600});TAPS.push(now);clearTimeout(TAPT);
+nEl.addEventListener("click",function(){var b=document.querySelector(".bub");if(b){var gb=b.querySelector("[data-a=hudgo]");if(gb){var gv=gb.getAttribute("data-v");b.remove();buzz();hudDo(gv);return}b.remove()}var now=Date.now();TAPS=TAPS.filter(function(t){return now-t<1600});TAPS.push(now);clearTimeout(TAPT);
  if(TAPS.length>=3){TAPS=[];mood("tickle",1500);mChirp("happy");buzz("ok");say(pickOne(["Hihi, gıdıklanıyorum! 😄","Dur dur, kahkahadan uçacağım!","Yeter ama, tüylerim diken diken! 😆"]),true);return}
  mood("surprised",650);mChirp("tap");buzz();
  TAPT=setTimeout(function(){TAPS=[];if(sleeping())say("Zzz… Sessiz saatler"+hi()+". Sonra görüşürüz.");openChat()},TAPS.length>1?320:230)});
@@ -3618,7 +3631,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("94",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("95",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
@@ -3626,7 +3639,7 @@ async function checkUpdate(manual){
   var r=await fetch("https://api.github.com/repos/"+UPD_REPO+"/releases/latest",{cache:"no-store"});
   if(!r.ok)throw new Error("HTTP "+r.status);
   var d=await r.json(),m=/(\d+)/.exec(d.tag_name||""),n=m?parseInt(m[1],10):0,a=(d.assets||[]).filter(function(x){return/\.apk$/i.test(x.name)})[0];
-  if(n>SURUM&&a){updInfo={n:n,url:a.browser_download_url,name:a.name,notes:(d.body||"").split("\n")[0].slice(0,140)};render();if(!manual)setTimeout(function(){say("Yeni sürüm var"+hi()+" (#"+n+")! "+(overlayOn()?"Bana dokun, sohbette Güncelle'ye bas. ":"")+mDef().e,false,"upd")},1500)}
+  if(n>SURUM&&a){updInfo={n:n,url:a.browser_download_url,name:a.name,notes:(d.body||"").split("\n")[0].slice(0,140)};render();if(!manual)setTimeout(function(){say("Yeni sürüm var"+hi()+" (#"+n+")! "+mDef().e+" Şimdi kuralım mı?",false,"upd")},1500)}
   else{updInfo=null;if(manual)toast("Uygulaman güncel ✓ (#"+SURUM+")")}
  }catch(e){if(manual)toast("Güncelleme denetlenemedi: "+String(e&&e.message||e).slice(0,60))}}
 function updCard(){if(!updInfo)return"";return'<div class="card banner"><div class="row"><span class="sp"><b>'+Ii("bell")+'Yeni sürüm hazır: #'+updInfo.n+'</b><div class="mute">'+(updInfo.notes?esc(updInfo.notes):"Şu an #"+SURUM+" kullanıyorsun.")+'</div></span></div><div class="row" style="margin-top:8px"><button class="btn sm" data-a="updgo">'+(updState?esc(updState):"İndir ve kur")+'</button><span class="mute sp">Verilerin silinmez.</span></div></div>'}
