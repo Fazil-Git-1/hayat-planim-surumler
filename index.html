@@ -1338,6 +1338,42 @@ function spmClick(e){var b=e.target.closest("[data-sm]");if(!b||!SPM)return;var 
  else if(a==="skip"){var c=spmCur().c;if(c){if(SPM.stage!=="main")SPM.qi++;else SPM.skip[c.ix]=true;spmEnter()}}
  else if(a==="fin"){if(SPM.stage==="wu"){SPM.stage="main";spmEnter()}else spmEnd()}
  else if(a==="fb"){var lg=sp.log[key(today())];if(lg){lg.fb=v;save();spmPaint()}}}
+/* ===== Antrenman komutları (yazı ve ses): başlat, set bitti, dinlenmeyi geç, duraklat, bitir ===== */
+function spmVoice(c){
+ if(c==="start"){if(SPM){spmOpen();return"Antrenman sürüyor, açıyorum."}qaGo("spor");return"Antrenmanı başlatıyorum."}
+ if(!SPM)return"Antrenman açık değil. “Antrenmanı başlat” dersen başlatırım.";
+ var ph=SPM.ph;
+ if(ph==="end")return"Antrenman zaten bitti. Aferin!";
+ if(c==="pause"){if(!SPM.paused){SPM.rem=SPM.end?Math.max(0,SPM.end-Date.now()):0;SPM.paused=true;spmPaint();spmPill()}return"Duraklattım."}
+ if(c==="resume"){if(SPM.paused){SPM.paused=false;SPM.last=Date.now();if(SPM.rem)SPM.end=Date.now()+SPM.rem;spmPaint();spmPill()}return"Devam ediyoruz."}
+ if(SPM.paused)return"Duraklatıldı. “Devam” de.";
+ if(c==="done"){if(ph==="ready"){spmAdvance();return"Başlıyoruz."}if(ph==="work"){spmWorkEnd();return SPM&&SPM.ph==="rest"?"Aferin! Şimdi dinlen.":"Tamam."}return"Zaten dinleniyorsun."}
+ if(c==="rest"){if(ph==="work"){spmWorkEnd();return"Tamam, dinlen."}return ph==="rest"?"Zaten dinleniyorsun.":"Önce hareketi bitir."}
+ if(c==="skip"){if(ph==="rest"){spmEnter();return"Dinlenmeyi geçtim."}if(ph==="ready"){spmAdvance();return"Başlıyoruz."}var cu=spmCur().c;if(cu){if(SPM.stage!=="main")SPM.qi++;else SPM.skip[cu.ix]=true;spmEnter();return"Hareketi atladım."}return"Atlanacak hareket kalmadı."}
+ if(c==="more"){if(ph==="rest"){SPM.end+=15000;SPM.tot+=15000;SPM.rest=Math.max(15,Math.round(SPM.tot/1000));spmUpd();return"Dinlenmeyi 15 saniye uzattım."}return"Şu an dinlenmiyorsun."}
+ if(c==="undo"){spmUndo();return"Son seti geri aldım."}
+ if(c==="end"){spmEnd();return"Antrenmanı bitiriyorum."}
+ if(c==="left"){var st=spmSteps().filter(function(x){return!SPM.skip[x.ix]||x.done}),dn=st.filter(function(x){return x.done}).length;return dn+" / "+st.length+" set tamam, "+(st.length-dn)+" set kaldı."}
+ return"Anlayamadım."}
+function spCmd(raw,t){var tr=String(t||"");
+ var wk=/(antrenman|idman|egzersiz|spor)/.test(tr);
+ var cmd="";
+ if(wk&&/(başla|başlat|başlıyorum|başlayalım|başlıyoruz|yapalım|yapacağım|yapıyorum)/.test(tr)&&!/(ekle|planla|yarın|planım|hatırlat)/.test(tr))cmd="start";
+ else if(/(antrenman(ı|i)?|idman(ı|i)?|egzersiz(i)?)\s*(bitir|bitiriyorum|bitirelim|bitti)/.test(tr)||/^(antrenman|idman) bitsin/.test(tr))cmd="end";
+ else if(/(antrenman(ı|i)?|idman(ı|i)?)\s*(duraklat|durdur|bekle)/.test(tr))cmd="pause";
+ else if(/(antrenman(a|ı)?|idman(a|ı)?)\s*devam/.test(tr))cmd="resume";
+ else if(/(set(i)?|hareket(i)?)\s*(bitti|bitirdim|tamam|tamamladım|yaptım)/.test(tr))cmd="done";
+ else if(/dinlenme(yi)?\s*(geç|atla|bitir)|dinlenmeden devam|hazırım/.test(tr))cmd="skip";
+ else if(/(sıradaki|sonraki|diğer)\s*hareket|hareketi?\s*(geç|atla)/.test(tr))cmd="skip";
+ else if(/dinlenme(yi)?\s*(uzat|artır)|(15|on beş)\s*(sn|saniye)\s*(daha|ekle)/.test(tr))cmd="more";
+ else if(/(kaç|ne kadar)\s*(set|hareket)\s*(kaldı|var)|antrenman(da)?\s*(ne kadar|kaç)\s*kaldı/.test(tr))cmd="left";
+ else if(/set(i)?\s*geri al/.test(tr))cmd="undo";
+ else if(/^(dinlen|dinleniyorum|dinleneyim)$/.test(tr)&&SPM&&!CHATONLY)cmd="rest";
+ // yalnız uygulama içinde ve antrenman ekranı açıkken anlamı net olan kısa sözler
+ else if(!CHATONLY&&SPM&&SPMO){if(/^(bitti|tamam|yaptım|bitirdim|oldu)$/.test(tr))cmd="done";else if(/^(geç|atla|sonraki|hadi)$/.test(tr))cmd="skip";else if(/^(dur|bekle|duraklat)$/.test(tr))cmd="pause";else if(/^(devam|devam et)$/.test(tr))cmd="resume";else if(/^geri al$/.test(tr))cmd="undo"}
+ if(!cmd)return"";
+ if(CHATONLY){try{NB.openScreen({sc:"hudhud",tg:"spm:"+cmd})}catch(e){}return cmd==="start"?"Antrenmanı başlatıyorum.":"Uygulamayı açıyorum."}
+ var r=spmVoice(cmd);if(CHO&&!CHATONLY&&cmd==="start")setTimeout(closeChat,400);return r}
 function spFbTip(){var lg=SP().log,ks=Object.keys(lg).filter(function(k){return lg[k].done&&lg[k].fb}).sort().slice(-2);if(!ks.length)return"";var f=ks.map(function(k){return lg[k].fb}),last=f[f.length-1];if(f.length===2&&f[0]==="easy"&&f[1]==="easy")return"Son iki antrenmanı «kolaydı» dedin. İstersen bugün bir hareketin ağırlığını ya da tekrarını biraz artır.";if(last==="hard")return"Geçen antrenman zordu. Bugün aynı seviyede kal, formu koru.";return""}
 function spAct(a,v){var sp=SP(),k=key(today());
  if(a==="sptab"){sporTab=v;render();window.scrollTo(0,0)}
@@ -1948,6 +1984,7 @@ function parseCmd(raw){
  if(!t)return"";
  if(/^(yardım|ne yapabilirsin|neler yapabilirsin|komutlar|nasıl kullanılır)/.test(t))return'Örnekler: "her sabah 7\'de yürüyüş", "hafta içi akşam 9\'da kitap okuyacağım", "kitap okudum", "öğle kıldım", "yarın 10\'da toplantı", "kitap listeme Suç ve Ceza ekle", "sağlık alanına hedef ekle yürüyüş", "alışkanlık ekle erken kalkmak", "33 sübhanallah", "kaza sabah 2 ekle", "haftanın ayeti: …", "niyetim: …", "ne kaldı?"';
  var zkc=zkCmd(raw,t);if(zkc)return zkc;
+ var spc=spCmd(raw,t);if(spc)return spc;
  var rcc=recCmd(raw,t);if(rcc)return rcc;
  var fnc=finCmd(raw,t);if(fnc)return fnc;var bsc=besCmd(raw,t,words);if(bsc)return bsc;var evc=evCmd(raw,t,words);if(evc)return evc;
  if(/(hangilerini|hangileri|neleri|nelerini|neler)\s+(yaptım|yapmadım|bitirdim|bitirmedim|tamamladım|yapamadım)|yaptıklarım|yapmadıklarım|bitirdiklerim|(^|\s)ne yaptım|ne kadarını (yaptım|bitirdim)|ne kadar yaptım|bugün neler yaptım/.test(t))return statusReport(L);
@@ -2836,7 +2873,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #106'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #107'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3603,6 +3640,7 @@ function hudDo(c){c=String(c||"");try{
  if(c==="today"){go("pano");return}
  if(c==="carry"){mut(function(){var tk=key(today());pendingPast().forEach(function(x){var b=S.log[x.k].big[x.i];b.moved=true;dayLog(tk).big.push({t:b.t,done:false,from:x.k})})});go("pano");toast("İşler bugüne taşındı");return}
  if(c==="review"){var nr=needReview();if(nr)openReview(nr);else go("hafta");return}
+ if(c.indexOf("spm:")===0){var sr=spmVoice(c.slice(4));if(sr)toast(sr);return}
  if(c==="plan"){openChat();setTimeout(function(){handleCmd("günümü planla",false,true)},250);return}
 }catch(e){}}
 
@@ -3774,7 +3812,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("106",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("107",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
