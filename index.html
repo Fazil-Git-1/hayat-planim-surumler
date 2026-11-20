@@ -307,6 +307,35 @@ select{-webkit-appearance:none;appearance:none;padding-right:34px;background-ima
 
 .hq{margin:0 0 12px}.hq input{width:100%;padding:12px 14px;border-radius:var(--rc);border:1px solid var(--line);background:var(--card);font-size:15px}
 details.fold>summary{min-height:44px}
+
+/* ---- Hüdhüd panosu: alttan açılan buzlu cam sheet ---- */
+#cho{background:var(--scrim);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);padding:0;display:flex;flex-direction:column}
+#cho .ch-back{flex:1;min-height:7vh}
+#cho .ch-sheet{display:flex;flex-direction:column;height:88vh;height:88dvh;max-height:calc(100dvh - 24px);background:var(--glass2);-webkit-backdrop-filter:saturate(1.4) blur(22px);backdrop-filter:saturate(1.4) blur(22px);border-radius:24px 24px 0 0;border-top:1px solid var(--line);box-shadow:0 -10px 40px rgba(0,0,0,.18);padding:6px 14px calc(12px + env(safe-area-inset-bottom));animation:chUp .24s var(--ease)}
+@keyframes chUp{from{transform:translateY(36px);opacity:0}to{transform:none;opacity:1}}
+#cho .ch-grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 8px;flex:none}
+#cho .ch-top{border-bottom:0;padding-bottom:6px}
+#cho .cav{width:36px;height:44px}
+#cho .ch-top b{font-size:17px}
+#cho .ch-st{font-size:12.5px;display:flex;align-items:center;gap:6px}
+#cho .ch-x{width:40px;height:40px;border-radius:50%;font-size:18px;display:grid;place-items:center}
+#cho .ch-sg{display:flex;gap:8px;overflow-x:auto;padding:8px 0 4px;flex:none;scrollbar-width:none}
+#cho .ch-sg::-webkit-scrollbar{display:none}
+#cho .ch-sg button{flex:none;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;white-space:nowrap}
+#cho .chat{margin-top:6px}
+#cho .chat input{background:var(--card)}
+.ch-hint{font-size:12.5px;color:var(--mute);margin:14px 2px 8px}
+.ch-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ch-tiles button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:12px;border-radius:var(--rk);border:1px solid var(--line);background:var(--card)}
+.ch-tiles button .tic{margin-bottom:4px}
+.ch-tiles button small{color:var(--mute);font-size:12px;line-height:1.3}
+.dots{display:inline-flex;gap:4px;padding:4px 2px}.dots i{width:7px;height:7px;border-radius:50%;background:var(--mute);animation:dotb 1.1s infinite ease-in-out}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes dotb{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-4px);opacity:1}}
+.msgs .r.wait{animation:none}
+.wv{display:inline-flex;gap:2px;align-items:center;height:14px}.wv i{width:3px;height:6px;border-radius:2px;background:var(--gold);animation:wvb .9s infinite ease-in-out}.wv i:nth-child(2){animation-delay:.12s}.wv i:nth-child(3){animation-delay:.24s}.wv i:nth-child(4){animation-delay:.36s}
+@keyframes wvb{0%,100%{height:5px}50%{height:14px}}
+body.chatonly #cho{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
+body.chatonly #cho .ch-sheet{height:66vh;max-height:66vh;margin:0 10px calc(10px + env(safe-area-inset-bottom));background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:26px;border-top:0;padding:6px 14px 12px}
 </style>
 </head>
 <body>
@@ -2667,28 +2696,44 @@ var LOOPWAIT=false;
 function loopListen(){if(!VLOOP||!CHO)return;if(document.hidden){LOOPWAIT=true;return}listenOnce(function(t){if(!VLOOP)return;if(!t){VLOOP=false;paintChat();toast("Seni duyamadım; konuşmak için mikrofona tekrar dokun");return}
  if(BYE.test(nrm(t))){VLOOP=false;var bye="Görüşürüz"+hi()+", Allah'a emanet ol.";clPush("🎤 "+t,bye);paintChat();render();speakOut(bye);return}
  handleCmd(t,true)})}
+/* ===== Hüdhüd panosu: bağlama göre kısayollar ve boş durum karoları ===== */
+function chatShortcuts(){var o=[],h=new Date().getHours();
+ if(typeof SPM!=="undefined"&&SPM&&SPM.ph!=="end"){o=[["Set bitti","set bitti"],["Dinlenmeyi geç","dinlenmeyi geç"],["Kaç set kaldı?","kaç set kaldı"],["Antrenmanı bitir","antrenmanı bitir"]]}
+ else{o.push(["Bugün ne var?","bugün ne var"]);o.push(["Günümü planla","günümü planla"]);
+  try{if(modOn("spor")&&SP().on!==false&&spTodayList().length&&!(SP().log[key(today())]||{}).done)o.push(["Antrenmanı başlat","antrenmanı başlat"])}catch(e){}
+  try{if(modOn("aile")&&famDue().length)o.push(["Kimi aramalıyım?","kimi aramalıyım"])}catch(e){}
+  if(modOn("finans"))o.push(["Bütçem ne durumda?","bütçem ne durumda"]);
+  if(modOn("ev")||modOn("beslenme"))o.push(["Alışveriş listem","alışveriş listemde neler var"]);
+  if(h>=19)o.push(["Hangi rutinleri aksattım?","hangi rutinleri aksatıyorum"]);
+  if(WM)o.unshift(["Çalışma moduna dön","Çalışma moduna dön"]);else if(!CHATONLY&&h>=8&&h<20)o.push(["Çalışma modunu aç","Çalışma modunu aç"])}
+ return o.map(function(x){return'<button data-sg="'+esc(x[1])+'">'+esc(x[0])+'</button>'}).join("")}
+function chatTiles(){var t=[["edit","İş ekle","yarın 10'da toplantı ekle",1],["finans","Harcama yaz","350 lira market harcadım",1],["alisveris","Alışveriş","alışveriş listeme süt ekle",1],["pano","Bugünüm","bugün ne var",0]];
+ if(modOn("spor"))t.push(["spor","Antrenman","antrenmanı başlat",0]);if(modOn("aile"))t.push(["ben","Aile","kimi aramalıyım",0]);
+ return t.slice(0,6).map(function(x){return'<button data-'+(x[3]?"fill":"sg")+'="'+esc(x[2])+'"><span class="tic sm" style="background:var(--acc)">'+I(x[0])+'</span><b>'+esc(x[1])+'</b><small>'+esc(x[2])+'</small></button>'}).join("")}
 function chatAvatar(){return'<div class="cav">'+mDef().svg+'</div>'}
 function updAsk(){if(!updInfo||S.settings.updAsk===updInfo.n)return;S.settings.updAsk=updInfo.n;var m=clPush("","Yeni sürüm hazır: #"+updInfo.n+". Şimdi güncelleyelim mi?");m.op=["Güncelle","Şimdi değil"];clSave();save()}
 function openChat(){if(CHO){paintChat();return}try{updAsk()}catch(e){}try{prayChatAsk()}catch(e){}CHO=document.createElement("div");CHO.id="cho";
- CHO.innerHTML=(CHATONLY?'<div class="ch-back" data-ch="close"></div><div class="ch-sheet">':'')+'<div class="ch-top">'+chatAvatar()+'<div class="sp"><b>'+esc(mName())+'</b><div class="mute ch-st"></div></div><button class="tb-b ch-x" data-ch="close" aria-label="Kapat">✕</button></div><div class="ch-body"></div>'+
- '<form class="chat ch-in" data-chat2><input id="chatin2" type="text" enterkeyhint="send" autocomplete="off" placeholder="Yaz ya da mikrofona dokun…"><button type="button" class="mic" data-ch="mic" aria-label="Sesli konuş (tekrar dokununca durur)">'+I("mic")+'</button><button type="submit" aria-label="Gönder">'+I("send")+'</button></form>'+(CHATONLY?'</div>':'');
+ CHO.innerHTML='<div class="ch-back" data-ch="close"></div><div class="ch-sheet"><div class="ch-grab" aria-hidden="true"></div><div class="ch-top">'+chatAvatar()+'<div class="sp"><b>'+esc(mName())+'</b><div class="mute ch-st"></div></div><button class="tb-b ch-x" data-ch="close" aria-label="Kapat">⌄</button></div><div class="ch-body"></div><div class="ch-sg"></div>'+
+ '<form class="chat ch-in" data-chat2><input id="chatin2" type="text" enterkeyhint="send" autocomplete="off" placeholder="Yaz ya da mikrofona dokun…"><button type="button" class="mic" data-ch="mic" aria-label="Sesli konuş (tekrar dokununca durur)">'+I("mic")+'</button><button type="submit" aria-label="Gönder">'+I("send")+'</button></form></div>';
  CHO._t=Date.now();document.body.appendChild(CHO);document.body.classList.add("choopen");ovHide(true);paintChat();
- CHO.addEventListener("click",function(e){var ub=e.target.closest("[data-url]");if(ub){var uu=ub.getAttribute("data-url");if(NB&&NB.openUrl)NB.openUrl({url:uu}).catch(function(){window.open(uu,"_blank")});else window.open(uu,"_blank");return}var b=e.target.closest("[data-ch],[data-sg]");if(!b)return;var a=b.getAttribute("data-ch");
+ CHO.addEventListener("click",function(e){var ub=e.target.closest("[data-url]");if(ub){var uu=ub.getAttribute("data-url");if(NB&&NB.openUrl)NB.openUrl({url:uu}).catch(function(){window.open(uu,"_blank")});else window.open(uu,"_blank");return}var b=e.target.closest("[data-ch],[data-sg],[data-fill]");if(!b)return;var a=b.getAttribute("data-ch");if(b.hasAttribute("data-fill")){var fi=document.getElementById("chatin2");if(fi){fi.value=b.getAttribute("data-fill");fi.focus();try{fi.setSelectionRange(fi.value.length,fi.value.length)}catch(e){}}return}
   if(b.hasAttribute("data-sg")){var sgv=b.getAttribute("data-sg");if(/^Çalışma mod/.test(sgv)&&!CHATONLY){closeChat();openWork();return}handleCmd(sgv,false,true);return}
   if(a==="close"){if(b.classList.contains("ch-back")&&Date.now()-(CHO._t||0)<900)return;closeChat()}else if(a==="mic"){stopSpeak();if(VLOOP){VLOOP=false;try{if(NB&&NB.stopListen)NB.stopListen()}catch(e){}micOn(false);paintChat();toast("Sesli sohbet kapandı")}else{VLOOP=true;paintChat();loopListen()}}});
  CHO.addEventListener("submit",function(e){e.preventDefault();var ip=document.getElementById("chatin2"),v=ip.value;ip.value="";handleCmd(v,false)});
- setTimeout(function(){var ip=document.getElementById("chatin2");if(ip&&!VLOOP)ip.focus()},150)}
+ (function(){var sh=CHO.querySelector(".ch-sheet"),y0=0,dy=0,drag=false;function st(e){y0=e.touches[0].clientY;dy=0;drag=true;sh.style.transition="none"}function mv(e){if(!drag)return;dy=Math.max(0,e.touches[0].clientY-y0);sh.style.transform="translateY("+dy+"px)"}function en(){if(!drag)return;drag=false;sh.style.transition="transform .2s";if(dy>110){sh.style.transform="translateY(100%)";setTimeout(closeChat,160)}else sh.style.transform=""}
+  [CHO.querySelector(".ch-grab"),CHO.querySelector(".ch-top")].forEach(function(el){if(!el)return;el.addEventListener("touchstart",st,{passive:true});el.addEventListener("touchmove",mv,{passive:true});el.addEventListener("touchend",en)})})();
+ setTimeout(function(){var ip=document.getElementById("chatin2");if(ip&&!VLOOP&&!window.matchMedia("(pointer:coarse)").matches)ip.focus()},150)}
 function ovHide(h){try{if(NB&&NB.overlayHide){var pp=NB.overlayHide({hide:!!h});if(pp&&pp.catch)pp.catch(function(){})}}catch(e){}}
 function closeChat(){if(!CHO)return;if(CHATONLY){VLOOP=false;stopSpeak();ovHide(false);try{NB.finishChat()}catch(e){}return}VLOOP=false;stopSpeak();CHO.remove();CHO=null;document.body.classList.remove("choopen");if(!TB)ovHide(false);render()}
 function fmtMsg(t){var h=esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");var lines=h.split(/\n/),o="",inL=false;lines.forEach(function(l){var mm=l.match(/^\s*[-•*]\s+(.*)$/);if(mm){if(!inL){o+="<ul>";inL=true}o+="<li>"+mm[1]+"</li>"}else{if(inL){o+="</ul>";inL=false}if(l.trim())o+="<p>"+l+"</p>"}});if(inL)o+="</ul>";return o}
 function srcHtml(m){return m.src&&m.src.length?'<div class="srcs">'+m.src.map(function(x){return'<button data-url="'+esc(x.u)+'">'+esc(String(x.t).slice(0,40))+' ↗</button>'}).join("")+'</div>':""}
 function acHtml(m){if(!m.ac||!m.ac.length)return"";return'<span class="acs">'+m.ac.map(function(x){return'<span class="ac">✓ '+esc(x)+'</span>'}).join("")+(m.undone?'<span class="ac mute">↶ Geri alındı</span>':(AI_UNDO&&AI_UNDO.at===m.at?'<button class="undo" data-undo="'+m.at+'">↶ Geri al</button>':""))+'</span>'}
 function opHtml(m){return m&&m.op&&m.op.length&&!AI_BUSY&&!m.ans?'<div class="ops">'+m.op.map(function(x,i){return'<button class="'+(i===0?"btn":"btn ghost")+' sm" data-op="'+esc(x)+'">'+esc(x)+'</button>'}).join("")+'</div>':""}
-function paintChat(){if(!CHO)return;var st=CHO.querySelector(".ch-st");st.textContent=VLOOP?"Sesli sohbet açık · bitirmek için mikrofona dokun":aiOn()?"Yapay zekâ açık":"Basit mod · yapay zekâ kapalı";
+function paintChat(){if(!CHO)return;var st=CHO.querySelector(".ch-st");if(VLOOP)st.innerHTML='<span class="wv"><i></i><i></i><i></i><i></i></span>Dinliyorum · bitirmek için mikrofona dokun';else if(AI_BUSY)st.textContent="Düşünüyorum…";else st.textContent=aiOn()?"Yapay zekâ açık":"Basit mod · yapay zekâ kapalı";var sgr=CHO.querySelector(".ch-sg");if(sgr)sgr.innerHTML=chatShortcuts();
  var mb=CHO.querySelector(".mic");if(mb)mb.classList.toggle("live",VLOOP);
  var body=CHO.querySelector(".ch-body"),msgs=CL.slice(-30),h="",lastDay="";
- if(!msgs.length)h='<div class="msgs"><div class="r">'+esc(greet()+hi()+"! Ben "+mName()+". Senin kişisel asistanınım: günün, işlerin, rutinlerin ve hedeflerin için buradayım.")+'</div></div><div class="sgs">'+(CHATONLY?[]:[WM?"Çalışma moduna dön":"Çalışma modunu aç"]).concat(["Bugün ne var?","Günümü planla","Haftamı nasıl daha verimli geçiririm?","Hangi rutinleri aksatıyorum?"]).map(function(x){return'<button data-sg="'+esc(x)+'">'+esc(x)+'</button>'}).join("")+'</div>';
- else{h='<div class="msgs">';msgs.forEach(function(m){var dk=key(new Date(m.at));if(dk!==lastDay){lastDay=dk;h+='<span class="ch-day">'+(dk===key(today())?"Bugün":new Date(m.at).toLocaleDateString("tr-TR",{day:"numeric",month:"long"}))+'</span>'}h+='<div class="u">'+esc(m.u)+'</div><div class="r'+(m.r==="…"?" wait":"")+'">'+fmtMsg(m.r)+acHtml(m)+srcHtml(m)+(m.ai&&m===msgs[msgs.length-1]&&!AI_BUSY?(m.fb?'<span class="fbk">'+(m.fb>0?'👍 Teşekkürler':'👎 Öğrendim')+'</span>':'<span class="fbk"><button data-fb="'+m.at+':1" aria-label="İyi cevap">👍</button><button data-fb="'+m.at+':0" aria-label="Kötü cevap, öğret">👎</button></span>'):'')+'</div>'});h+='</div>';var lm=msgs[msgs.length-1];h+=opHtml(lm);if(lm&&lm.sg&&lm.sg.length&&!AI_BUSY&&!(lm.op&&lm.op.length))h+='<div class="sgs">'+lm.sg.map(function(x){return'<button data-sg="'+esc(x)+'">'+esc(x)+'</button>'}).join("")+'</div>'}
+ if(!msgs.length)h='<div class="msgs"><div class="r">'+esc(greet()+hi()+"! Ben "+mName()+". Günün, işlerin, rutinlerin ve hedeflerin için buradayım. Yazabilir ya da mikrofona dokunup konuşabilirsin.")+'</div></div><div class="ch-hint">Şunları yapabilirim · dokun, örneği düzenle ya da gönder</div><div class="ch-tiles">'+chatTiles()+'</div>';
+ else{h='<div class="msgs">';msgs.forEach(function(m){var dk=key(new Date(m.at));if(dk!==lastDay){lastDay=dk;h+='<span class="ch-day">'+(dk===key(today())?"Bugün":new Date(m.at).toLocaleDateString("tr-TR",{day:"numeric",month:"long"}))+'</span>'}h+='<div class="u">'+esc(m.u)+'</div><div class="r'+(m.r==="…"?" wait":"")+'">'+(m.r==="…"?'<span class="dots"><i></i><i></i><i></i></span>':fmtMsg(m.r))+acHtml(m)+srcHtml(m)+(m.ai&&m===msgs[msgs.length-1]&&!AI_BUSY?(m.fb?'<span class="fbk">'+(m.fb>0?'👍 Teşekkürler':'👎 Öğrendim')+'</span>':'<span class="fbk"><button data-fb="'+m.at+':1" aria-label="İyi cevap">👍</button><button data-fb="'+m.at+':0" aria-label="Kötü cevap, öğret">👎</button></span>'):'')+'</div>'});h+='</div>';var lm=msgs[msgs.length-1];h+=opHtml(lm);if(lm&&lm.sg&&lm.sg.length&&!AI_BUSY&&!(lm.op&&lm.op.length))h+='<div class="sgs">'+lm.sg.map(function(x){return'<button data-sg="'+esc(x)+'">'+esc(x)+'</button>'}).join("")+'</div>'}
  body.innerHTML=h;body.scrollTop=body.scrollHeight}
 /* ===== Fiş okutma: kamera + telefonda metin okuma; sonuç onaylatılıp harcama olur ===== */
 function rcOk(){return!!(NB&&NB.scanReceipt)}
@@ -3005,7 +3050,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #112'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #113'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3988,7 +4033,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("112",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("113",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
