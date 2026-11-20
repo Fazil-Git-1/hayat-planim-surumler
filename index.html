@@ -368,6 +368,25 @@ body.eink .mute{color:#222!important}
 body.eink #nobet,body.eink #tfab,body.eink .bub{display:none!important}
 body.eink .chips.ov{-webkit-mask-image:none;mask-image:none}
 body.eink h1{font-size:30px}body.eink .eyebrow{color:#000!important;letter-spacing:.06em}
+
+/* Geniş ekran (tablet yatay, bilgisayar): gezinme sol kenarda, içerik ortada, pencereler ortada */
+@media (min-width:900px){
+ .nav{top:0;bottom:0;right:auto;width:210px;flex-direction:column;justify-content:flex-start;gap:4px;padding:calc(env(safe-area-inset-top) + 22px) 12px 16px;border-top:0;border-right:1px solid var(--line)}
+ .nav button{flex:none;flex-direction:row;justify-content:flex-start;gap:12px;min-height:50px;padding:6px 10px;font-size:15px;border-radius:14px;text-align:left}
+ .nav button b{width:40px;height:34px;border-radius:12px;flex:none}
+ .nav button.on{background:var(--acc2)}.nav button.on b{background:transparent}
+ .nav button.hud{order:-1;margin-bottom:14px;font-size:16px}.nav button.hud b{width:46px;height:46px;border-radius:23px;margin-top:0}.nav button.hud b svg{width:38px;height:38px}
+ #app{max-width:780px;margin:0 auto 0 max(234px,calc(50% - 390px + 105px));padding-bottom:48px}
+ .over{align-items:center}
+ .sheet{max-width:580px;border-radius:18px;max-height:86vh}
+ #tfab{left:226px;bottom:20px}#nobet{bottom:16px}.bub{bottom:110px}
+ #spmpill,#wmpill,#sprest{left:calc(50% + 105px);bottom:24px}
+ #cho .ch-sheet{max-width:640px;margin:0 auto;border-radius:24px;height:80vh}
+ .kbh{display:block}
+}
+@media (min-width:1280px){#app{max-width:860px;margin-left:max(234px,calc(50% - 430px + 105px))}}
+.kbh{display:none;color:var(--mute);font-size:12.5px;text-align:center;margin:18px 0 0}
+body.eink .nav button.on{background:#000!important}
 </style>
 </head>
 <body>
@@ -3263,7 +3282,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("eye")+'E-ink modu<div class="mute">Siyah-beyaz ve sade; yalnız Bugün, okuma ve çalışma. Yalnız bu cihazda geçerli.</div></span><button class="btn sm'+(ei()?"":" ghost")+'" data-a="einktog">'+(ei()?"Açık":"Kapalı")+'</button></div><div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #122'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #123'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':(/Electron\//.test(navigator.userAgent)?' · bilgisayar':''))+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3627,7 +3646,7 @@ function vBen2(){var h='<div class="hd"><div><div class="eyebrow">Yıllık plan 
   listBlock("me:degerler","Değerlerim","Hayatında vazgeçilmez olan değerler.")+listBlock("me:guc","Güçlü yönlerim","Seni sen yapan güçlü yanlar.")+listBlock("me:basari","Geçmiş başarılarım","Zorlandığında dönüp bakacağın başarılar.")+'</details>';
  [["kz","Plan bana ne kazandırır?",W.kazanim.r()],["du","Dua",duaHtml()],["ha","Hadis-i şerif",hadisHtml()]].forEach(function(r){h+='<details class="fold" data-fold="ben:'+r[0]+'"'+(folds["ben:"+r[0]]?" open":"")+'><summary>'+r[1]+'</summary><div class="card">'+r[2]+'</div></details>'});
  h+='<div class="quote" style="margin-top:18px">“'+esc(OPEN_Q)+'”<small>MUHARREM NUREDDİN COŞAN</small></div>';
- h+='<div class="card row" data-a="openset" style="margin-top:22px"><span class="sp"><b>'+Ii("gear")+'Ayarlar</b><div class="mute">Modüller, maskot, bildirimler, namaz vakitleri, yedek ve güncellemeler</div></span><span class="mute">›</span></div>';
+ h+='<div class="card row" data-a="openset" style="margin-top:22px"><span class="sp"><b>'+Ii("gear")+'Ayarlar</b><div class="mute">Modüller, maskot, bildirimler, namaz vakitleri, yedek ve güncellemeler</div></span><span class="mute">›</span></div>';h+='<div class="kbh">Klavye: 1–5 sekmeler · / ara · N yeni iş · H Hüdhüd · Esc kapat</div>';
  return h}
 
 var SECV={};
@@ -3643,6 +3662,14 @@ function aiSettingsHtml(){var c=aiCfg(),on=aiOn();
  '<div class="mute" style="margin-top:10px">Anahtar: aistudio.google.com/apikey adresinden alınır. Kendi girdiğin anahtar sadece bu telefonda saklanır, yedeğe girmez.</div></div>'+provCardHtml()+aiRulesHtml()+nluCardHtml()}
 function foldSettings(root){var heads=[].slice.call(root.querySelectorAll('.lh[id^="sec-"]'));if(!heads.length)return;var grp=document.createElement("div");grp.className="sgroup";heads[0].parentNode.insertBefore(grp,heads[0]);var made=[];heads.forEach(function(lh){var id=lh.id,d=document.createElement("details");d.className="fold set";d.id=id;d.setAttribute("data-fold","set:"+id);if(folds["set:"+id])d.open=true;var sm=document.createElement("summary"),t0=document.createElement("span"),t1=document.createElement("span"),t2=document.createElement("span"),ic=SICO[id.slice(4)]||["#7b7566","gear"];t0.className="ti";t0.style.background=ic[0];t0.innerHTML=ic[1]?I(ic[1]):mDef().e;sm.appendChild(t0);t1.textContent=lh.textContent;t2.className="sv";t2.textContent=SECV[id.slice(4)]||"";sm.appendChild(t1);sm.appendChild(t2);d.appendChild(sm);lh.parentNode.insertBefore(d,lh);var n=lh.nextSibling;lh.remove();while(n&&!(n.classList&&n.classList.contains("lh")&&/^sec-/.test(n.id||""))&&!(n.tagName==="DETAILS")){var nx=n.nextSibling;if(n.classList&&n.classList.contains("mute")&&!n.nextSibling)break;d.appendChild(n);n=nx}made.push(d)});made.forEach(function(d){grp.appendChild(d)})}
 function a11y(root){root.querySelectorAll("button.x").forEach(function(b){if(b.hasAttribute("aria-label"))return;var t=b.textContent.trim();b.setAttribute("aria-label",b.hasAttribute("data-close")?"Kapat":t==="×"?"Sil":t==="⋯"?"Seçenekler":t)})}
+document.addEventListener("keydown",function(e){var t=e.target,typing=t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.isContentEditable);
+ if(e.key==="Escape"){var ov=document.querySelectorAll(".over");if(ov.length){var x=ov[ov.length-1].querySelector("[data-close]");if(x){x.click();e.preventDefault();return}ov[ov.length-1].remove();return}if(typeof CHO!=="undefined"&&CHO){closeChat();return}if(setOpen){setOpen=false;render();return}return}
+ if(typing||e.ctrlKey||e.metaKey||e.altKey||!S.onboarded)return;
+ if(/^[1-5]$/.test(e.key)){var b=document.querySelectorAll("#nav button")[+e.key-1];if(b){b.click();e.preventDefault()}return}
+ if(e.key==="/"){e.preventDefault();if(tab!=="odak"||ei()){go("odak")}setTimeout(function(){var q=document.getElementById("hq");if(q)q.focus()},60);return}
+ if(e.key==="n"||e.key==="N"){e.preventDefault();if(typeof taskNewDlg==="function")taskNewDlg(key(today()));return}
+ if(e.key==="h"||e.key==="H"){e.preventDefault();if(!ei()&&typeof openChat==="function")openChat();return}
+});
 function chipFade(){document.querySelectorAll("#app .chips").forEach(function(c){var ov=c.scrollWidth>c.clientWidth+2;c.classList.toggle("ov",ov);if(ov&&!c._cf){c._cf=1;c.addEventListener("scroll",function(){c.classList.toggle("end",c.scrollLeft+c.clientWidth>=c.scrollWidth-4)},{passive:true})}})}
 function render(){
  if(!window._eu){window._eu=1;if(/[?&]eink=1/.test(location.search)&&S.settings&&!S.settings.eink){S.settings.eink=1;try{save()}catch(e){}}}
@@ -4288,19 +4315,21 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("122",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("123",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var DESK=/Electron\//.test(navigator.userAgent);
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
- if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
+ if((!isNative()&&!DESK)||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefon ve bilgisayar uygulamasında çalışır.");return}
  try{
   var r=await fetch("https://api.github.com/repos/"+UPD_REPO+"/releases/latest",{cache:"no-store"});
   if(!r.ok)throw new Error("HTTP "+r.status);
-  var d=await r.json(),m=/(\d+)/.exec(d.tag_name||""),n=m?parseInt(m[1],10):0,a=(d.assets||[]).filter(function(x){return/\.apk$/i.test(x.name)})[0];
+  var d=await r.json(),m=/(\d+)/.exec(d.tag_name||""),n=m?parseInt(m[1],10):0,a=(d.assets||[]).filter(function(x){return DESK?/\.exe$/i.test(x.name):/\.apk$/i.test(x.name)})[0];
   if(n>SURUM&&a){updInfo={n:n,url:a.browser_download_url,name:a.name,notes:(d.body||"").split("\n")[0].slice(0,140)};render();if(!manual)setTimeout(function(){say("Yeni sürüm var"+hi()+" (#"+n+")! "+mDef().e+" Şimdi kuralım mı?",false,"upd")},1500)}
   else{updInfo=null;if(manual)toast("Uygulaman güncel ✓ (#"+SURUM+")")}
  }catch(e){if(manual)toast("Güncelleme denetlenemedi: "+String(e&&e.message||e).slice(0,60))}}
 function updCard(){if(!updInfo)return"";return'<div class="card banner"><div class="row"><span class="sp"><b>'+Ii("bell")+'Yeni sürüm hazır: #'+updInfo.n+'</b><div class="mute">'+(updInfo.notes?esc(updInfo.notes):"Şu an #"+SURUM+" kullanıyorsun.")+'</div></span></div><div class="row" style="margin-top:8px"><button class="btn sm" data-a="updgo">'+(updState?esc(updState):"İndir ve kur")+'</button><span class="mute sp">Verilerin silinmez.</span></div></div>'}
 async function startUpdate(){
+ if(DESK&&updInfo){window.open(updInfo.url,"_blank");updState="Tarayıcıda indiriliyor";toast("Kurulum dosyası tarayıcıda iniyor. Açıp kurduğunda verilerin silinmez.");render();return}
  if(!updInfo||!NB||!NB.installUpdate){toast("Güncelleme başlatılamadı");return}
  try{
   if(NB.addListener&&!startUpdate.l){startUpdate.l=1;NB.addListener("updateProgress",function(ev){
