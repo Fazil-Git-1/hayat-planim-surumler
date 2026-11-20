@@ -2055,6 +2055,7 @@ function parseCmd(raw){
  var dlc=dilCmd(raw,t);if(dlc)return dlc;
  var rcx=rcpCmd(raw,t);if(rcx)return rcx;
  var ntc=notCmd(raw,t);if(ntc)return ntc;
+ var dcc=docCmd(raw,t);if(dcc)return dcc;
  var rcc=recCmd(raw,t);if(rcc)return rcc;
  var fnc=finCmd(raw,t);if(fnc)return fnc;var bsc=besCmd(raw,t,words);if(bsc)return bsc;var evc=evCmd(raw,t,words);if(evc)return evc;
  if(/(hangilerini|hangileri|neleri|nelerini|neler)\s+(yaptım|yapmadım|bitirdim|bitirmedim|tamamladım|yapamadım)|yaptıklarım|yapmadıklarım|bitirdiklerim|(^|\s)ne yaptım|ne kadarını (yaptım|bitirdim)|ne kadar yaptım|bugün neler yaptım/.test(t))return statusReport(L);
@@ -2940,6 +2941,30 @@ function notCmd(raw,t){if(!modOn("not"))return null;var r=raw.trim(),m=/^(fikir 
  if(m&&m[2]){var tag=/^fikir|^fikrim/i.test(m[1])?"Fikir":"Not",o=notAdd(m[2],tag);return o?(tag==="Fikir"?"Fikirlerine":"Notlarına")+" ekledim: "+(o.t.length>60?o.t.slice(0,59)+"…":o.t):null}
  if(/^(son )?(notlarım|fikirlerim)(\s+(neler|ne|göster|listele))?$/.test(t)){var fk=/fikir/.test(t),l=NT().items.filter(function(x){return!fk||x.tag==="Fikir"}).slice(0,5);return l.length?(fk?"Son fikirlerin: ":"Son notların: ")+l.map(function(x){return"“"+(x.t.length>40?x.t.slice(0,39)+"…":x.t)+"”"}).join(", ")+".":"Henüz "+(fk?"fikir":"not")+" yok."}
  return null}
+/* ===== Belgeler ve bitiş tarihleri: ehliyet, pasaport, sigorta, muayene… ===== */
+var DOCT=["Ehliyet","Pasaport","Kimlik","Sigorta","Araç muayenesi","Vize","Diğer"];
+function DC(){if(!S.docs||typeof S.docs!=="object")S.docs={items:[]};S.docs.items=S.docs.items||[];return S.docs}
+function docLeft(d){return Math.round((fromKey(d.exp)-today())/864e5)}
+function docTxt(d){var n=docLeft(d);return n<0?"süresi "+(-n)+" gün önce geçti":n===0?"bugün bitiyor":n===1?"yarın bitiyor":n+" gün kaldı"}
+function docState(d){var n=docLeft(d);return n<0?"gec":n<=(d.pre||30)?"yakin":"ok"}
+function docSorted(){return DC().items.slice().sort(function(a,b){return a.exp<b.exp?-1:a.exp>b.exp?1:0})}
+function docSummary(){var l=docSorted();if(!l.length)return"Bitiş tarihlerini takip et";var d=l[0],n=docLeft(d);return d.n+" · "+(n<0?"süresi geçti":n+" gün")}
+function docCard(){if(editing||!modOn("belge"))return"";var l=docSorted().filter(function(d){return docState(d)!=="ok"});if(!l.length||S.settings.docHide===key(today()))return"";var d=l[0],g=docState(d)==="gec";
+ return'<div class="card banner"><div class="row" style="gap:12px;align-items:flex-start"><span class="tic sm" style="background:'+(g?"var(--warn)":"var(--acc)")+'">'+I("defter")+'</span><span class="sp"><b>'+esc(d.n)+': '+docTxt(d)+'</b><div class="mute" style="margin:2px 0 8px">'+(l.length>1?"Toplam "+l.length+" belge dikkat istiyor. ":"")+'Yenileme için randevu ya da başvuruyu unutma.</div><div class="row" style="gap:8px"><button class="btn sm" data-a="docgo">Aç</button><button class="btn ghost sm" data-a="dochide">Sonra</button></div></span></div></div>'}
+function docNotifs(){var o=[],now=new Date();if(!modOn("belge"))return o;DC().items.forEach(function(d,idx){if(idx>=40)return;var e=fromKey(d.exp),pre=d.pre||30;[[pre,d.n+": "+pre+" gün kaldı"],[7,d.n+": 7 gün kaldı"],[1,d.n+" yarın bitiyor"]].forEach(function(x,j){if(j===1&&pre<=7)return;if(j===2&&pre<=1)return;var t=at(addDays(e,-x[0]),"10:00");if(t>now)o.push({id:7700+idx*3+j,title:"Belge süresi",body:x[1]+". Yenilemeyi unutma"+hi()+".",schedule:{at:t,allowWhileIdle:true}})})});return o}
+function docDlg(id){var d=id?DC().items.filter(function(x){return x.id===id})[0]:null;
+ ask(d?"Belgeyi düzenle":"Yeni belge",[{label:"Tür",type:"select",opts:DOCT,value:d?d.type:"Ehliyet"},{label:"Ad / not (isteğe bağlı, örn. Kasko)",value:d&&d.n!==d.type?d.n:""},{label:"Bitiş tarihi (GG.AA.YYYY)",value:d?rcFmtDate(d.exp):""},{label:"Kaç gün önce hatırlatayım?",type:"number",value:d?d.pre||30:30}],function(r){var ex=rcParseDate(r[2]);if(!ex){toast("Bitiş tarihini GG.AA.YYYY yaz (örn. 14.03.2028)");return}var pre=Math.max(1,Math.min(365,parseInt(r[3],10)||30)),nm=cap1((r[1]||"").trim())||r[0];if(d){d.type=r[0];d.n=nm;d.exp=ex;d.pre=pre}else DC().items.push({id:uid(),type:r[0],n:nm,exp:ex,pre:pre});save();render()},d?{label:"Kaydet",onDelete:function(){docDel(id)}}:{label:"Ekle"})}
+function docDel(id){var A=DC().items,ix=-1,o=null;A.forEach(function(x,j){if(x.id===id){ix=j;o=x}});if(!o)return;A.splice(ix,1);save();render();toastUndo("Belge silindi",function(){DC().items.splice(Math.min(ix,DC().items.length),0,o);save();render()})}
+function vBelge(){var h='<div class="hd"><div><div class="eyebrow">Ehliyet · pasaport · sigorta · muayene</div><h1>'+h1i("defter")+'Belgeler &amp; Tarihler</h1></div>'+gearBtn()+'</div>',L=docSorted();
+ if(!L.length)return h+'<div class="card"><b>Henüz belge yok</b><div class="mute" style="margin:4px 0 10px;line-height:1.5">Ehliyet, pasaport, sigorta ya da araç muayenesinin bitiş tarihini yaz; süresi yaklaşınca önceden hatırlatırım. Kâğıt kaybolsa da tarih kaybolmaz.</div><button class="btn sm" data-a="docnew">+ Belge ekle</button></div>';
+ h+='<div class="row" style="margin-bottom:10px"><span class="eyebrow sp">Belgeler ('+L.length+')</span><button class="btn sm" data-a="docnew">+ Belge ekle</button></div>';
+ L.forEach(function(d){var st=docState(d),n=docLeft(d),col=st==="gec"?"var(--warn)":st==="yakin"?"var(--gold)":"var(--g)";
+  h+='<div class="card"><div class="row" style="gap:10px"><span class="sp"><b>'+esc(d.n)+'</b>'+(d.n!==d.type?' <span class="mute">· '+esc(d.type)+'</span>':'')+'<div style="font-size:13.5px;margin-top:2px;color:'+col+';font-weight:600">'+esc(docTxt(d))+'</div><div class="mute" style="font-size:12.5px">Bitiş: '+esc(rcFmtDate(d.exp))+' · '+(d.pre||30)+' gün önce hatırlatır</div></span><button class="btn'+(st==="ok"?" ghost":"")+' sm" data-a="docren" data-v="'+d.id+'">Yeniledim</button><button class="x" data-a="docedit" data-v="'+d.id+'" aria-label="Düzenle">⋯</button></div></div>'});
+ return h}
+function docCmd(raw,t){if(!modOn("belge"))return null;var L=docSorted();
+ if(/^(belgelerim|belgelerim neler|süresi (dolacak|yaklaşan) belgeler|hangi belgenin süresi)/.test(t)||/belge.*(süre|tarih).*(dolacak|yaklaş|ne zaman)/.test(t)){if(!L.length)return"Henüz belge eklemedin. Alanlarım › Belgeler & Tarihler'den ekleyebilirsin.";return"Belgelerin: "+L.slice(0,6).map(function(d){return d.n+" ("+docTxt(d)+")"}).join(", ")+"."}
+ var m=/(ehliyet|pasaport|kimlik|sigorta|kasko|muayene|vize)/.exec(t);if(m&&/(ne zaman|kaç gün|bitiyor|biter|süresi|doluyor)/.test(t)){var f=L.filter(function(d){return nluFold(d.n+" "+d.type).indexOf(nluFold(m[1]))>=0})[0];if(f)return f.n+": "+rcFmtDate(f.exp)+" tarihinde bitiyor, "+docTxt(f)+".";return"“"+m[1]+"” için kayıtlı belge bulamadım."}
+ return null}
 function shopAddDlg(){ask("Alışveriş listesi",[{label:"Ne alınacak?"}],function(r){if(!(r[0]||"").trim())return;BES().shop.push({id:uid(),t:cap1(r[0].trim()),done:false});save();render()},{label:"Ekle"})}
 function finAddDlg(v){ask(v==="g"?"Harcama ekle":"Gelir ekle",[{label:"Tutar (₺)",type:"number"},{label:"Kategori",type:"select",opts:v==="g"?FINC:FINI,value:v==="g"?"Market":"Maaş"},{label:"Not (isteğe bağlı)"}],function(r){var a=finNum(r[0]);if(!a)return;finAdd(v==="g"?"g":"i",a,r[1],(r[2]||"").trim());render()},{label:"Ekle"})}
 /* Hızlı ekle: Bugün'deki ＋ düğmesi */
@@ -2989,7 +3014,7 @@ function vPano(){
   if(pp.length)B.push('<div class="card banner"><b>Önceki günlerden '+pp.length+' iş kaldı</b><div class="mute" style="margin:4px 0 8px">'+pp.slice(0,3).map(function(x){return"• "+esc(x.t)}).join("<br>")+(pp.length>3?"<br>…":"")+'</div><div class="row"><button class="btn sm" data-a="carry">Bugüne taşı</button><button class="btn ghost sm" data-a="carryskip">Bırak</button></div></div>');
   if(nr)B.push('<div class="card banner row"><span class="sp"><b>'+Ii("compass")+'Haftalık gözden geçirme zamanı</b><div class="mute">“Kontrol ve teftiş”: 3 dakika sürer.</div></span><button class="btn sm" data-a="review" data-k="'+nr+'">Başla</button></div>');
   if(new Date().getHours()>=Math.min(19,evh)&&!(S.log[tkc]&&S.log[tkc].closed))B.push('<div class="card close"><span style="flex:none">'+I("moon")+'</span><span class="sp"><b>Günü kapat</b><div class="mute">1 dakika: bugünü değerlendir, yarını hazırla.</div></span><button class="btn sm" data-a="dayclose">Başla</button></div>');
-  B.push(famCard(),morningHtml(),ramHtml(),calHtml(),evCard());
+  B.push(docCard(),famCard(),morningHtml(),ramHtml(),calHtml(),evCard());
   h+=B.filter(Boolean)[0]||"";
   h+=heroHtml();
   h+=journeyHtml();
@@ -3139,7 +3164,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #116'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #117'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3329,7 +3354,7 @@ function timerSheet(title,sec,body,doneLabel,onDone){
   o.addEventListener("click",function(e){if(e.target===o||(e.target.hasAttribute&&e.target.hasAttribute("data-close")))clearInterval(iv)});
  })}
 
-var MODX=[["finans","💰","Finans","Gelir, gider, bütçe"],["beslenme","🥗","Beslenme","Öğün, su, haftalık menü ve tarifler"],["ev","🏠","Ev & Alışveriş","Ev işleri ve alışveriş listesi"],["diksiyon","🎙","Diksiyon","Günlük kısa çalışma"],["aile","👪","Aile & Yakınlar","Aranacak kişiler, doğum günleri, hediye fikirleri"],["dil","🔤","Dil çalışması","Günün kelimesi ve kelime kartları"],["not","📝","Notlar & Fikirler","Hızlı yakalama, etiket, işe çevir"]];
+var MODX=[["finans","💰","Finans","Gelir, gider, bütçe"],["beslenme","🥗","Beslenme","Öğün, su, haftalık menü ve tarifler"],["ev","🏠","Ev & Alışveriş","Ev işleri ve alışveriş listesi"],["diksiyon","🎙","Diksiyon","Günlük kısa çalışma"],["aile","👪","Aile & Yakınlar","Aranacak kişiler, doğum günleri, hediye fikirleri"],["dil","🔤","Dil çalışması","Günün kelimesi ve kelime kartları"],["not","📝","Notlar & Fikirler","Hızlı yakalama, etiket, işe çevir"],["belge","🪪","Belgeler & Tarihler","Ehliyet, pasaport, sigorta, muayene hatırlatması"]];
 function modOn(id){return!(S.settings.modOff&&S.settings.modOff[id])}
 function klModCard(){var k=KL();
  var h='<div class="mute" style="margin:0 2px 8px">Kullanmadığın modülü kapat; Odak sayfasından ve ana ekrandan kalkar, verilerin silinmez.</div><div class="card">'+MODX.map(function(m,i){var on=modOn(m[0]);return'<div class="row"'+(i?' style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)"':'')+'><span class="sp"><b>'+m[1]+' '+m[2]+'</b><div class="mute">'+m[3]+'</div></span><button class="btn '+(on?"ghost ":"")+'sm" data-a="modtog" data-v="'+m[0]+'">'+(on?"Kapat":"Aç")+'</button></div>'}).join("")+'</div><div class="card"><div class="row"><span class="sp"><b>İlim, İrfan ve Medeniyet Külliyatı</b><div class="mute">32 eser, 24 aylık okuma programı ve hafıza protokolü.</div></span><button class="btn '+(k.on?"ghost ":"")+'sm" data-a="'+(k.on?"k_off":"k_on")+'">'+(k.on?"Kapat":"Aç")+'</button></div>';
@@ -3417,7 +3442,7 @@ function I(n){return'<svg class="i" viewBox="0 0 24 24" aria-hidden="true">'+IC[
 var TABS=[["pano","pano","Bugün"],["hafta","cal","Takvim"],["hud","hud","Hüdhüd"],["odak","target","Alanlarım"],["ben","ben","Planım"]];
 function tabs(){return TABS}
 /* ---------- Yeni bilgi mimarisi: Bugün · Takvim · Hüdhüd · Odak · Ben ---------- */
-var PARENT={hedef:"ben",defter:"ben",kulliyat:"odak",spor:"odak",diksiyon:"odak",finans:"odak",beslenme:"odak",ev:"odak",zikir:"odak",aile:"odak",not:"odak"};
+var PARENT={hedef:"ben",defter:"ben",kulliyat:"odak",spor:"odak",diksiyon:"odak",finans:"odak",beslenme:"odak",ev:"odak",zikir:"odak",aile:"odak",not:"odak",belge:"odak"};
 function navTab(){return PARENT[tab]||tab}
 function backBtn(to,lbl){return'<button class="btn ghost sm" data-tab="'+to+'">‹ '+lbl+'</button>'}
 /* Yıllık plan doluluğu */
@@ -3458,7 +3483,7 @@ function goalOfDay(){var g=[];S.areas.forEach(function(a){a.goals.forEach(functi
 /* ===== Alanlarım: kullanılanlar üstte, kullanılmayanlar "Daha fazla alan"da; arama ===== */
 function hayatUsed(){var U={};try{var sp=SP();U.spor=!!(Object.keys(sp.log||{}).length||Object.keys(sp.plan||{}).some(function(d){return(sp.plan[d]||[]).length}));
  U.fin=!!(FIN().tx.length||FIN().limit>0||FIN().debts.length);var B=BES();U.bes=!!(Object.keys(B.log).length||Object.keys(B.menu).length||(B.rcp||[]).length||Object.keys(B.fav||{}).length);U.shop=!!(B.shop.length||Object.keys(B.freq||{}).length);
- U.ev=!!EV().chores.length;U.aile=!!FAM().people.length;U.not=!!NT().items.length;U.dil=!!dilCards().length;U.dk=!!Object.keys((DK()||{}).log||{}).length;U.kl=!!klOn()}catch(e){}return U}
+ U.ev=!!EV().chores.length;U.aile=!!FAM().people.length;U.not=!!NT().items.length;U.belge=!!DC().items.length;U.dil=!!dilCards().length;U.dk=!!Object.keys((DK()||{}).log||{}).length;U.kl=!!klOn()}catch(e){}return U}
 function hqHtml(){return'<div class="hq"><input id="hq" type="search" placeholder="Ne arıyorsun? (spor, harcama, tarif…)" autocomplete="off"></div><div id="hqno" class="mute" hidden style="margin:6px 2px 12px">Bulamadın mı? <button class="lnk" data-a="hqask" style="text-decoration:underline">Hüdhüd\'e sor</button></div>'}
 function hqBind(){var el=document.getElementById("hq");if(!el)return;el.oninput=function(){var q=nluFold(el.value.trim()),any=false,items=document.querySelectorAll("#app .card, #app .tcard, #app .lh"),fold=document.querySelector('#app details[data-fold="hayat:diger"]');
  if(q&&fold)fold.open=true;[].forEach.call(items,function(n){if(n.classList.contains("lh")){n.style.display=q?"none":"";return}var ok=!q||nluFold(n.textContent+" "+(n.getAttribute("data-hq")||"")).indexOf(q)>=0;n.style.display=ok?"":"none";if(q&&ok)any=true});
@@ -3467,12 +3492,13 @@ function vOdak(){var h='<div class="hd"><div><div class="eyebrow">İbadet · spo
  var ws=wmWeek(),wl=S.settings.wmLast||{},on=!!WM;
  h+='<div class="card wmhero" data-a="work"><div class="row" style="align-items:center;gap:14px"><span class="tic big" style="background:#1f2a44">'+I("clock")+'</span><span class="sp"><b style="font-size:18px">'+(on?(WM.run?"Çalışıyorsun · ":"Duraklatıldı · ")+wmFmt(wmActive()):"Çalışma modu")+'</b><div class="mute">'+(on?(WM.task?esc(WM.task)+" · ":"")+"Açmak için dokun":"Bugün "+wmFmt(ws.d*60000)+" · bu hafta "+wmFmt(ws.w*60000))+'</div></span><span class="mute">›</span></div>'+
   (!on?'<div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap"><button class="btn sm" data-a="workq">▶ '+(wl.t?"Devam: "+esc(wl.t.length>22?wl.t.slice(0,21)+"…":wl.t):"Hızlı başla")+'</button><button class="btn ghost sm" data-a="focus">Kısa odak</button><button class="btn ghost sm" data-a="wmrep">Rapor</button></div>':'')+'<div class="mute" style="margin-top:10px;font-size:12px">'+(FOC&&FOC.end?"Odak sayacı sürüyor · "+focusLeftTxt():"Kısa odak (25 dk) · bugün "+focusStats().d+" dk · "+focusStats().y+" Nur puanı")+'</div></div>';
- var cOdak="",cZk=W.zikir.r(),cFin="",cBes="",cEv="",cDk="",cSp="",cShop="",cKl="",cFam="",cDil=dilCard(),cNot="";
+ var cOdak="",cZk=W.zikir.r(),cFin="",cBes="",cEv="",cDk="",cSp="",cShop="",cKl="",cFam="",cDil=dilCard(),cNot="",cBel="";
  var cKur=hatimHtml()+gkCard(true);
   if(modOn("finans"))cFin='<div class="card tcard" data-a="finopen" data-hq="harcama gider gelir bütçe para fiş borç maaş"><span class="tic" style="background:#2e7d4f">'+I("finans")+'</span><span class="sp"><b>Finans</b><div class="mute">'+esc(finBudgetLine())+'</div></span><span class="mute">›</span></div>';
  if(modOn("beslenme"))cBes='<div class="card tcard" data-a="besopen" data-hq="yemek tarif menü öğün su kahvaltı"><span class="tic" style="background:#d1792c">'+I("beslenme")+'</span><span class="sp"><b>Beslenme</b><div class="mute">'+esc((function(){var D=BES().log[key(today())],n=D?BESM.filter(function(m){return(D.m[m]||[]).length}).length:0;return n?"Bugün "+n+" öğün kaydı":"Öğün, su, menü ve tarifler"})())+'</div></span><span class="mute">›</span></div>';
  if(modOn("ev")||modOn("beslenme")){var unS=BES().shop.filter(function(x){return!x.done}).length;cShop='<div class="card tcard" data-a="shopopen" data-hq="market liste alışveriş ürün"><span class="tic" style="background:#b5651d">'+I("alisveris")+'</span><span class="sp"><b>Alışveriş</b><div class="mute">'+(unS?unS+" ürün alınacak":"Liste boş")+'</div></span><span class="mute">›</span></div>'}
  if(modOn("not"))cNot='<div class="card tcard" data-a="notgo" data-hq="not fikir yaz kaydet liste hatırla"><span class="tic" style="background:#8a6f3a">'+I("defter")+'</span><span class="sp"><b>Notlar &amp; Fikirler</b><div class="mute">'+esc(notSummary())+'</div></span><span class="mute">›</span></div>';
+ if(modOn("belge"))cBel='<div class="card tcard" data-a="docgo" data-hq="belge ehliyet pasaport sigorta muayene kimlik vize bitiş tarih"><span class="tic" style="background:#4a7fb0">'+I("defter")+'</span><span class="sp"><b>Belgeler &amp; Tarihler</b><div class="mute">'+esc(docSummary())+'</div></span><span class="mute">›</span></div>';
  if(modOn("aile"))cFam='<div class="card tcard" data-a="famopen" data-hq="kişi aile doğum günü arama anne baba"><span class="tic" style="background:#8a4fb3">'+I("ben")+'</span><span class="sp"><b>Aile &amp; Yakınlar</b><div class="mute">'+esc(famSummary())+'</div></span><span class="mute">›</span></div>';
  if(modOn("ev"))cEv='<div class="card tcard" data-a="evopen" data-hq="temizlik ev işi bulaşık çamaşır"><span class="tic" style="background:#4a7fb0">'+I("ev")+'</span><span class="sp"><b>Ev işleri</b><div class="mute">'+esc(EV().chores.length?(evDue().length?evDue().length+" iş zamanı":"Hepsi tamam"):"Hazır listeyle başla")+'</div></span><span class="mute">›</span></div>';
  if(modOn("diksiyon"))cDk='<div class="card tcard" data-a="dkopen" data-hq="konuşma telaffuz tekerleme"><span class="tic" style="background:#8a4fb3">'+I("mic")+'</span><span class="sp"><b>Diksiyon</b><div class="mute">'+esc(dkSummary())+'</div></span><span class="mute">›</span></div>';
@@ -3482,7 +3508,7 @@ function vOdak(){var h='<div class="hd"><div><div class="eyebrow">İbadet · spo
  function G(t,a){var x=a.filter(Boolean).join("");return x?'<div class="lh"><h2>'+t+'</h2></div>'+x:""}
  var U=hayatUsed(),rest=[];function P(id,c){if(!c)return"";if(U[id])return c;rest.push(c);return""}
  h=h.replace('<div class="card wmhero"',hqHtml()+'<div class="card wmhero"');
- h+=G("İbadet",[cZk,cKur,P("kl",cKl)])+G("Beden",[P("spor",cSp),P("bes",cBes)])+G("Ev & Para",[P("shop",cShop),P("ev",cEv),P("fin",cFin)])+G("İnsanlar",[P("aile",cFam)])+G("Öğrenme ve notlar",[P("dil",cDil),P("dk",cDk),cBook,P("not",cNot)]);
+ h+=G("İbadet",[cZk,cKur,P("kl",cKl)])+G("Beden",[P("spor",cSp),P("bes",cBes)])+G("Ev & Para",[P("shop",cShop),P("ev",cEv),P("fin",cFin),P("belge",cBel)])+G("İnsanlar",[P("aile",cFam)])+G("Öğrenme ve notlar",[P("dil",cDil),P("dk",cDk),cBook,P("not",cNot)]);
  if(rest.length)h+='<details class="fold" data-fold="hayat:diger"'+(folds["hayat:diger"]?" open":"")+'><summary>Daha fazla alan ('+rest.length+')</summary>'+rest.join("")+'</details>';
  setTimeout(hqBind,0);
  return h}
@@ -3526,7 +3552,7 @@ function render(){
  if(tab==="kulliyat"&&!klOn())tab="pano";
  if(tab==="hud")tab="pano";
  var bk=!setOpen&&PARENT[tab]&&!(tab==="hedef"&&openArea)&&!(tab==="defter"&&defterSec)&&!(tab==="kulliyat"&&(typeof openBook!=="undefined"&&openBook||typeof openKv!=="undefined"&&openKv))?'<div class="backbar">'+backBtn(PARENT[tab],PARENT[tab]==="ben"?"Planım":"Alanlarım")+'</div>':"";
- a.innerHTML=bk+(setOpen?vAyar():tab==="pano"?vPano():tab==="hafta"?vHafta():tab==="hedef"?vHedef():tab==="defter"?vDefter():tab==="kulliyat"?vKulliyat():tab==="odak"?vOdak():tab==="spor"?vSpor():tab==="diksiyon"?vDiksiyon():tab==="finans"?vFinans():tab==="beslenme"?vBeslenme():tab==="ev"?vEv():tab==="aile"?vAile():tab==="not"?vNot():tab==="zikir"?vZikir():vBen2());
+ a.innerHTML=bk+(setOpen?vAyar():tab==="pano"?vPano():tab==="hafta"?vHafta():tab==="hedef"?vHedef():tab==="defter"?vDefter():tab==="kulliyat"?vKulliyat():tab==="odak"?vOdak():tab==="spor"?vSpor():tab==="diksiyon"?vDiksiyon():tab==="finans"?vFinans():tab==="beslenme"?vBeslenme():tab==="ev"?vEv():tab==="aile"?vAile():tab==="not"?vNot():tab==="belge"?vBelge():tab==="zikir"?vZikir():vBen2());
  document.getElementById("nav").innerHTML=tabs().map(function(t){if(t[0]==="hud")return'<button class="hud" data-tab="hud" aria-label="'+esc(mName())+' ile konuş"><b>'+mDef().svg+'</b>'+esc(mName())+'</button>';return'<button class="'+(navTab()===t[0]&&!setOpen?"on":"")+'" data-tab="'+t[0]+'"><b>'+I(t[1])+'</b>'+t[2]+'</button>'}).join("");
  if(typeof wmPill==="function")wmPill();
  var fab=document.getElementById("tfab");if(!fab){fab=document.createElement("button");fab.id="tfab";fab.setAttribute("data-a","tesbih");fab.setAttribute("aria-label","Zikir sayacı");fab.innerHTML=I("beads");document.body.appendChild(fab)}fab.hidden=!S.onboarded||setOpen||S.settings.tfab===false||["pano","odak","zikir"].indexOf(tab)<0;
@@ -3607,6 +3633,11 @@ document.addEventListener("click",function(e){
  case"beschk":(function(){var D=besDay(key(today()));D.c[v]=!D.c[v];save();render();buzz()})();return;
  case"besmenu":(function(){var i=+v,m=BES().menu[i]||{};ask(BESD[i],[{label:"Kahvaltı",value:m.k||""},{label:"Öğle",value:m.o||""},{label:"Akşam",value:m.a||""}],function(r){BES().menu[i]={k:(r[0]||"").trim(),o:(r[1]||"").trim(),a:(r[2]||"").trim()};save();render()},{label:"Kaydet"})})();return;
  case"shopkeep":return;
+ case"docgo":go("belge");return;
+ case"dochide":S.settings.docHide=key(today());save();render();return;
+ case"docnew":docDlg("");return;
+ case"docedit":docDlg(v);return;
+ case"docren":(function(){var d=DC().items.filter(function(x){return x.id===v})[0];if(!d)return;ask("Yenilendi: "+d.n,[{label:"Yeni bitiş tarihi (GG.AA.YYYY)",value:""}],function(r){var ex=rcParseDate(r[0]);if(!ex){toast("Tarihi GG.AA.YYYY yaz");return}if(ex<=d.exp){toast("Yeni tarih eskisinden sonra olmalı");return}d.prev=d.exp;d.exp=ex;save();render();toast(d.n+": yeni bitiş "+rcFmtDate(ex))},{label:"Kaydet"})})();return;
  case"notgo":go("not");return;
  case"notadd":(function(){var el0=document.getElementById("notin"),t0=el0?el0.value:"";if(!t0.trim()){if(el0)el0.focus();return}notAdd(t0,notTag);render();var e1=document.getElementById("notin");if(e1&&!window.matchMedia("(pointer:coarse)").matches)e1.focus()})();return;
  case"notfil":notTag=v;render();return;
@@ -3876,7 +3907,7 @@ async function doSchedule(){
    if(st.pnotif&&hasLoc()&&!muaf(key(d))){var ptd=prayerTimes(d,st.lat,st.lng);NV.forEach(function(n,j){var tt=ptd[n[0]];if(tt>now)list.push({id:base+5+j,title:"🕌 "+n[1]+" vakti",body:hhmm(tt)+" · "+(st.city||""),schedule:{at:tt,allowWhileIdle:true}})})}
    if(sp.length){var t=at(d,"10:00");if(t>now)list.push({id:base+3,title:"🌙 "+sp[0].t.replace(" (bu gece)",""),body:"Bugün: "+sp.map(function(x){return x.t}).join(", "),schedule:{at:t,allowWhileIdle:true}})}
   }
-  if(typeof wmNotifs==="function")list=list.concat(NB&&NB.wmPlan?[]:wmNotifs(),wmSchedNotifs(),nudgeNotifs(),ramNotifs(),gkNotifs(),famNotifs());
+  if(typeof wmNotifs==="function")list=list.concat(NB&&NB.wmPlan?[]:wmNotifs(),wmSchedNotifs(),nudgeNotifs(),ramNotifs(),gkNotifs(),famNotifs(),docNotifs());
   if(FOC&&!FOC.paused&&FOC.end>Date.now())list.push({id:7001,title:"⏱ Odak tamam",body:FOC.cat+" · "+Math.round(FOC.dur/60000)+" dk. Maşallah"+hi()+"!",schedule:{at:new Date(FOC.end),allowWhileIdle:true}});
   if(list.length)await LN.schedule({notifications:list});
  }catch(err){console.log("bildirim",err)}
@@ -4140,7 +4171,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("116",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("117",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
