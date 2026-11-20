@@ -287,8 +287,8 @@ h1,h2,.big,.big2{text-wrap:balance}
 .mute.empty,.card>.mute:only-child{line-height:1.5}
 
 /* ---- Cam: yalnızca yüzen katmanlarda (gezinme, pencereler, haplar, bildirim); kartlar kâğıt gibi opak kalır ---- */
-:root{--glass:rgba(255,253,247,.78);--glass2:rgba(255,253,247,.95);--scrim:rgba(31,36,51,.28);--glassdk:rgba(18,24,38,.74)}
-@media (prefers-color-scheme:dark){:root{--glass:rgba(25,28,37,.74);--glass2:rgba(25,28,37,.95);--scrim:rgba(0,0,0,.42)}}
+:root{--glass:rgba(255,253,247,.88);--glass2:rgba(255,253,247,.95);--scrim:rgba(31,36,51,.28);--glassdk:rgba(18,24,38,.74)}
+@media (prefers-color-scheme:dark){:root{--glass:rgba(25,28,37,.86);--glass2:rgba(25,28,37,.95);--scrim:rgba(0,0,0,.42)}}
 @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
  .nav{background:var(--glass);-webkit-backdrop-filter:saturate(1.5) blur(18px);backdrop-filter:saturate(1.5) blur(18px)}
  .over{background:var(--scrim);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
@@ -735,9 +735,23 @@ function spLibHtml(){var all=spLib(),eqs=["","Ekipmansız","Dambıl","Diğer"];
  all.filter(function(x){return(!spGrp||x.g===spGrp)&&(!spEqF||(spEqF==="Diğer"?["Ekipmansız","Dambıl"].indexOf(spEq(x))<0:spEq(x)===spEqF))}).forEach(function(x){h+='<div class="row lnkrow sp-row" data-n="'+esc(nluFold(x.n))+'" data-a="spinfo" data-v="'+esc(x.id)+'">'+spMini(x.id)+'<span class="sp"><b>'+esc(x.n)+'</b><div class="mute">'+esc(x.g)+' · '+spRx({},x)+' · '+esc(spEq(x))+'</div></span><span class="mute">ⓘ</span>'+(x.bi?'':'<button class="x" data-a="spexdel" data-v="'+esc(x.id)+'" aria-label="Sil">×</button>')+'</div>'});
  return h+'</div><button class="btn ghost wide" style="margin-top:10px" data-a="spnew">+ Kendi hareketim</button>'}
 function spFilterRows(){var q=nluFold(spQ||"");[].forEach.call(document.querySelectorAll(".sp-row"),function(r){r.style.display=!q||r.getAttribute("data-n").indexOf(q)>=0?"":"none"})}
+/* ===== Haftalık spor ve adım özeti (Spor › Geçmiş) ===== */
+function spWeekKeys(off){var m=addDays(monday(today()),-7*off),a=[];for(var i=0;i<7;i++)a.push(key(addDays(m,i)));return a}
+function spGroups(lg,k){if(lg.g)return lg.g;var list=lg.adhoc||spDay(fromKey(k).getDay()),o={};list.forEach(function(e,ix){var x=spEx(e.e);if(!x)return;var n=((lg.sets&&lg.sets[ix])||[]).filter(Boolean).length;if(n)o[x.g]=(o[x.g]||0)+n});return o}
+function spWeekStats(off){var r={days:0,min:0,sets:0,g:{},steps:0,stDays:0},lg=SP().log;spWeekKeys(off).forEach(function(k){var l=lg[k];if(l&&l.done){r.days++;r.min+=l.min||0;var g=spGroups(l,k);Object.keys(g).forEach(function(n){r.g[n]=(r.g[n]||0)+g[n];r.sets+=g[n]})}var st=(S.steps&&S.steps.day||{})[k];if(st){r.steps+=st;r.stDays++}});return r}
+function spWeekHtml(){var w=spWeekStats(0),pv=spWeekStats(1),plan=spPlanDays();
+ if(!w.days&&!pv.days&&!w.steps)return"";
+ var MAIN=["Göğüs","Sırt","Bacak","Omuz","Kol","Karın"],gs=Object.keys(w.g).sort(function(a,b){return w.g[b]-w.g[a]}),mx=gs.length?w.g[gs[0]]:1,miss=MAIN.filter(function(g){return!w.g[g]});
+ var h='<div class="card"><div class="eyebrow">Bu hafta</div><div class="bud-n" style="margin-top:8px"><div><b>'+w.days+(plan?' / '+plan:'')+'</b><span class="mute">antrenman günü</span></div><div><b>'+w.min+'</b><span class="mute">dakika</span></div><div><b>'+w.sets+'</b><span class="mute">set</span></div></div>';
+ if(gs.length)h+='<div style="margin-top:12px">'+gs.map(function(g){return'<div class="row" style="gap:10px;padding:3px 0"><span class="mute" style="width:56px;font-size:12px">'+esc(g)+'</span><span style="flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden"><i style="display:block;height:100%;width:'+Math.max(8,Math.round(w.g[g]/mx*100))+'%;background:var(--acc)"></i></span><span class="mute" style="width:34px;text-align:right;font-size:12px">'+w.g[g]+'</span></div>'}).join("")+'</div>';
+ var tips=[];if(w.days>=2&&miss.length&&miss.length<=4)tips.push("Bu hafta çalışmayan: "+miss.join(", ")+".");
+ if(pv.days||pv.min){var dm=w.min-pv.min;tips.push(dm===0?"Geçen haftayla aynı süre.":"Geçen haftaya göre "+(dm>0?"+":"")+dm+" dk"+(w.days!==pv.days?" · "+(w.days>pv.days?"+":"")+(w.days-pv.days)+" gün":"")+".")}
+ if(w.steps)tips.push("Adım: "+stFmt(w.steps)+(w.stDays>1?" (günde ortalama "+stFmt(w.steps/w.stDays)+")":"")+(pv.steps?" · geçen hafta "+stFmt(pv.steps):"")+".");
+ if(tips.length)h+='<div class="mute" style="margin-top:10px;line-height:1.55">'+tips.map(esc).join("<br>")+'</div>';
+ return h+'</div>'}
 function spHistHtml(){var lg=SP().log,ks=Object.keys(lg).filter(function(k){return lg[k].done}).sort().reverse(),w=0,mk=key(monday(today())),tot=0;ks.forEach(function(k){if(k>=mk)w++;tot+=lg[k].min||0});
  var st=0,d=today();if(!(lg[key(d)]||{}).done)d=addDays(d,-1);while(st<400&&(lg[key(d)]||{}).done){st++;d=addDays(d,-1)}
- return stWeekHtml()+'<div class="card"><div class="bud-n"><div><b>'+w+'</b><span class="mute">bu hafta</span></div><div><b>'+ks.length+'</b><span class="mute">toplam antrenman</span></div><div><b>'+st+'</b><span class="mute">gün üst üste</span></div></div></div>'+
+ return spWeekHtml()+stWeekHtml()+'<div class="card"><div class="bud-n"><div><b>'+w+'</b><span class="mute">bu hafta</span></div><div><b>'+ks.length+'</b><span class="mute">toplam antrenman</span></div><div><b>'+st+'</b><span class="mute">gün üst üste</span></div></div></div>'+
   '<div class="card">'+(ks.length?ks.slice(0,20).map(function(k){var l=lg[k],d2=fromKey(k),ex=(l.adhoc||spDay(d2.getDay())).length;return'<div class="row lnkrow"><span class="sp"><b>'+d2.getDate()+' '+GM[d2.getMonth()]+' · '+WD[d2.getDay()]+'</b><div class="mute">'+ex+' hareket · '+(l.min||"?")+' dk</div></span><span>✓</span></div>'}).join(""):'<div class="mute">Henüz tamamlanan antrenman yok. İlkini Bugün sekmesinden bitir.</div>')+'</div>'}
 function spDaySheet(d){closeAllSheets();var arr=spDay(d),body='<div class="mute" style="margin-bottom:8px">'+(arr.length?arr.length+" hareket · ~"+spEst(arr)+" dk":"Bu gün dinlenme günü. Hareket ekleyerek antrenman günü yap.")+'</div>'+
  arr.map(function(e,ix){var x=spEx(e.e);if(!x)return"";return'<div class="row" style="padding:5px 0;gap:6px">'+spMini(x.id)+'<span class="sp"><b>'+esc(x.n)+'</b><div class="mute">'+spRx(e,x)+'</div></span><span style="display:flex;flex-direction:column;gap:2px"><button class="x" data-a="spmv" data-v="'+d+':'+ix+':-1" aria-label="Yukarı"'+(ix?'':' disabled')+'>↑</button><button class="x" data-a="spmv" data-v="'+d+':'+ix+':1" aria-label="Aşağı"'+(ix<arr.length-1?'':' disabled')+'>↓</button></span><button class="x" data-a="spedit" data-v="'+d+':'+ix+'" aria-label="Düzenle">✎</button><button class="x" data-a="spdel" data-v="'+d+':'+ix+'" aria-label="Çıkar">×</button></div>'}).join("")+
@@ -1291,6 +1305,7 @@ function spmUndo(){if(!SPM||SPM.ph==="end")return;var h=SPM.hist.pop();if(!h)ret
 function spFinish(min){var sp=SP(),k=key(today()),lg=sp.log[k]=sp.log[k]||{},list=spTodayList(),first=!lg.done;lg.done=true;lg.min=min||(lg.st?Math.max(1,Math.round((Date.now()-lg.st)/60000)):spEst(list));var nn=0;
  dayLog(k).big.forEach(function(b){if(!b.done&&!b.moved&&modOf(b)==="spor"){b.done=true;nn++}});
  if(first&&lg.w){lg.prs=[];Object.keys(lg.w).forEach(function(ix){var e=list[ix],x=e&&spEx(e.e);if(!x)return;var best=null;Object.keys(lg.w[ix]).forEach(function(j){var s=lg.w[ix][j];if(!best||(s.w||1)*s.r>(best.w||1)*best.r)best=s});if(!best||!(best.r>0))return;var pl=spPrList(x.id),pm=0;pl.forEach(function(p){pm=Math.max(pm,(p.w||1)*(p.r||1))});if(pl.length&&(best.w||1)*best.r>pm)lg.prs.push({n:x.n,w:best.w,r:best.r});pl.push({d:k,w:best.w||0,r:best.r})})}
+ try{lg.g=spGroups(lg,k)}catch(e){}
  var hab=spHabMark(k);save();return{min:lg.min,nn:nn,prs:lg.prs||[],hab:hab}}
 function spmEnd(){if(SPM.stage==="cd"){spmFinal();return}var n=spmSteps().filter(function(s){return s.done}).length;if(!n){spmClose(true);toast("Hiç set yapılmadı");return}
  SPM.res=spFinish(Math.max(1,Math.round(SPM.act/60000)));var q=SP().cool!==false?spmQueue("cd"):[];if(q.length){SPM.stage="cd";SPM.q=q;SPM.qi=0;spmSay("Şimdi soğuma");spmEnter();return}spmFinal()}
@@ -2873,7 +2888,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #107'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #108'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3812,7 +3827,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("107",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("108",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
