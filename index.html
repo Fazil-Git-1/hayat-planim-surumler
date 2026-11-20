@@ -684,9 +684,15 @@ function gkCard(odak){try{if(!S.onboarded||editing)return"";var o=gkO(),k=key(to
  if(!f.pg)return'<div class="card row"><span class="tic sm" style="background:var(--acc)">'+I("kulliyat")+'</span><span class="sp"><b>Yeni tur başladı</b><div class="mute">Bu turdaki sayfa numaranı gir; bugün '+f.cuz+'. cüz.</div></span><button class="btn sm" data-a="gkpage">Gir</button></div>';
  var rd=!!(o.log||{})[k],n=gkReadN(f.cyc);
  return'<div class="card"><div class="row"><span class="tic sm" style="background:var(--acc)">'+I("kulliyat")+'</span><span class="sp" data-a="gkgrid" style="cursor:pointer"><b>Bugün: '+f.cuz+'. cüz · '+f.pg+'. sayfa</b><div class="mute">Bu turda '+n+' / 30'+(gkStreak()>1?' · '+gkStreak()+' gün üst üste':'')+' · ayrıntı ›</div></span>'+(rd?'<button class="btn ghost sm" data-a="gkdone">✓ Okudun</button>':'<button class="btn sm" data-a="gkdone">Okudum</button>')+'</div></div>'}catch(e){return""}}
+/* Akşam hatırlatması: bugünün sayfası okunmadıysa tek bildirim (varsayılan 20:30; boş bırakılırsa kapalı) */
+function gkRt(){var o=gkO();return o&&o.rt!=null?o.rt:"20:30"}
+function gkNotifs(){var o=[],g=gkO(),rt=gkRt(),now=new Date();if(!g||!g.start||!rt)return o;
+ for(var i=0;i<14;i++){var d=addDays(today(),i),k=key(d),f=gkInfo(k);if(!f||(g.log||{})[k])continue;var t=at(d,rt);if(t<=now)continue;
+  o.push({id:7500+i,title:"Bugünün sayfası",body:f.pg?f.cuz+". cüz · "+f.pg+". sayfa. Okudun mu?":"Yeni tur: sayfa numaranı gir. Bugün "+f.cuz+". cüz.",schedule:{at:t,allowWhileIdle:true}})}
+ return o}
 function gkGrid(){var o=gkO(),f=gkInfo(key(today()));if(!f)return;closeAllSheets();var cells="",td=key(today());
  for(var j=1;j<=30;j++){var k=gkKeyOf(f.cyc,j),rd=!!(o.log||{})[k],fut=k>td,isT=k===td;cells+='<button class="chip'+(rd?" on":"")+'" style="min-width:52px;margin:3px;'+(isT?'outline:2px solid var(--acc,#2e7d4f);':'')+(fut?'opacity:.45':'')+'" data-a="gkday" data-v="'+k+'">'+j+(rd?" ✓":"")+'</button>'}
- sheet("Bu tur · sayfa "+f.pg,'<div class="mute" style="margin-bottom:8px">Cüz numarasına dokununca o günün sayfasını okundu/okunmadı yaparsın (kaçırdığını sonradan işaretleyebilirsin).</div><div style="display:flex;flex-wrap:wrap">'+cells+'</div><div class="row" style="margin-top:12px;gap:8px"><button class="btn ghost sm" data-a="gkpage">Sayfa numarasını değiştir</button><button class="btn ghost sm" data-a="gkset">Başlangıcı ayarla</button><button class="btn ghost sm" data-a="gkoff">Kapat</button></div>')}
+ sheet("Bu tur · sayfa "+f.pg,'<div class="mute" style="margin-bottom:8px">Cüz numarasına dokununca o günün sayfasını okundu/okunmadı yaparsın (kaçırdığını sonradan işaretleyebilirsin).</div><div style="display:flex;flex-wrap:wrap">'+cells+'</div><div class="row" style="margin-top:12px;gap:8px"><button class="btn ghost sm" data-a="gkpage">Sayfa numarasını değiştir</button><button class="btn ghost sm" data-a="gkrt">Akşam hatırlatması: '+(gkRt()||"kapalı")+'</button><button class="btn ghost sm" data-a="gkset">Başlangıcı ayarla</button><button class="btn ghost sm" data-a="gkoff">Kapat</button></div>')}
 function spCard(){try{if(SP().on===false||!modOn("spor"))return"";var k=key(today()),lg=SP().log[k]||{},list=spTodayList();if(lg.done)return"";
  if(typeof SPM!=="undefined"&&SPM)return'<div class="card row"><span class="tic sm" style="background:var(--acc)">'+I("spor")+'</span><span class="sp"><b>Antrenman sürüyor</b><div class="mute">Kaldığın yerden devam et.</div></span><button class="btn sm" data-a="spmgo">Aç</button></div>';
  if(!list.length)return"";var any=lg.sets&&Object.keys(lg.sets).some(function(i){return(lg.sets[i]||[]).some(Boolean)});
@@ -2830,7 +2836,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #105'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #106'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':'')+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -3314,6 +3320,7 @@ document.addEventListener("click",function(e){
  case"gkpage":closeAllSheets();(function(){var f=gkInfo(key(today()));if(!f)return;ask("Bu turdaki sayfan",[{label:"Cüzde sayfa (1–20)",type:"number",value:f.pg||1}],function(r){var pg=parseInt(r[0],10);if(!(pg>=1&&pg<=20)){toast("Sayfa 1–20 olmalı");return}S.gk.pg[f.cyc]=pg;save();render()},{label:"Kaydet"})})();return;
  case"gkdone":(function(){var k=key(today());gkMark(k,!(gkO().log||{})[k]);render();if((gkO().log||{})[k]){buzz("ok");toast("Aferin, bugünün sayfası tamam")}})();return;
  case"gkgrid":gkGrid();return;
+ case"gkrt":closeAllSheets();ask("Akşam hatırlatması",[{label:"Saat (boş bırakırsan kapanır)",type:"time",value:gkRt()}],function(r){gkO().rt=r[0]||"";save();scheduleNotifs();render();toast(gkO().rt?"Okumadıysan her akşam "+gkO().rt+"'de hatırlatırım":"Hatırlatma kapatıldı")},{label:"Kaydet"});return;
  case"gkday":(function(){var k=v;gkMark(k,!(gkO().log||{})[k]);gkGrid();render()})();return;
  case"gksnz":S.settings.gkHide=true;save();render();toast("Gizlendi. Odak › Kur'an bölümünden istediğin zaman kurabilirsin");return;
  case"gkoff":closeAllSheets();if(S.gk){S.gk.start=null}S.settings.gkHide=true;save();render();toast("Kapatıldı; kayıtların saklı. Odak › Kur'an bölümünden yeniden kurabilirsin");return;
@@ -3504,7 +3511,7 @@ async function doSchedule(){
    if(st.pnotif&&hasLoc()&&!muaf(key(d))){var ptd=prayerTimes(d,st.lat,st.lng);NV.forEach(function(n,j){var tt=ptd[n[0]];if(tt>now)list.push({id:base+5+j,title:"🕌 "+n[1]+" vakti",body:hhmm(tt)+" · "+(st.city||""),schedule:{at:tt,allowWhileIdle:true}})})}
    if(sp.length){var t=at(d,"10:00");if(t>now)list.push({id:base+3,title:"🌙 "+sp[0].t.replace(" (bu gece)",""),body:"Bugün: "+sp.map(function(x){return x.t}).join(", "),schedule:{at:t,allowWhileIdle:true}})}
   }
-  if(typeof wmNotifs==="function")list=list.concat(NB&&NB.wmPlan?[]:wmNotifs(),wmSchedNotifs(),nudgeNotifs(),ramNotifs());
+  if(typeof wmNotifs==="function")list=list.concat(NB&&NB.wmPlan?[]:wmNotifs(),wmSchedNotifs(),nudgeNotifs(),ramNotifs(),gkNotifs());
   if(FOC&&!FOC.paused&&FOC.end>Date.now())list.push({id:7001,title:"⏱ Odak tamam",body:FOC.cat+" · "+Math.round(FOC.dur/60000)+" dk. Maşallah"+hi()+"!",schedule:{at:new Date(FOC.end),allowWhileIdle:true}});
   if(list.length)await LN.schedule({notifications:list});
  }catch(err){console.log("bildirim",err)}
@@ -3767,7 +3774,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("105",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("106",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefondaki uygulamada çalışır.");return}
