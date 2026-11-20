@@ -387,6 +387,16 @@ body.eink h1{font-size:30px}body.eink .eyebrow{color:#000!important;letter-spaci
 @media (min-width:1280px){#app{max-width:860px;margin-left:max(234px,calc(50% - 430px + 105px))}}
 .kbh{display:none;color:var(--mute);font-size:12.5px;text-align:center;margin:18px 0 0}
 body.eink .nav button.on{background:#000!important}
+
+/* 3B antrenman figürü */
+.fig3{position:relative;width:min(100%,calc(var(--fw) * 1.28));aspect-ratio:5/4;display:grid;place-items:center;margin:0 auto}
+.fig3>svg{max-width:100%;height:auto}
+.fig3 .f3c{position:absolute;inset:0;width:100%!important;height:100%!important;border-radius:14px;cursor:grab;animation:f3in .5s ease both}
+.fig3 .f3c:active{cursor:grabbing}.fig3.on>svg{visibility:hidden}
+.f3h{position:absolute;right:8px;bottom:8px;font-size:11px;color:var(--mute);background:var(--card);border:1px solid var(--line);padding:2px 9px;border-radius:10px;opacity:.9;transition:opacity .6s;pointer-events:none}.f3h.off{opacity:0}
+#spm .f3h{background:#1b2232;color:#c9c3b5;border-color:#2a3142}
+@keyframes f3in{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+.fig-box:has(.fig3){padding:4px;background:radial-gradient(120% 90% at 50% 20%,var(--card),var(--acc2))}
 </style>
 </head>
 <body>
@@ -796,8 +806,9 @@ function spTodayHtml(){var d=today(),k=key(d),lg=SP().log[k]||{},list=spTodayLis
  list.forEach(function(e,ix){var x=spEx(e.e);if(!x)return;var s=e.s||x.s,ds=(lg.sets&&lg.sets[ix])||[];
   h+='<div class="card sp-ex"><div class="row">'+(SPD[x.id]?'<span class="sp-mini">'+figSvg(x.id,64,false,0)+'</span>':'')+'<span class="sp"><b>'+esc(x.n)+'</b><div class="mute">'+spRx(e,x)+' · '+esc(x.g)+'</div></span><button class="x" data-a="spinfo" data-v="'+esc(x.id)+'" aria-label="Nasıl yapılır">ⓘ</button></div><div class="sp-sets">'+Array.apply(null,Array(s)).map(function(_,j){return'<button class="sp-set'+(ds[j]?" on":"")+'" data-a="spset" data-v="'+ix+':'+j+'">'+(j+1)+'</button>'}).join("")+'</div></div>'});
  return h+'<div class="row" style="gap:8px;margin-top:10px"><button class="btn ghost sm" data-a="sprest">⏱ Dinlen 60 sn</button><span class="sp"></span>'+(lg.done?'':'<button class="btn sm" data-a="spfin">Antrenmanı bitir</button>')+'</div>'}
-function spEq(x){var q=SPD[x.id]&&SPD[x.id].eq;return!q||q==="Yok"?"Ekipmansız":q}
-var SPTM={ev3:{lv:"Başlangıç",eq:"Ekipmansız",ds:"Evde, ekipmansız, tüm vücut. Haftada 3 gün, arada dinlenme."},ustalt:{lv:"Orta",eq:"Sandalye, ekipmansız",ds:"Üst ve alt vücudu ayrı günlerde çalıştırır. Haftada 4 gün."},yuru:{lv:"Kolay",eq:"Ekipmansız",ds:"Yürüyüş ağırlıklı, hafif esneme ve nefes. Haftada 5 gün; sakin başlangıç."},dambil:{lv:"Orta",eq:"Dambıl",ds:"Dambıllarla tüm vücut. Haftada 3 gün, ağırlığı rahat kaldırabileceğin kadar seç."}};
+function spEq(x){var q=SPD[x.id]&&SPD[x.id].eq;return!q||q==="Yok"?"Ekipmansız":(q==="Halter"||q==="Plaka")?"Halter/Plaka":q}
+function spWtd(id){var q=SPD[id]&&SPD[id].eq;return q==="Dambıl"||q==="Halter"||q==="Plaka"}
+var SPTM={ev3:{lv:"Başlangıç",eq:"Ekipmansız",ds:"Evde, ekipmansız, tüm vücut. Haftada 3 gün, arada dinlenme."},ustalt:{lv:"Orta",eq:"Sandalye, ekipmansız",ds:"Üst ve alt vücudu ayrı günlerde çalıştırır. Haftada 4 gün."},yuru:{lv:"Kolay",eq:"Ekipmansız",ds:"Yürüyüş ağırlıklı, hafif esneme ve nefes. Haftada 5 gün; sakin başlangıç."},halter3:{lv:"Orta",eq:"Halter, plaka, bench",ds:"Temel halter hareketleriyle tüm vücut güç programı. Haftada 3 gün; hafif ağırlıkla başla, önce formu öğren."},dambil:{lv:"Orta",eq:"Dambıl",ds:"Dambıllarla tüm vücut. Haftada 3 gün, ağırlığı rahat kaldırabileceğin kadar seç."}};
 var spQ="",spEqF="";
 function spMini(id){return SPD[id]?'<span class="sp-mini" data-a="spinfo" data-v="'+esc(id)+'">'+figSvg(id,64,false,0)+'</span>':''}
 function spTplDays(t){return Object.keys(t.d).map(Number).sort(function(a,b){return((a+6)%7)-((b+6)%7)})}
@@ -813,9 +824,9 @@ function spTplSheet(id){var t=SPT.filter(function(x){return x.id===id})[0];if(!t
  ds.forEach(function(d){var arr=t.d[d].map(function(id2){return{e:id2}});h+='<div class="eyebrow" style="margin-top:12px">'+WD[d]+' · ~'+spEst(arr)+' dk</div>'+arr.map(function(e){var x=spEx(e.e);if(!x)return"";return'<div class="row" style="padding:4px 0">'+spMini(x.id)+'<span class="sp"><b>'+esc(x.n)+'</b><div class="mute">'+spRx({},x)+' · '+esc(x.g)+'</div></span><button class="x" data-a="spinfo" data-v="'+esc(x.id)+'" aria-label="Nasıl yapılır">ⓘ</button></div>'}).join("")});
  h+=(have?'<div class="mute" style="margin-top:12px">⚠️ Mevcut planın var. "Değiştir" onu siler (geri yüklenebilir); "Birleştir" aynı günlere ekler.</div>':'')+'<div class="row" style="margin-top:12px;gap:8px"><button class="btn sp" data-a="sptplgo" data-v="'+id+'">'+(have?"Planımla değiştir":"Planıma uygula")+'</button>'+(have?'<button class="btn ghost sp" data-a="sptplmerge" data-v="'+id+'">Birleştir</button>':'')+'</div>';
  sheet(t.n,h)}
-function spLibHtml(){var all=spLib(),eqs=["","Ekipmansız","Dambıl","Diğer"];
+function spLibHtml(){var all=spLib(),eqs=["","Ekipmansız","Dambıl","Halter/Plaka","Diğer"];
  var h='<input id="spq" type="search" placeholder="Hareket ara…" value="'+esc(spQ)+'" style="margin-bottom:8px"><div class="chips" style="margin-bottom:8px;flex-wrap:wrap"><button class="chip'+(spGrp?"":" on")+'" data-a="spgrp" data-v="">Hepsi</button>'+SPG.filter(function(g){return all.some(function(x){return x.g===g})}).map(function(g){return'<button class="chip'+(spGrp===g?" on":"")+'" data-a="spgrp" data-v="'+g+'">'+g+'</button>'}).join("")+'</div><div class="chips" style="margin-bottom:10px;flex-wrap:wrap">'+eqs.map(function(q){return'<button class="chip'+(spEqF===q?" on":"")+'" data-a="spequip" data-v="'+q+'">'+(q||"Tüm ekipmanlar")+'</button>'}).join("")+'</div><div class="card" id="splist">';
- all.filter(function(x){return(!spGrp||x.g===spGrp)&&(!spEqF||(spEqF==="Diğer"?["Ekipmansız","Dambıl"].indexOf(spEq(x))<0:spEq(x)===spEqF))}).forEach(function(x){h+='<div class="row lnkrow sp-row" data-n="'+esc(nluFold(x.n))+'" data-a="spinfo" data-v="'+esc(x.id)+'">'+spMini(x.id)+'<span class="sp"><b>'+esc(x.n)+'</b><div class="mute">'+esc(x.g)+' · '+spRx({},x)+' · '+esc(spEq(x))+'</div></span><span class="mute">ⓘ</span>'+(x.bi?'':'<button class="x" data-a="spexdel" data-v="'+esc(x.id)+'" aria-label="Sil">×</button>')+'</div>'});
+ all.filter(function(x){return(!spGrp||x.g===spGrp)&&(!spEqF||(spEqF==="Diğer"?["Ekipmansız","Dambıl","Halter/Plaka"].indexOf(spEq(x))<0:spEq(x)===spEqF))}).forEach(function(x){h+='<div class="row lnkrow sp-row" data-n="'+esc(nluFold(x.n))+'" data-a="spinfo" data-v="'+esc(x.id)+'">'+spMini(x.id)+'<span class="sp"><b>'+esc(x.n)+'</b><div class="mute">'+esc(x.g)+' · '+spRx({},x)+' · '+esc(spEq(x))+'</div></span><span class="mute">ⓘ</span>'+(x.bi?'':'<button class="x" data-a="spexdel" data-v="'+esc(x.id)+'" aria-label="Sil">×</button>')+'</div>'});
  return h+'</div><button class="btn ghost wide" style="margin-top:10px" data-a="spnew">+ Kendi hareketim</button>'}
 function spFilterRows(){var q=nluFold(spQ||"");[].forEach.call(document.querySelectorAll(".sp-row"),function(r){r.style.display=!q||r.getAttribute("data-n").indexOf(q)>=0?"":"none"})}
 /* ===== Haftalık spor ve adım özeti (Spor › Geçmiş) ===== */
@@ -854,30 +865,178 @@ var FGL={th:16,sh:16,to:21,ua:11,fa:10,ft:5,hd:7},FGX=65,FGY=72;
 function figPts(p){var R=Math.PI/180,L=FGL;function pol(o,g,n){return[o[0]+n*Math.cos(g*R),o[1]-n*Math.sin(g*R)]}
  var P=[0,0],K=pol(P,p.a[0],L.th),F=pol(K,p.a[1],L.sh),T=pol(F,p.ft==null?0:p.ft,L.ft),t1=p.a[2],t2=p.t2==null?t1:p.t2,M=pol(P,t1,L.to/2),S=pol(M,t2,L.to/2),H=pol(S,p.hd==null?t2:p.hd,L.hd),E=pol(S,p.a[3],L.ua),W=pol(E,p.a[4],L.fa),o={P:P,K:K,F:F,T:T,M:M,S:S,H:H,E:E,W:W};
  o.K2=o.F2=o.T2=o.E2=o.W2=null;if(p.l2){o.K2=pol(P,p.l2[0],L.th);o.F2=pol(o.K2,p.l2[1],L.sh);o.T2=pol(o.F2,p.ft==null?0:p.ft,L.ft)}if(p.a2){o.E2=pol(S,p.a2[0],L.ua);o.W2=pol(o.E2,p.a2[1],L.fa)}return o}
-function figFrame(p){var o=figPts(p),gr=p.gr||["T","T2"],my=-1e9,k,i;gr.forEach(function(n){if(o[n]&&o[n][1]>my)my=o[n][1]});
- var dy=p.ax==="W"&&p.bar?(14-o.W[1]):(FGY-my-(p.up||0)),dx=FGX-o[p.ax||"P"][0];for(k in o)if(o[k])o[k]=[o[k][0]+dx,o[k][1]+dy];return o}
+function figOff(p,o){var gr=p.gr||["T","T2"],my=-1e9;gr.forEach(function(n){if(o[n]&&o[n][1]>my)my=o[n][1]});
+ var dy=p.ax==="W"&&p.bar?(14-o.W[1]):(FGY-my-(p.up||0)),dx=FGX-o[p.ax||"P"][0];return[dx,dy]}
+function figMove(o,d){var r={},k;for(k in o)r[k]=o[k]?[o[k][0]+d[0],o[k][1]+d[1]]:null;return r}
+function figFrame(p){var o=figPts(p);return figMove(o,figOff(p,o))}
+/* İki poz arası: açılar yazıldığı yönde (360'ı aşan değer tam tur demek), kemik boyları korunur; yere basma hizası yumuşak geçer */
+function figLerp(A,B,t){function L(x,y){if(x==null&&y==null)return null;x=x==null?(y==null?0:y):x;y=y==null?x:y;return x+(y-x)*t}
+ function LA(a,b){return a&&b?a.map(function(v,i){return L(v,b[i])}):(t<.5?a:b)}
+ var p={a:LA(A.a,B.a),l2:LA(A.l2,B.l2),a2:LA(A.a2,B.a2),ft:(A.ft==null&&B.ft==null)?null:L(A.ft==null?0:A.ft,B.ft==null?0:B.ft),t2:(A.t2==null&&B.t2==null)?null:L(A.t2==null?A.a[2]:A.t2,B.t2==null?B.a[2]:B.t2),hd:(A.hd==null&&B.hd==null)?null:L(A.hd==null?(A.t2==null?A.a[2]:A.t2):A.hd,B.hd==null?(B.t2==null?B.a[2]:B.t2):B.hd)};
+ var o=figPts(p),oa=figOff(A,o),ob=figOff(B,o);return figMove(o,[oa[0]+(ob[0]-oa[0])*t,oa[1]+(ob[1]-oa[1])*t])}
+/* Zaman çizelgesi: her pozda kısa durak, aralarda yumuşak (ease-in-out) hareket */
+function figTimeline(F){var n=F.length,S=8,HOLD=.22,fr=[],kt=[];
+ for(var i=0;i<n;i++){var A=F[i],B=F[(i+1)%n],t0=i/n,seg=1/n;fr.push(figFrame(A));kt.push(t0);fr.push(figFrame(A));kt.push(t0+seg*HOLD);
+  for(var j=1;j<S;j++){var u=j/S,e=.5-.5*Math.cos(Math.PI*u);fr.push(figLerp(A,B,e));kt.push(t0+seg*(HOLD+(1-HOLD)*u))}}
+ fr.push(figFrame(F[0]));kt.push(1);return{fr:fr,kt:kt.map(function(x){return x.toFixed(4)}).join(";")}}
 function figPr(d,o){var s="",P=d.pr;if(!P)return s;
  if(P==="bar")s='<line x1="'+(FGX-26)+'" y1="'+o.W[1]+'" x2="'+(FGX+26)+'" y2="'+o.W[1]+'" stroke-width="3"/>';
  if(P==="wall")s='<line x1="'+(o.P[0]-12)+'" y1="6" x2="'+(o.P[0]-12)+'" y2="'+FGY+'" stroke-width="3"/>';
  if(P==="chair")s='<path d="M'+(o.W[0]-12)+' '+(o.W[1]+1)+'H'+(o.W[0]+7)+'M'+(o.W[0]-10)+' '+(o.W[1]+1)+'V'+FGY+'M'+(o.W[0]+5)+' '+(o.W[1]+1)+'V'+FGY+'" stroke-width="2.5" fill="none"/>';
- if(P==="db")s='<path d="M'+(o.W[0]-4)+' '+(o.W[1])+'H'+(o.W[0]+4)+'" stroke-width="5"/>';return s}
-function figSvg(id,w,anim,fi){var d=SPD[id];if(!d||!d.f)return"";var fr=d.f.map(figFrame);if(fi!=null)fr=[fr[fi]];var n=fr.length,an=anim!==false&&n>1,
+ if(P==="bench")s='<path d="M'+(FGX-30)+' '+(FGY-12)+'H'+(FGX+22)+'M'+(FGX-24)+' '+(FGY-12)+'V'+FGY+'M'+(FGX+16)+' '+(FGY-12)+'V'+FGY+'" stroke-width="3" fill="none"/>';
+ return s}
+/* Elde taşınan donanım (pozla birlikte hareket eder): dambıl, halter (yandan plaka), plaka */
+function figHeld(d){var P=d.hold||(d.pr==="db"?"db":null);return P}
+function figHeldSvg(P,W,anim,vals){var x=W[0].toFixed(1),y=W[1].toFixed(1),a=function(at,v){return anim?'<animate attributeName="'+at+'" dur="'+anim.dur+'" repeatCount="indefinite" keyTimes="'+anim.kt+'" values="'+v+'"/>':''};
+ if(P==="db"||P==="db1")return'<g><rect x="-5" y="-2.2" width="10" height="4.4" rx="1.6" fill="#55607a" stroke="none" transform="translate('+x+' '+y+')">'+(anim?'<animateTransform attributeName="transform" type="translate" dur="'+anim.dur+'" repeatCount="indefinite" keyTimes="'+anim.kt+'" values="'+vals+'"/>':'')+'</rect></g>';
+ if(P==="bb")return'<circle r="9.5" cx="'+x+'" cy="'+y+'" fill="#2b3245" stroke="#55607a" stroke-width="1.6">'+(anim?a("cx",vals.split(";").map(function(v){return v.split(" ")[0]}).join(";"))+a("cy",vals.split(";").map(function(v){return v.split(" ")[1]}).join(";")):'')+'</circle><circle r="2" cx="'+x+'" cy="'+y+'" fill="#c9ccd6" stroke="none">'+(anim?a("cx",vals.split(";").map(function(v){return v.split(" ")[0]}).join(";"))+a("cy",vals.split(";").map(function(v){return v.split(" ")[1]}).join(";")):'')+'</circle>';
+ if(P==="plate")return'<circle r="6.5" cx="'+x+'" cy="'+y+'" fill="none" stroke="#55607a" stroke-width="3">'+(anim?a("cx",vals.split(";").map(function(v){return v.split(" ")[0]}).join(";"))+a("cy",vals.split(";").map(function(v){return v.split(" ")[1]}).join(";")):'')+'</circle>';
+ return""}
+function figSvg(id,w,anim,fi){var d=SPD[id];if(!d||!d.f)return"";var still=fi!=null||anim===false||d.f.length<2;
+ try{if(!still&&((typeof ei==="function"&&ei())||(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)))still=true}catch(e){}
+ var key=d.f.map(figFrame),TL=still?null:figTimeline(d.f),fr=still?[key[fi!=null?fi:0]]:TL.fr,n=key.length,an=!still,
  pt=function(f,names){return names.map(function(nm){return f[nm]?f[nm][0].toFixed(1)+","+f[nm][1].toFixed(1):""}).filter(Boolean).join(" ")},
- LEG="#3b5b8c",SHIRT="#e08a2e",SKIN="#f1c9a0",SHOE="#1f2a44",dur=(n*1.0).toFixed(1)+"s",mk="ar"+id+w,
+ LEG="#3b5b8c",SHIRT="#e08a2e",SKIN="#f1c9a0",SHOE="#1f2a44",dur=(n*1.15).toFixed(2)+"s",mk="ar"+id+w,AN=an?{dur:dur,kt:TL.kt}:null,
+ A=function(at,vals){return an?'<animate attributeName="'+at+'" dur="'+dur+'" repeatCount="indefinite" keyTimes="'+TL.kt+'" values="'+vals.join(";")+'"/>':''},
  limbs=[["P K F".split(" "),LEG,6.5,1],["F T".split(" "),SHOE,5.5,1],["P M S".split(" "),SHIRT,8.5,1],["S E W".split(" "),SHIRT,5,1]],
  far=[["P K2 F2".split(" "),LEG,6.5,.5],["F2 T2".split(" "),SHOE,5.5,.5],["S E2 W2".split(" "),SHIRT,5,.5]],
  h='<svg class="fig" viewBox="0 -7 130 87" width="'+w+'" height="'+Math.round(w*87/130)+'" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><defs><marker id="'+mk+'" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L6 3L0 6z" fill="var(--acc,#2e7d4f)" stroke="none"/></marker></defs>';
  if(!d.pr||d.pr!=="bar")h+='<line x1="6" y1="'+(FGY+4)+'" x2="124" y2="'+(FGY+4)+'" stroke="var(--line)" stroke-width="2.5"/>';
- h+='<g stroke="var(--mute)" opacity=".7" stroke-width="3">'+figPr(d,fr[0])+'</g>';
- if(n>1){var gf=fr[1],gs=[["P K F".split(" "),6.5],["P M S".split(" "),8.5],["S E W".split(" "),5]];if(gf.K2)gs.push([["P","K2","F2"],6.5]);if(gf.E2)gs.push([["S","E2","W2"],5]);gs.forEach(function(g){h+='<polyline points="'+pt(gf,g[0])+'" stroke="var(--mute)" stroke-width="'+g[1]+'" opacity=".16"/>'});h+='<circle r="5" cx="'+gf.H[0].toFixed(1)+'" cy="'+gf.H[1].toFixed(1)+'" fill="var(--mute)" opacity=".16" stroke="none"/>'}
- function drawSet(arr){arr.forEach(function(L){if(!fr[0][L[0][1]])return;var vals=fr.map(function(f){return pt(f,L[0])});h+='<polyline points="'+vals[0]+'" stroke="'+L[1]+'" stroke-width="'+L[2]+'" opacity="'+L[3]+'">'+(an?'<animate attributeName="points" dur="'+dur+'" repeatCount="indefinite" values="'+vals.concat(vals[0]).join(";")+'"/>':'')+'</polyline>'})}
- if(fr[0].K2||fr[0].E2)drawSet(far);drawSet(limbs);
- [["W",2.4]].forEach(function(q){var vals=fr.map(function(f){return f[q[0]][0].toFixed(1)+","+f[q[0]][1].toFixed(1)});var xs=fr.map(function(f){return f.W[0].toFixed(1)}).concat(fr[0].W[0].toFixed(1)),ys=fr.map(function(f){return f.W[1].toFixed(1)}).concat(fr[0].W[1].toFixed(1));h+='<circle r="2.6" cx="'+xs[0]+'" cy="'+ys[0]+'" fill="'+SKIN+'" stroke="none">'+(an?'<animate attributeName="cx" dur="'+dur+'" repeatCount="indefinite" values="'+xs.join(";")+'"/><animate attributeName="cy" dur="'+dur+'" repeatCount="indefinite" values="'+ys.join(";")+'"/>':'')+'</circle>'});
- var hx=fr.map(function(f){return f.H[0].toFixed(1)}).concat(fr[0].H[0].toFixed(1)),hy=fr.map(function(f){return f.H[1].toFixed(1)}).concat(fr[0].H[1].toFixed(1));
- h+='<circle r="5.2" cx="'+hx[0]+'" cy="'+hy[0]+'" fill="'+SKIN+'" stroke="'+SHOE+'" stroke-width="1.3">'+(an?'<animate attributeName="cx" dur="'+dur+'" repeatCount="indefinite" values="'+hx.join(";")+'"/><animate attributeName="cy" dur="'+dur+'" repeatCount="indefinite" values="'+hy.join(";")+'"/>':'')+'</circle>';
- if(n>1&&fi==null){var a0=fr[0].H,a1=fr[1].H,dd=Math.hypot(a1[0]-a0[0],a1[1]-a0[1]);if(dd>7){var ux=(a1[0]-a0[0])/dd,uy=(a1[1]-a0[1])/dd;h+='<line x1="'+(a0[0]+ux*9).toFixed(1)+'" y1="'+(a0[1]+uy*9).toFixed(1)+'" x2="'+(a1[0]-ux*9).toFixed(1)+'" y2="'+(a1[1]-uy*9).toFixed(1)+'" stroke="var(--acc,#2e7d4f)" stroke-width="1.6" stroke-dasharray="3 2.5" marker-end="url(#'+mk+')" opacity=".9"/>'}}
- return h+'</svg>'}
+ h+='<g stroke="var(--mute)" opacity=".7" stroke-width="3">'+figPr(d,key[0])+'</g>';
+ if(n>1&&fi==null){var gf=key[1],gs=[["P K F".split(" "),6.5],["P M S".split(" "),8.5],["S E W".split(" "),5]];if(gf.K2)gs.push([["P","K2","F2"],6.5]);if(gf.E2)gs.push([["S","E2","W2"],5]);gs.forEach(function(g){h+='<polyline points="'+pt(gf,g[0])+'" stroke="var(--mute)" stroke-width="'+g[1]+'" opacity=".14"/>'});h+='<circle r="5" cx="'+gf.H[0].toFixed(1)+'" cy="'+gf.H[1].toFixed(1)+'" fill="var(--mute)" opacity=".14" stroke="none"/>'}
+ function drawSet(arr){arr.forEach(function(L){if(!fr[0][L[0][1]])return;var vals=fr.map(function(f){return pt(f,L[0])});h+='<polyline points="'+vals[0]+'" stroke="'+L[1]+'" stroke-width="'+L[2]+'" opacity="'+L[3]+'">'+A("points",vals)+'</polyline>'})}
+ var held=figHeld(d),hw=function(nm){return fr.map(function(f){return f[nm]?f[nm][0].toFixed(1)+" "+f[nm][1].toFixed(1):"0 0"}).join(";")};
+ if(fr[0].K2||fr[0].E2)drawSet(far);
+ if(held==="db"&&fr[0].W2)h+=figHeldSvg(held,fr[0].W2,AN,hw("W2")).replace(/<g>/,'<g opacity=".55">');
+ if(held==="bb")h+=figHeldSvg(held,fr[0].W,AN,hw("W")).replace('<circle r="9.5"','<circle opacity=".9" r="8.5"');
+ drawSet(limbs);
+ var C=function(nm,r,fill,extra){var xs=fr.map(function(f){return f[nm][0].toFixed(1)}),ys=fr.map(function(f){return f[nm][1].toFixed(1)});return'<circle r="'+r+'" cx="'+xs[0]+'" cy="'+ys[0]+'" fill="'+fill+'" '+(extra||'stroke="none"')+'>'+A("cx",xs)+A("cy",ys)+'</circle>'};
+ h+=C("W",2.6,SKIN);
+ if(held&&held!=="bb")h+=figHeldSvg(held,fr[0].W,AN,hw("W"));
+ h+=C("H",5.2,SKIN,'stroke="'+SHOE+'" stroke-width="1.3"');
+ if(n>1&&fi==null){var a0=key[0].H,a1=key[1].H,dd=Math.hypot(a1[0]-a0[0],a1[1]-a0[1]);if(dd>7){var ux=(a1[0]-a0[0])/dd,uy=(a1[1]-a0[1])/dd;h+='<line x1="'+(a0[0]+ux*9).toFixed(1)+'" y1="'+(a0[1]+uy*9).toFixed(1)+'" x2="'+(a1[0]-ux*9).toFixed(1)+'" y2="'+(a1[1]-uy*9).toFixed(1)+'" stroke="var(--acc,#2e7d4f)" stroke-width="1.6" stroke-dasharray="3 2.5" marker-end="url(#'+mk+')" opacity=".9"/>'}}
+ h+='</svg>';
+ if(anim===true&&fi==null&&w>=150&&f3Can())h='<div class="fig3" data-f3="'+esc(id)+'" style="--fw:'+w+'px">'+h+'</div>';
+ return h}
+/* ===== 3B antrenman figürü: Three.js ile ışıklı, gölgeli manken (www/vendor/three.min.js) =====
+   Pozlar 2B çizimle aynı veriden (SPD[id].f) gelir; açılar yumuşakça (smootherstep) geçer, kemik boyları korunur.
+   WebGL yoksa, e-ink ya da "azaltılmış hareket" açıksa 2B çizim kalır. Sürükleyince döner. */
+var F3={v:[],p:null,raf:0,gl:null,mo:null};
+function f3Can(){try{if((typeof ei==="function"&&ei())||(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches))return false}catch(e){}
+ if(F3.gl==null){try{var c=document.createElement("canvas");F3.gl=!!(window.WebGLRenderingContext&&(c.getContext("webgl2")||c.getContext("webgl")))}catch(e){F3.gl=false}}return F3.gl}
+function f3Load(){if(window.THREE)return Promise.resolve(window.THREE);if(F3.p)return F3.p;
+ F3.p=new Promise(function(res,rej){var s=document.createElement("script");s.src="vendor/three.min.js";s.async=true;s.onload=function(){window.THREE?res(window.THREE):rej(new Error("THREE yok"))};s.onerror=function(){F3.p=null;rej(new Error("yüklenemedi"))};document.head.appendChild(s)});return F3.p}
+function f3Ease(v){return v*v*v*(v*(v*6-15)+10)}
+function f3Pose(F,t){var n=F.length;t=Math.max(0,t||0);if(n<2)return figFrame(F[0]);var seg=1.25,x=(t%(n*seg))/seg,i=Math.floor(x),u=x-i,HOLD=.24,A=F[i],B=F[(i+1)%n];
+ if(u<HOLD)return figFrame(A);return figLerp(A,B,f3Ease((u-HOLD)/(1-HOLD)))}
+function f3Scan(){if(!f3Can())return;var els=document.querySelectorAll(".fig3:not([data-f3on])");if(!els.length)return;
+ f3Load().then(function(){Array.prototype.forEach.call(document.querySelectorAll(".fig3:not([data-f3on])"),function(el){el.setAttribute("data-f3on","1");try{f3Mount(el)}catch(e){console.warn("3B",e)}})}).catch(function(){})}
+function f3Mount(el){var id=el.getAttribute("data-f3"),d=SPD[id];if(!d||!d.f)return;
+ // aynı hareketin yeni açılan kopyası varsa eski sahneyi taşı (spor modunda ekran yenilenince titremesin)
+ for(var i=0;i<F3.v.length;i++){var o=F3.v[i];if(o.id===id&&!o.el.isConnected){o.el=el;el.appendChild(o.r.domElement);el.classList.add("on");f3Hint(el,o);f3Size(o);return}}
+ if(F3.v.length>=3){var old=F3.v.shift();f3Kill(old)}
+ var v=f3Build(el,id,d);F3.v.push(v);el.classList.add("on");f3Hint(el,v);if(!F3.raf)F3.raf=requestAnimationFrame(f3Loop)}
+function f3Hint(el,v){if(el.querySelector(".f3h"))return;var s=document.createElement("span");s.className="f3h";s.textContent="↻ Sürükle, döndür";el.appendChild(s);setTimeout(function(){s.classList.add("off")},2600)}
+function f3Kill(v){try{v.r.dispose();v.r.forceContextLoss&&v.r.forceContextLoss();v.sc.traverse(function(o){if(o.geometry)o.geometry.dispose()});if(v.r.domElement.parentNode)v.r.domElement.parentNode.removeChild(v.r.domElement)}catch(e){}}
+function f3Size(v){var w=v.el.clientWidth||260,h=v.el.clientHeight||Math.round(w*.8);if(w===v.w&&h===v.h)return;v.w=w;v.h=h;v.r.setSize(w,h,false);v.r.domElement.style.width=w+"px";v.r.domElement.style.height=h+"px";v.cam.aspect=w/h;v.cam.updateProjectionMatrix();v.fit()}
+function f3Build(el,id,d){var T=THREE;if(T.ColorManagement)T.ColorManagement.legacyMode=false;var Z=new T.Vector3(0,0,1),cs=getComputedStyle(document.body),cv=function(n,f){var x=(cs.getPropertyValue(n)||"").trim();return x||f};
+ var r=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:"low-power",preserveDrawingBuffer:false});
+ r.setPixelRatio(Math.min(2,window.devicePixelRatio||1));r.outputEncoding=T.sRGBEncoding;r.toneMapping=T.ACESFilmicToneMapping;r.toneMappingExposure=1.0;r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;
+ r.domElement.className="f3c";el.appendChild(r.domElement);
+ var sc=new T.Scene(),cam=new T.PerspectiveCamera(28,1,.1,200);
+ // stüdyo ışığı: gökyüzü dolgusu + yumuşak gölgeli ana ışık + soğuk arka kontur
+ sc.add(new T.HemisphereLight(0xfff4e2,0x6f6556,.62));
+ var key=new T.DirectionalLight(0xfff8f0,1.25);key.position.set(4,12,10);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.radius=4;key.shadow.bias=-.0008;
+ var sca=key.shadow.camera;sca.left=-7;sca.right=7;sca.top=9;sca.bottom=-3;sca.near=1;sca.far=40;sc.add(key);sc.add(key.target);
+ var rim=new T.DirectionalLight(0xcfdcff,.7);rim.position.set(-7,6,-8);sc.add(rim);
+ var fill=new T.DirectionalLight(0xffe2c2,.25);fill.position.set(8,2,-2);sc.add(fill);
+ // zemin: gölge tutucu + hafif disk
+ var gp=new T.Mesh(new T.PlaneGeometry(40,40),new T.ShadowMaterial({opacity:.24}));gp.rotation.x=-Math.PI/2;gp.receiveShadow=true;sc.add(gp);
+ var dark=!el.closest("#spm")&&!document.body.classList.contains("eink")&&!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);if(dark)gp.material.opacity=.42;
+ // yumuşak kenarlı zemin ışığı (radyal geçiş)
+ var gc=document.createElement("canvas");gc.width=gc.height=256;var gx=gc.getContext("2d"),gg=gx.createRadialGradient(128,128,8,128,128,128);
+ gg.addColorStop(0,dark?"rgba(70,80,104,.85)":"rgba(206,196,172,.75)");gg.addColorStop(.6,dark?"rgba(52,60,80,.45)":"rgba(214,205,184,.38)");gg.addColorStop(1,"rgba(0,0,0,0)");gx.fillStyle=gg;gx.fillRect(0,0,256,256);
+ var gt=new T.CanvasTexture(gc);if(T.sRGBEncoding)gt.encoding=T.sRGBEncoding;
+ var disc=new T.Mesh(new T.PlaneGeometry(9,9),new T.MeshBasicMaterial({map:gt,transparent:true,depthWrite:false}));disc.rotation.x=-Math.PI/2;disc.position.y=-.004;sc.add(disc);
+ var M=function(c,o){o=o||{};return new T.MeshStandardMaterial({color:c,roughness:o.r==null?.6:o.r,metalness:o.m||0})},
+  mShirt=M(0xe08a2e,{r:.55}),mShirt2=M(0xc9772a,{r:.6}),mPant=M(0x3b5b8c,{r:.72}),mPant2=M(0x324f7a,{r:.75}),mSkin=M(0xf1c9a0,{r:.55}),mShoe=M(0x1f2a44,{r:.45}),mSole=M(0xf3efe6,{r:.8}),mHair=M(0x3a2a20,{r:.7}),
+  mSteel=M(0xb9c0cc,{r:.28,m:.85}),mPlate=M(0x242a38,{r:.42,m:.25}),mPlateR=M(0x8a93a6,{r:.35,m:.6}),mWood=M(0x9b7a55,{r:.75}),mGrey=M(0x9a9a9a,{r:.8});
+ var fig=new T.Group();sc.add(fig);
+ function part(geo,mat,sz){var m=new T.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;if(sz)m.scale.set(sz[0],sz[1],sz[2]);fig.add(m);return m}
+ function cap(r,len,mat,sz){return part(new T.CapsuleGeometry(r,len,6,16),mat,sz)}
+ function ball(r,mat,sz){return part(new T.SphereGeometry(r,24,16),mat,sz)}
+ var L=FGL,K=.1,SW=.86,HW=.5;
+ var B={pelvis:ball(.56,mPant,[1,.9,1.45]),abd:cap(.5,L.to/2*K*.7,mShirt,[1,1,1.42]),chest:cap(.58,L.to/2*K*.65,mShirt,[1,1,1.7]),neck:cap(.17,.22,mSkin),head:ball(.5,mSkin,[1,1.06,.94]),
+  hair:part(new T.SphereGeometry(.53,24,16,0,Math.PI*2,0,Math.PI*.5),mHair,[1,1,.96])};
+ var side=function(s){var shirt=s>0?mShirt:mShirt2,pant=s>0?mPant:mPant2;return{sh:ball(.24,shirt),ua:cap(.2,L.ua*K*.82,shirt),el:ball(.19,shirt),fa:cap(.17,L.fa*K*.8,mSkin),hand:ball(.17,mSkin,[1,1.15,.9]),
+  th:cap(.29,L.th*K*.8,pant),kn:ball(.27,pant),sh2:cap(.23,L.sh*K*.82,pant),an:ball(.2,mShoe),ft:cap(.15,L.ft*K*.95,mShoe,[1,1,1.25]),z:s}};
+ var Sn=side(1),Sf=side(-1);
+ // donanım
+ var EQ=new T.Group();sc.add(EQ);var held=figHeld(d),eqH=[],eqStatic=new T.Group();sc.add(eqStatic);
+ function emesh(geo,mat,g){var m=new T.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;(g||EQ).add(m);return m}
+ function dumbbell(){var g=new T.Group();var h=new T.Mesh(new T.CylinderGeometry(.05,.05,.62,12),mSteel);h.rotation.x=Math.PI/2;g.add(h);[-1,1].forEach(function(s){var w=new T.Mesh(new T.CylinderGeometry(.21,.21,.2,6),mPlate);w.rotation.x=Math.PI/2;w.position.z=s*.34;g.add(w);var c=new T.Mesh(new T.CylinderGeometry(.08,.08,.06,12),mSteel);c.rotation.x=Math.PI/2;c.position.z=s*.21;g.add(c)});g.traverse(function(o){o.castShadow=true});EQ.add(g);return g}
+ function barbell(){var g=new T.Group(),bar=new T.Mesh(new T.CylinderGeometry(.045,.045,7.4,16),mSteel);bar.rotation.x=Math.PI/2;g.add(bar);
+  [-1,1].forEach(function(s){var sl=new T.Mesh(new T.CylinderGeometry(.075,.075,1.3,16),mSteel);sl.rotation.x=Math.PI/2;sl.position.z=s*3.05;g.add(sl);
+   var col=new T.Mesh(new T.CylinderGeometry(.11,.11,.12,16),mSteel);col.rotation.x=Math.PI/2;col.position.z=s*2.38;g.add(col);
+   [[.82,.15,2.52],[.62,.12,2.67],[.45,.1,2.79]].forEach(function(p){var pl=new T.Mesh(new T.CylinderGeometry(p[0],p[0],p[1],48),mPlate);pl.rotation.x=Math.PI/2;pl.position.z=s*p[2];g.add(pl);
+    var rg=new T.Mesh(new T.TorusGeometry(p[0]-.03,.025,8,48),mPlateR);rg.position.z=s*(p[2]+s*p[1]/2);g.add(rg)});
+   var hub=new T.Mesh(new T.CylinderGeometry(.13,.13,.62,16),mSteel);hub.rotation.x=Math.PI/2;hub.position.z=s*2.66;g.add(hub)});
+  g.traverse(function(o){o.castShadow=true});EQ.add(g);return g}
+ function plate(){var g=new T.Group(),pl=new T.Mesh(new T.CylinderGeometry(.72,.72,.12,48),mPlate);pl.rotation.z=Math.PI/2;g.add(pl);var rg=new T.Mesh(new T.TorusGeometry(.69,.025,8,48),mPlateR);rg.rotation.y=Math.PI/2;rg.position.x=.065;g.add(rg);
+  var hole=new T.Mesh(new T.CylinderGeometry(.14,.14,.14,24),mSteel);hole.rotation.z=Math.PI/2;g.add(hole);g.traverse(function(o){o.castShadow=true});EQ.add(g);return g}
+ if(held==="db"){eqH.push({o:dumbbell(),s:1},{o:dumbbell(),s:-1})}
+ if(held==="db1"){var d1=dumbbell();d1.rotation.x=Math.PI/2;eqH.push({o:d1,s:0})}
+ if(held==="bb")eqH.push({o:barbell(),s:0});
+ if(held==="plate")eqH.push({o:plate(),s:0});
+ var f0=figFrame(d.f[0]),LIFT=d.pr==="bar"?1.6:0,V=function(p,z){return new T.Vector3((p[0]-FGX)*K,(FGY+1.8-p[1])*K+LIFT,z||0)};
+ if(d.pr==="bar"){var by=V(f0.W).y+.05;var pb=new T.Mesh(new T.CylinderGeometry(.06,.06,3.4,16),mSteel);pb.rotation.x=Math.PI/2;pb.position.set(V(f0.W).x,by,0);pb.castShadow=true;eqStatic.add(pb);
+  [-1,1].forEach(function(s){var post=new T.Mesh(new T.CylinderGeometry(.07,.07,by,12),mGrey);post.position.set(V(f0.W).x,by/2,s*1.7);post.castShadow=true;eqStatic.add(post)})}
+ if(d.pr==="wall"){var wl=new T.Mesh(new T.BoxGeometry(.18,7,6),M(new T.Color(cv("--card","#fffdf7")),{r:.95}));wl.position.set(V(f0.P).x-1.3,3.5,0);wl.receiveShadow=true;eqStatic.add(wl)}
+ if(d.pr==="chair"){var cw=V(f0.W),seat=new T.Mesh(new T.BoxGeometry(1,.12,2.2),mWood);seat.position.set(cw.x-.25,cw.y-.08,0);seat.castShadow=true;seat.receiveShadow=true;eqStatic.add(seat);
+  [[-.65,-.95],[-.65,.95],[.15,-.95],[.15,.95]].forEach(function(q){var lg=new T.Mesh(new T.BoxGeometry(.09,cw.y-.08,.09),mWood);lg.position.set(cw.x+q[0],(cw.y-.08)/2,q[1]);lg.castShadow=true;eqStatic.add(lg)})}
+ if(d.pr==="bench"){var bt=(1.8+12)*K,bx0=(-30)*K,bx1=(22)*K,bn=new T.Mesh(new T.BoxGeometry(bx1-bx0,.28,1.15),M(0x2b3245,{r:.6}));bn.position.set((bx0+bx1)/2,bt-.14,0);bn.castShadow=true;bn.receiveShadow=true;eqStatic.add(bn);
+  [bx0+.4,bx1-.4].forEach(function(x){var lg=new T.Mesh(new T.BoxGeometry(.18,bt-.28,.9),mSteel);lg.position.set(x,(bt-.28)/2,0);lg.castShadow=true;eqStatic.add(lg)})}
+ var tmp=new T.Vector3();
+ function seg(m,a,b){tmp.subVectors(b,a);m.position.set((a.x+b.x)/2,(a.y+b.y)/2,(a.z+b.z)/2);m.quaternion.setFromAxisAngle(Z,Math.atan2(tmp.y,tmp.x)-Math.PI/2)}
+ function at(m,p){m.position.copy(p)}
+ function pose(f){var P=V(f.P),Mi=V(f.M),Sx=V(f.S),Hd=V(f.H);
+  at(B.pelvis,P);B.pelvis.quaternion.setFromAxisAngle(Z,Math.atan2(Mi.y-P.y,Mi.x-P.x)-Math.PI/2);
+  seg(B.abd,P,Mi);seg(B.chest,Mi,Sx);
+  var nk=new T.Vector3().subVectors(Hd,Sx).multiplyScalar(.42).add(Sx);seg(B.neck,Sx,nk);at(B.head,Hd);var ha=Math.atan2(Hd.y-Sx.y,Hd.x-Sx.x);B.head.quaternion.setFromAxisAngle(Z,ha-Math.PI/2);
+  B.hair.position.copy(Hd);B.hair.quaternion.setFromAxisAngle(Z,ha-Math.PI/2+.42);
+  [[Sn,"K","F","T","E","W"],[Sf,"K2","F2","T2","E2","W2"]].forEach(function(q){var s=q[0],z=s.z,kk=f[q[1]]||f.K,ff=f[q[2]]||f.F,tt=f[q[3]]||f.T,ee=f[q[4]]||f.E,ww=f[q[5]]||f.W;
+   var hp=V(f.P,z*HW),kn=V(kk,z*HW),an=V(ff,z*HW),to=V(tt,z*HW),sh=V(f.S,z*SW),el=V(ee,z*SW),wr=V(ww,z*SW);
+   seg(s.th,hp,kn);at(s.kn,kn);seg(s.sh2,kn,an);at(s.an,an);var fm=new T.Vector3().subVectors(to,an).multiplyScalar(.15);seg(s.ft,an.clone().sub(fm),to.clone().add(fm));s.ft.position.y-=.04;
+   at(s.sh,sh);seg(s.ua,sh,el);at(s.el,el);seg(s.fa,el,wr);var hd=new T.Vector3().subVectors(wr,el).normalize().multiplyScalar(.12);at(s.hand,wr.clone().add(hd));s.hand.quaternion.copy(s.fa.quaternion);s._w=wr.clone().add(hd)});
+  eqH.forEach(function(e){if(e.s){var w=(e.s>0?Sn:Sf)._w;e.o.position.copy(w)}else{var a=Sn._w,b=Sf._w;e.o.position.set((a.x+b.x)/2,(a.y+b.y)/2,0)}})}
+ // kadraj: tüm kareleri kapsayan kutu
+ var box=new T.Box3(),pv=function(p){if(p)box.expandByPoint(V(p))};d.f.forEach(function(p){var f=figFrame(p);["P","K","F","T","S","H","E","W","K2","F2","T2","E2","W2"].forEach(function(k){pv(f[k])})});
+ box.expandByPoint(new T.Vector3(box.min.x,0,0));if(held==="bb"){box.min.y=Math.max(0,box.min.y-.9);box.max.y+=.9}
+ var ctr=new T.Vector3();box.getCenter(ctr);var sz=new T.Vector3();box.getSize(sz);ctr.y=Math.max(ctr.y,1.4);
+ key.target.position.copy(ctr);disc.position.x=ctr.x;key.position.set(ctr.x+4,12,10);
+ var v={id:id,el:el,r:r,sc:sc,cam:cam,pose:pose,F:d.f,t0:performance.now(),yaw0:.32,yawU:0,drag:null,w:0,h:0,ctr:ctr,dist:12};
+ v.fit=function(){var fov=cam.fov*Math.PI/180,hgt=Math.max(sz.y+1.2,5),wid=Math.max(sz.x+2.4,6);v.dist=Math.max(hgt/(2*Math.tan(fov/2)),wid/(2*Math.tan(fov/2)*cam.aspect))+1.2};
+ var c=r.domElement;c.style.touchAction="pan-y";
+ c.addEventListener("pointerdown",function(e){v.drag={x:e.clientX,y0:v.yawU};try{c.setPointerCapture(e.pointerId)}catch(er){}var h=el.querySelector(".f3h");if(h)h.classList.add("off")});
+ c.addEventListener("pointermove",function(e){if(v.drag)v.yawU=v.drag.y0+(e.clientX-v.drag.x)*.012});
+ ["pointerup","pointercancel"].forEach(function(n){c.addEventListener(n,function(){v.drag=null})});
+ f3Size(v);pose(figFrame(d.f[0]));return v}
+function f3Loop(now){F3.raf=0;if(document.hidden){F3.raf=requestAnimationFrame(f3Loop);return}
+ for(var i=F3.v.length-1;i>=0;i--){var v=F3.v[i];if(!v.el.isConnected){if(!v.gone)v.gone=now;if(now-v.gone>1500){f3Kill(v);F3.v.splice(i,1)}continue}v.gone=0;
+  if(!v.el.offsetParent)continue;f3Size(v);var t=Math.max(0,(now-v.t0)/1000);v.pose(f3Pose(v.F,t));
+  var yaw=v.yaw0+v.yawU+(v.drag?0:Math.sin(t*.3)*.2),el=.2+Math.sin(t*.19)*.03;
+  v.cam.position.set(v.ctr.x+Math.sin(yaw)*v.dist*Math.cos(el),v.ctr.y+Math.sin(el)*v.dist+.6,v.ctr.z+Math.cos(yaw)*v.dist*Math.cos(el));v.cam.lookAt(v.ctr);v.r.render(v.sc,v.cam)}
+ if(F3.v.length)F3.raf=requestAnimationFrame(f3Loop)}
+(function(){try{F3.mo=new MutationObserver(function(){if(document.querySelector(".fig3:not([data-f3on])"))setTimeout(f3Scan,30)});F3.mo.observe(document.body,{childList:true,subtree:true})}catch(e){}})();
 var SPD={
+ hlt_squat:{lv:"Orta",eq:"Halter",m:"Ön ve arka bacak, kalça, karın, bel",hold:"bb",f:[{a:[270,270,90,215,95],gr:["T"],ax:"F"},{a:[345,248,62,187,67],gr:["T"],ax:"F"}],st:["Barı sehpadan omuzlarının arkasına, sırt kaslarının üstüne al (boyun kemiğine değil); eller omuzdan biraz geniş.","Ayaklar omuz genişliğinde, parmaklar hafif dışa; karnını sık, göğsü dik tut.","Kalçayı geriye ve aşağı vererek uyluklar yere paralel olana kadar çömel; dizler ayak yönünde.","Topuklarından iterek kalk; üstte dizleri kilitleme."],er:["Dizlerin içe çökmesi","Topukların kalkması","Belin yuvarlanması","Barı boyun kemiğine koymak"],br:"İnerken al, kalkarken ver.",ez:"Boş barla ya da goblet squat ile başla.",zr:"Plaka ekle; altta bir saniye bekle."},
+ hlt_dead:{lv:"Zor",eq:"Halter",m:"Arka bacak, kalça, bel, sırt, kavrama",hold:"bb",f:[{a:[270,270,90,270,270],gr:["T"],ax:"F"},{a:[335,245,32,270,270],gr:["T"],ax:"F"}],st:["Bar ayağının ortasının üstünde, ayaklar kalça genişliğinde.","Kalçayı geriye ver, dizleri bük; barı omuz genişliğinde kavra. Sırt düz, göğüs açık, bakış biraz ileride.","Karnını sık; bacaklarınla yeri iterek kalk, bar bacaklarına yakın yükselsin.","Üstte kalçayı öne it, geriye yaslanma. Aynı yoldan kontrollü indir."],er:["Belin yuvarlanması","Barın vücuttan uzaklaşması","Kolla çekmek","Üstte geriye aşırı yaslanmak"],br:"Kalkmadan önce al ve tut, üstte ver.",ez:"Hafif ağırlık, ya da dambıl RDL.",zr:"Plaka ekle; inişi 3 saniyeye uzat."},
+ hlt_row:{lv:"Orta",eq:"Halter",m:"Sırt, arka omuz, biceps",hold:"bb",f:[{a:[285,258,28,270,270],gr:["T"],ax:"F"},{a:[285,258,28,205,285],gr:["T"],ax:"F"}],st:["Barı omuz genişliğinde tut; dizler hafif bükük, kalçadan öne eğil.","Sırt düz, gövde yere yaklaşık 30–45 derece.","Dirsekleri geriye çekerek barı karnına getir; kürek kemiklerini birleştir.","Kontrollü indir, gövdeyi sallama."],er:["Belin yuvarlanması","Gövdeyle savurmak","Barı göğse değil boyna çekmek"],br:"Çekerken ver, indirirken al.",ez:"Daha hafif bar, daha dik gövde.",zr:"Üstte iki saniye bekle."},
+ hlt_ohp:{lv:"Orta",eq:"Halter",m:"Omuz, arka kol, üst göğüs, karın",hold:"bb",f:[{a:[270,270,90,315,95],gr:["T"],ax:"F"},{a:[270,270,90,448,90],gr:["T"],ax:"F"}],st:["Bar omuzlarının önünde, eller omuzdan biraz geniş, dirsekler barın biraz önünde.","Ayaklar kalça genişliğinde; kalçayı ve karnı sık.","Barı başının üstüne düz bir çizgide it; bar yüzünü geçerken başını hafif geri al.","Üstte kollar düz, bar başın üstünde. Kontrollü omuz önüne indir."],er:["Belin geriye kemerlenmesi","Barı öne doğru itmek","Dizlerden yaylanmak"],br:"İterken ver, inerken al.",ez:"Boş barla ya da dambılla otururak.",zr:"Plaka ekle, üstte bir saniye bekle."},
+ hlt_curl:{lv:"Kolay",eq:"Halter",m:"Ön kol (biceps), ön kol kasları",hold:"bb",f:[{a:[270,270,90,270,270],gr:["T"],ax:"F"},{a:[270,270,90,278,455],gr:["T"],ax:"F"}],st:["Ayakta, barı avuçlar öne bakacak şekilde omuz genişliğinde tut.","Dirsekler gövdenin yanında sabit.","Barı göğüs hizasına kadar kaldır.","Yavaşça aşağı indir; vücudu sallama."],er:["Gövdeyle savurmak","Dirsekleri öne kaçırmak","İnişi hızlı bırakmak"],br:"Kaldırırken ver, indirirken al.",ez:"Boş bar.",zr:"İnişi 3 saniyeye uzat."},
+ bench:{lv:"Orta",eq:"Halter",m:"Göğüs, ön omuz, arka kol",hold:"bb",pr:"bench",f:[{a:[5,272,180,90,90],ft:0,gr:["F"],ax:"P"},{a:[5,272,180,-15,90],ft:0,gr:["F"],ax:"P"}],st:["Bench'e sırtüstü uzan; gözlerin barın altında, ayaklar yere sağlam basıyor.","Barı omuzdan biraz geniş kavra; kürek kemiklerini birleştirip bench'e bastır.","Barı kontrollü olarak göğsün alt kısmına indir; dirsekler gövdeye yaklaşık 45 derece.","Göğsünle iterek kolların düzelene kadar kaldır."],er:["Barı göğüste zıplatmak","Kalçayı bench'ten kaldırmak","Dirsekleri tam yana açmak","Ağırken tek başına çalışmak"],br:"İnerken al, iterken ver.",ez:"Boş bar ya da dambılla yer presi.",zr:"Plaka ekle; altta bir saniye bekle."},
+ pl_front:{lv:"Kolay",eq:"Plaka",m:"Ön omuz, üst sırt",hold:"plate",f:[{a:[270,270,90,280,280],gr:["T"],ax:"F"},{a:[270,270,90,358,358],gr:["T"],ax:"F"}],st:["Ayakta, plakayı iki elinle yanlarından tut, uyluklarının önünde.","Kollar düz ya da hafif bükük.","Plakayı omuz hizasına kadar öne kaldır; kısa bekle.","Yavaşça indir; vücudu sallama."],er:["Gövdeyle sallanmak","Omuzları kulaklara kaldırmak"],br:"Kaldırırken ver, indirirken al.",ez:"Daha hafif plaka.",zr:"Üstte iki saniye bekle."},
+ pl_goblet:{lv:"Kolay",eq:"Plaka",m:"Bacak, kalça, karın",hold:"plate",f:[{a:[270,270,90,295,105],gr:["T"],ax:"F"},{a:[345,248,62,267,77],gr:["T"],ax:"F"}],st:["Plakayı göğsünün önünde iki elinle tut.","Ayaklar omuzdan biraz geniş, parmaklar hafif dışa.","Kalçayı geriye vererek çömel; göğüs dik, dizler ayak yönünde.","Topuklarından iterek kalk."],er:["Dizlerin içe çökmesi","Göğsün öne düşmesi","Topukların kalkması"],br:"İnerken al, kalkarken ver.",ez:"Plakasız çömel.",zr:"Daha ağır plaka, altta bir saniye bekle."},
  sinav:{lv:"Orta",eq:"Yok",m:"Göğüs, ön omuz, arka kol, karın",f:[{a:[198,198,18,270,270],ft:-70,gr:["T","W"],ax:"W"},{a:[189,189,9,195.8,270],ft:-70,gr:["T","W"],ax:"W"}],
   st:["Yüzüstü yere uzan, elleri omuz hizasında, omuzdan biraz geniş yere koy.","Ayak uçlarına ve ellere yüklen; baştan topuğa düz bir çizgi oluştur (kalça düşmesin, yukarı kalkmasın).","Dirsekleri vücuda yaklaşık 45 derece açıyla bükerek göğsün yere yaklaşana kadar in.","Yere sertçe yatma. Elleri iterek başlangıca dön."],er:["Kalçanın sarkması ya da yukarı çıkması","Dirseklerin yanlara tam açılması (omuz zorlanır)","Başı öne uzatıp boynu bükmek"],br:"İnerken nefes al, iterken ver.",ez:"Diz üstü şınav ya da eller yüksekte (sıra, kanepe).",zr:"Ayaklar yüksekte, ya da inişi 3 saniyeye uzat."},
  dizsinav:{lv:"Kolay",eq:"Yok",m:"Göğüs, ön omuz, arka kol",f:[{a:[214.6,150,34.6,270,270],gr:["K","W"],ax:"W"},{a:[194,150,14,174.5,270],gr:["K","W"],ax:"W"}],
@@ -886,7 +1045,7 @@ var SPD={
   st:["Şınav pozisyonu al ama elleri göğsün altında, baş ve işaret parmakları birbirine yakın tut (elmas şekli).","Vücut baştan topuğa düz.","Dirsekleri vücuda yakın tutarak in.","Kollarını açarak başlangıca dön."],er:["Dirseklerin yanlara açılması","Kalçanın düşmesi"],br:"İnerken al, iterken ver.",ez:"Diz üstü yap.",zr:"Ayakları yükselt."},
  squat:{lv:"Kolay",eq:"Yok",m:"Ön ve arka bacak, kalça",f:[{a:[270,270,90,0,0],gr:["T"],ax:"F"},{a:[345,248,62,0,0],gr:["T"],ax:"F"}],
   st:["Ayaklar omuz genişliğinde, parmaklar hafif dışa bakar. Kollar önde.","Önce kalçayı geriye ver, sanki bir sandalyeye oturuyormuş gibi in.","Uyluklar yere paralel olana kadar (rahat edebildiğin kadar) in; topuklar yerde, göğüs dik.","Topuklarından iterek kalkarak başla."],er:["Dizlerin içe çökmesi","Topukların kalkması","Belin yuvarlanması"],br:"İnerken al, kalkarken ver.",ez:"Bir sandalyeye oturup kalk.",zr:"Ağırlık tut ya da tek bacak çalış."},
- lunge:{lv:"Orta",eq:"Yok",m:"Ön bacak, kalça, baldır",f:[{a:[255,260,90,270,270],l2:[285,280],gr:["T","T2"],ax:"P"},{a:[5,268,90,270,270],l2:[250,200],ft:0,gr:["T","K2"],ax:"P"}],
+ lunge:{lv:"Orta",eq:"Yok",m:"Ön bacak, kalça, baldır",f:[{a:[255,260,90,270,270],l2:[285,280],gr:["T","T2"],ax:"P"},{a:[365,268,90,270,270],l2:[250,200],ft:0,gr:["T","K2"],ax:"P"}],
   st:["Dik dur, ayaklar bir arada.","Bir adım ileri at.","Hem ön hem arka dizi bükerek in; ön diz ayak ucunu geçmesin, arka diz yere yaklaşsın.","Ön ayağını iterek başlangıca dön. Diğer bacakla tekrarla."],er:["Ön dizin ayak ucunun çok ilerisine geçmesi","Gövdenin öne eğilmesi"],br:"İnerken al, kalkarken ver.",ez:"Adımı küçült, duvara tutun.",zr:"Dambıl tut."},
  kopru:{lv:"Kolay",eq:"Yok",m:"Kalça, arka bacak, bel",f:[{a:[52,300,180,0,0],ft:0,gr:["S","F"],ax:"P"},{a:[18,285,205,0,0],ft:0,gr:["S","F"],ax:"F"}],
   st:["Sırtüstü uzan, dizler bükülü, ayaklar kalçaya yakın ve yerde.","Kollar yanda, avuçlar yere.","Topuklarından iterek kalçanı omuzdan dize düz bir çizgi olana kadar kaldır.","Üstte bir saniye sık, yavaşça in."],er:["Belin aşırı kemerlenmesi","Topukların kalkması"],br:"Kalkarken ver, inerken al.",ez:"Kalçayı daha az kaldır.",zr:"Tek bacak çalış."},
@@ -902,7 +1061,7 @@ var SPD={
   st:["Çubuğa omuz genişliğinden biraz geniş tut, kollar tam uzanık.","Omuzlarını aşağı ve geriye çekerek başla.","Çeneni çubuğun üstüne getirene kadar çek; dirsekler aşağıya doğru.","Yavaşça kontrollü in."],er:["Sallanmak (kipping)","Omuzları kulağa çekmek"],br:"Çekerken ver, inerken al.",ez:"Elastik bant ya da ayakla destek.",zr:"Ağırlık ekle."},
  dips:{lv:"Orta",eq:"Sandalye",m:"Arka kol, göğüs, omuz",pr:"chair",f:[{a:[345,270,98,265,265],gr:["T","W"],ax:"W"},{a:[345,270,95,205,285],gr:["T","W"],ax:"W"}],
   st:["Sağlam bir sandalyeye ellerinle arkadan tutun; kalçan sandalyeden öne çıksın, bacaklar bükülü.","Kollar düz başla.","Dirsekleri arkaya bükerek omuz dirsekle aynı hizaya gelene kadar in.","Kollarını açarak kalk."],er:["Omuzların kulağa kalkması","Çok derine inip omuza yüklenmek"],br:"İnerken al, kalkarken ver.",ez:"Ayakları sandalyeye yakın tut.",zr:"Bacakları düz uzat."},
- curl:{lv:"Kolay",eq:"Dambıl",m:"Ön kol (biceps)",pr:"db",f:[{a:[270,270,90,270,270],gr:["T"],ax:"F"},{a:[270,270,90,270,95],gr:["T"],ax:"F"}],
+ curl:{lv:"Kolay",eq:"Dambıl",m:"Ön kol (biceps)",pr:"db",f:[{a:[270,270,90,270,270],gr:["T"],ax:"F"},{a:[270,270,90,270,455],gr:["T"],ax:"F"}],
   st:["Dik dur, dambıl elinde, kol yanda aşağıda.","Dirseği gövdede sabit tutarak dambılı omuza doğru kaldır.","Üstte bir saniye sık.","Kontrollü indir."],er:["Dirseği öne atıp savurmak","Belini geriye yatırmak"],br:"Kaldırırken ver, indirirken al.",ez:"Daha hafif dambıl, su şişesi.",zr:"Yavaş indir."},
  plank:{lv:"Orta",eq:"Yok",m:"Karın, omuz, bel",f:[{a:[186.8,186.8,6.8,270,0],ft:-70,gr:["T","E"],ax:"W"}],
   st:["Dirsekler omuzların tam altında, önkollar yerde.","Ayak uçlarına yüklen; baştan topuğa düz bir çizgi.","Karnını ve kalçanı sık, belin çukurlaşmasın.","Süre boyunca bekle."],er:["Kalçanın sarkması","Kalçanın çok yukarı çıkması","Nefesi tutmak"],br:"Düzenli, derin nefes al.",ez:"Diz üstü plank.",zr:"Süreyi uzat, tek ayağı kaldır."},
@@ -914,19 +1073,19 @@ var SPD={
   st:["Sırtüstü uzan, eller yanda ya da kalçanın altında.","Bacaklar birlikte ve düz.","Belini yerden ayırmadan bacakları 90 dereceye kadar kaldır.","Yavaşça, yere değmeden indir."],er:["Belin yerden kalkması","Bacakları savurmak"],br:"Kaldırırken ver, inerken al.",ez:"Dizleri bükerek kaldır.",zr:"Yere hiç değdirme."},
  yuruyus:{lv:"Kolay",eq:"Yok",m:"Bacak, kalp ve akciğer",f:[{a:[298,278,92,240,250],l2:[248,232],a2:[300,290],gr:["T","T2"],ax:"P"},{a:[248,232,92,300,290],l2:[298,278],a2:[240,250],gr:["T","T2"],ax:"P"}],
   st:["Dik dur, bakış ileride, omuzlar gevşek.","Topuktan bas, adımı ayak ucuna doğru yuvarla.","Kolları dirsekten hafif bükerek ters ayakla salla.","Konuşabileceğin ama hafif nefes nefese kalacağın hızda yürü."],er:["Başı öne eğmek","Çok uzun adım atmak"],br:"Doğal nefes.",ez:"Daha yavaş ve kısa.",zr:"Eğimli yol, tempoyu artır."},
- kosu:{lv:"Orta",eq:"Yok",m:"Bacak, kalp ve akciğer",f:[{a:[15,270,82,255,175],l2:[235,190],a2:[300,40],ft:-20,gr:["T2"],ax:"P",up:2},{a:[235,190,82,300,40],l2:[15,270],a2:[255,175],ft:-20,gr:["T"],ax:"P",up:2}],
+ kosu:{lv:"Orta",eq:"Yok",m:"Bacak, kalp ve akciğer",f:[{a:[15,270,82,255,175],l2:[235,190],a2:[300,40],ft:-20,gr:["T2"],ax:"P",up:2},{a:[-125,190,82,300,40],l2:[375,270],a2:[255,175],ft:-20,gr:["T"],ax:"P",up:2}],
   st:["Hafif öne eğik, bakış ileride, kollar 90 derece bükülü.","Ayağın orta ön kısmıyla yumuşak bas.","Kolları ileri geri sallayarak ritmi tut.","Konuşabileceğin tempoda başla; ısınma yürüyüşü yap."],er:["Topuğa sert basmak","Omuzları kasmak"],br:"Ritmik: 2-3 adımda bir al ve ver.",ez:"Koş-yürü dönüşümlü.",zr:"Süreyi ya da hızı yavaşça artır."},
  ipatlama:{lv:"Orta",eq:"İp",m:"Baldır, kalp ve akciğer",f:[{a:[270,270,90,250,330],gr:["T"],ax:"F"},{a:[270,270,90,250,330],gr:["T"],ax:"F",up:7}],
   st:["Dik dur, dirsekler gövdeye yakın, ip elinde.","İpi bilek hareketiyle çevir, kolu savurma.","İp ayağının altından geçerken parmak uçlarından hafifçe zıpla.","Zıplamalar kısa ve ritmik olsun."],er:["Çok yüksek zıplamak","Kolları savurmak"],br:"Düzenli nefes.",ez:"İpsiz taklit et.",zr:"Çift zıplama."},
- jj:{lv:"Kolay",eq:"Yok",m:"Tüm vücut, kardiyo",f:[{a:[270,270,90,262,262],l2:[270,270],a2:[278,278],gr:["T","T2"],ax:"P"},{a:[245,245,90,112,112],l2:[295,295],a2:[68,68],gr:["T","T2"],ax:"P"}],
+ jj:{lv:"Kolay",eq:"Yok",m:"Tüm vücut, kardiyo",f:[{a:[270,270,90,262,262],l2:[270,270],a2:[278,278],gr:["T","T2"],ax:"P"},{a:[245,245,90,112,112],l2:[295,295],a2:[428,428],gr:["T","T2"],ax:"P"}],
   st:["Dik dur, ayaklar bitişik, kollar yanda.","Zıplayarak bacakları açarken kolları yanlardan yukarı kaldır.","Tekrar zıplayarak başlangıca dön.","Ritmi koru."],er:["Ağır inmek (dizleri korumak için yumuşak in)"],br:"Düzenli nefes.",ez:"Zıplamadan, sırayla adım at.",zr:"Hızı artır."},
  burpee:{lv:"Zor",eq:"Yok",m:"Tüm vücut",f:[{a:[270,270,90,270,270],gr:["T"],ax:"P"},{a:[345,248,62,300,270],gr:["T","W"],ax:"P"},{a:[198,198,18,270,270],ft:-70,gr:["T","W"],ax:"P"}],
   st:["Ayakta başla. Çömel, elleri yere koy.","Ayakları geriye atarak plank pozisyonuna geç (isteğe bağlı şınav).","Ayakları ellerine geri çek.","Kalkıp zıpla; kolları yukarı."],er:["Bel çukurlaşarak plankta durmak","Hızla form bozmak"],br:"Her tekrarda bir nefes döngüsü.",ez:"Adımla geç, zıplama.",zr:"Şınav ve zıplama ekle."},
- boyun:{lv:"Kolay",eq:"Yok",m:"Boyun, omuz",f:[{a:[270,270,90,270,270],hd:90,gr:["T"],ax:"F"},{a:[270,270,90,70,170],hd:25,gr:["T"],ax:"F"}],
+ boyun:{lv:"Kolay",eq:"Yok",m:"Boyun, omuz",f:[{a:[270,270,90,270,270],hd:90,gr:["T"],ax:"F"},{a:[270,270,90,430,530],hd:25,gr:["T"],ax:"F"}],
   st:["Dik otur ya da dur, omuzlar gevşek.","Başını yavaşça yana ya da öne eğ.","Eliyle başa çok hafif ağırlık verebilirsin; çekme.","Her yönde 15-30 saniye bekle; ağrı olmamalı."],er:["Sert çekmek","Omuzları kaldırmak"],br:"Yavaş ve derin nefes.",ez:"Elsiz, sadece eğ.",zr:"Süreyi uzat."},
  hamstring:{lv:"Kolay",eq:"Yok",m:"Arka bacak",f:[{a:[0,0,90,0,0],gr:["P","T"],ax:"P"},{a:[0,0,32,10,10],gr:["P","T"],ax:"P"}],
   st:["Yerde otur, bacaklar önde uzanık.","Sırtı düz tutarak kalçadan öne eğil.","Ellerini bacağın üzerinde ayağa doğru kaydır; dizi kilitleme.","Hafif gerginlik hissedince 30 saniye bekle."],er:["Sırtı yuvarlamak","Zıplayarak esnemek"],br:"Verirken biraz daha derinleş.",ez:"Dizi hafif bük.",zr:"Süreyi uzat."},
- cocuk:{lv:"Kolay",eq:"Yok",m:"Sırt, kalça",f:[{a:[270,180,90,270,270],gr:["K","F"],ax:"P"},{a:[334,180,5,0,0],gr:["K","F"],ax:"F"}],
+ cocuk:{lv:"Kolay",eq:"Yok",m:"Sırt, kalça",f:[{a:[270,180,90,270,270],gr:["K","F"],ax:"P"},{a:[334,180,5,360,360],gr:["K","F"],ax:"F"}],
   st:["Diz çök, ayak üstleri yerde; kalçan topuklarına otursun.","Karnını uyluklarına yaklaştırarak öne eğil.","Kolları önde uzat, alnını yere bırak.","Nefesle sırtını genişlet; 30 saniye bekle."],er:["Dizlerde ağrı olursa katlanmış havlu koy"],br:"Derin karın nefesi.",ez:"Kalçayı yastığa bırak.",zr:"Kollarını daha öne uzat."},
  kedideve:{lv:"Kolay",eq:"Yok",m:"Omurga, karın, sırt",f:[{a:[270,180,-10,270,270],t2:40.5,hd:60,gr:["K","W"],ax:"W"},{a:[270,180,40,270,270],t2:-9.6,hd:-30,gr:["K","W"],ax:"W"}],
   st:["Dört ayak pozisyonu: eller omuz altında, dizler kalça altında.","Nefes alırken karnını bırak, göğsünü ve başı yukarı kaldır (deve).","Nefes verirken sırtını tavana doğru yuvarla, çeneni göğse yaklaştır (kedi).","Yavaş akışla tekrarla."],er:["Çok hızlı yapmak","Dirsekleri kilitlemek"],br:"Alırken deve, verirken kedi.",ez:"Hareketi küçült.",zr:"Her pozisyonda 3 saniye bekle."}
@@ -934,6 +1093,14 @@ var SPD={
 /* ===== Dambıl hareketleri ve düzeltilen yatay çizimler ===== */
 [["dbpress","Dambıl omuz press","Omuz",3,10,"tekrar","Ayakta, dambıllar omuz hizasında; kollar düzelene kadar yukarı it, kontrollü indir."],
 ["onekaldir","Dambıl öne kaldırma","Omuz",3,12,"tekrar","Kollar önde düz, omuz hizasına kadar kaldır; sallanmadan indir."],
+["hlt_squat","Halter squat (sırtta)","Bacak",4,8,"tekrar","Halter omuzların arkasında; göğüs dik, uyluklar yere paralel olana kadar çömel."],
+["hlt_dead","Halter deadlift","Sırt",4,6,"tekrar","Bar ayak ortasının üstünde; sırt düz, kalça ve dizi birlikte açarak kalk."],
+["hlt_row","Halter row (eğik çekiş)","Sırt",4,10,"tekrar","Kalçadan öne eğil, sırt düz; barı karnına çek."],
+["hlt_ohp","Halter omuz pres","Omuz",4,8,"tekrar","Bar omuz önünde; karnı sık, barı başının üstüne it."],
+["hlt_curl","Halter biceps curl","Kol",3,10,"tekrar","Dirsekler gövdede sabit; barı kontrollü kaldır, yavaş indir."],
+["bench","Bench press","Göğüs",4,8,"tekrar","Bench'e uzan; barı göğüs hizasına indir, iterek kaldır. Ağırken yanında biri olsun."],
+["pl_front","Plakayla ön kaldırma","Omuz",3,12,"tekrar","Plakayı iki elle tut; kollar düz, omuz hizasına kadar kaldır."],
+["pl_goblet","Plakalı goblet squat","Bacak",3,12,"tekrar","Plakayı göğsünde tut; sırt dik, kalçayı geriye vererek çömel."],
 ["goblet","Goblet squat (dambıllı çömelme)","Bacak",3,12,"tekrar","Dambılı göğsünde tut, sırt dik; kalçayı geriye vererek çömel."],
 ["dbrow","Dambıl kürek çekme","Sırt",3,10,"tekrar","Beli düz tutarak öne eğil; dambılı kalçana doğru, dirseği vücuda yakın çek."],
 ["rdl","Dambıllı Romen deadlift","Bacak",3,10,"tekrar","Dizler hafif bükük, kalçayı geriye iterek öne eğil; sırt düz, dambıllar bacaklara yakın."],
@@ -944,21 +1111,22 @@ var SPD={
 ["dblunge","Dambıllı ileri adım","Bacak",3,10,"tekrar","Her elde dambıl; ileri adım at, iki diz yaklaşık 90 derece olana kadar in."]].forEach(function(e){SPX.push(e)});
 var DBX={
  dbpress:{lv:"Orta",eq:"Dambıl",m:"Omuz, arka kol",pr:"db",f:[{a:[270,270,90,20,90],gr:["T"],ax:"F"},{a:[270,270,90,90,90],gr:["T"],ax:"F"}],st:["Ayakta, ayaklar omuz genişliğinde; dambıllar omuz hizasında, dirsekler hafif önde.","Karnını sık, belini çukurlaştırma.","Dambılları kollar neredeyse düzelene kadar yukarı it.","Aynı yoldan yavaşça omuz hizasına in."],er:["Belin geriye kemerlenmesi","Omuzları kulağa kaldırmak","Çok ağır dambıl"],br:"İterken ver, inerken al.",ez:"Oturarak yap, daha hafif dambıl.",zr:"Tek bacak üstünde dene."},
- onekaldir:{lv:"Kolay",eq:"Dambıl",m:"Ön omuz",pr:"db",f:[{a:[270,270,90,270,270],gr:["T"],ax:"F"},{a:[270,270,90,0,0],gr:["T"],ax:"F"}],st:["Ayakta, dambıllar uyluklarının önünde.","Kolları düz tutup dambılları omuz hizasına kadar öne kaldır.","Üstte kısa bekle.","Yavaşça indir; vücudu sallama."],er:["Gövdeyle sallanmak","Dirsekleri çok bükmek"],br:"Kaldırırken ver, indirirken al.",ez:"Daha hafif dambıl, tek kolla.",zr:"Yavaş indir (3 saniye)."},
- goblet:{lv:"Kolay",eq:"Dambıl",m:"Bacak, kalça, karın",pr:"db",f:[{a:[270,270,90,300,70],gr:["T"],ax:"F"},{a:[345,248,62,300,70],gr:["T"],ax:"F"}],st:["Dambılı iki elinle göğsünün önünde, dikey tut.","Ayaklar omuzdan biraz geniş, parmaklar hafif dışa.","Kalçayı geriye vererek çömel; dirsekler dizlerin içinden geçsin.","Topuklarından iterek kalk."],er:["Dizlerin içe çökmesi","Göğsün öne düşmesi","Topukların kalkması"],br:"İnerken al, kalkarken ver.",ez:"Dambılsız çömel.",zr:"Daha ağır dambıl, altta bir saniye bekle."},
+ onekaldir:{lv:"Kolay",eq:"Dambıl",m:"Ön omuz",pr:"db",f:[{a:[270,270,90,270,270],gr:["T"],ax:"F"},{a:[270,270,90,360,360],gr:["T"],ax:"F"}],st:["Ayakta, dambıllar uyluklarının önünde.","Kolları düz tutup dambılları omuz hizasına kadar öne kaldır.","Üstte kısa bekle.","Yavaşça indir; vücudu sallama."],er:["Gövdeyle sallanmak","Dirsekleri çok bükmek"],br:"Kaldırırken ver, indirirken al.",ez:"Daha hafif dambıl, tek kolla.",zr:"Yavaş indir (3 saniye)."},
+ goblet:{lv:"Kolay",eq:"Dambıl",m:"Bacak, kalça, karın",pr:"db",hold:"db1",f:[{a:[270,270,90,300,70],gr:["T"],ax:"F"},{a:[345,248,62,300,70],gr:["T"],ax:"F"}],st:["Dambılı iki elinle göğsünün önünde, dikey tut.","Ayaklar omuzdan biraz geniş, parmaklar hafif dışa.","Kalçayı geriye vererek çömel; dirsekler dizlerin içinden geçsin.","Topuklarından iterek kalk."],er:["Dizlerin içe çökmesi","Göğsün öne düşmesi","Topukların kalkması"],br:"İnerken al, kalkarken ver.",ez:"Dambılsız çömel.",zr:"Daha ağır dambıl, altta bir saniye bekle."},
  dbrow:{lv:"Orta",eq:"Dambıl",m:"Sırt, arka omuz, biceps",pr:"db",f:[{a:[280,260,35,270,270],gr:["T"],ax:"F"},{a:[280,260,35,160,270],gr:["T"],ax:"F"}],st:["Dizler hafif bükük, kalçadan öne eğil; sırt düz, bakış yere.","Dambıllar omuz altında asılı.","Dirseği tavana doğru, kalçana çekerek dambılı yukarı getir; kürek kemiklerini birleştir.","Kontrollü indir."],er:["Belin yuvarlanması","Dambılı kolla çekip sırtı çalıştırmamak","Gövdeyi sallamak"],br:"Çekerken ver, indirirken al.",ez:"Tek kol, diğer elle diz ya da bank destekle.",zr:"Üstte iki saniye bekle."},
  rdl:{lv:"Orta",eq:"Dambıl",m:"Arka bacak, kalça, bel",pr:"db",f:[{a:[270,270,90,270,270],gr:["T"],ax:"F"},{a:[280,260,25,270,270],gr:["T"],ax:"F"}],st:["Ayakta, dambıllar uyluk önünde, dizler hafif bükük.","Kalçayı geriye iterek gövdeyi öne eğ; sırt düz kalsın.","Dambıllar bacaklara yakın, diz altına kadar insin; arka bacakta gerilme hisset.","Kalçayı öne iterek kalk."],er:["Belin yuvarlanması","Dambılları bacaktan uzaklaştırmak","Dizleri çok bükmek (squat'a dönüşür)"],br:"İnerken al, kalkarken ver.",ez:"Daha hafif dambıl, daha az in.",zr:"Tek bacakla dene."},
- trikspres:{lv:"Orta",eq:"Dambıl",m:"Arka kol (triceps)",pr:"db",f:[{a:[270,270,90,90,200],gr:["T"],ax:"F"},{a:[270,270,90,90,90],gr:["T"],ax:"F"}],st:["Ayakta ya da otururken dambılı iki elinle başının arkasında tut.","Dirsekler yukarıyı göstersin, kulakların yanında kalsın.","Dirsekleri sabit tutup kolları yukarı doğru uzat.","Yavaşça baş arkasına in."],er:["Dirseklerin yanlara açılması","Belin kemerlenmesi"],br:"Uzatırken ver, inerken al.",ez:"Daha hafif dambıl.",zr:"Tek kolla yap."},
- gogpress:{lv:"Orta",eq:"Dambıl",m:"Göğüs, ön omuz, arka kol",pr:"db",f:[{a:[60,290,180,90,90],ft:0,gr:["F","S"],ax:"P"},{a:[60,290,180,355,90],ft:0,gr:["F","S"],ax:"P"}],st:["Bank ya da yere sırtüstü uzan, dizler bükülü, ayaklar yerde.","Dambıllar göğüs üstünde kollar düz.","Dirsekleri vücuttan yaklaşık 45 derece açıyla bükerek dambılları göğüs hizasına indir.","Göğsünle iterek yukarı it."],er:["Dirseklerin tamamen yana açılması","Dambılları sallandırmak","Kalçayı yerden kaldırmak"],br:"İnerken al, iterken ver.",ez:"Daha hafif dambıl.",zr:"Yavaş indir, altta bir saniye bekle."},
+ trikspres:{lv:"Orta",eq:"Dambıl",m:"Arka kol (triceps)",pr:"db",hold:"db1",f:[{a:[270,270,90,90,200],gr:["T"],ax:"F"},{a:[270,270,90,90,90],gr:["T"],ax:"F"}],st:["Ayakta ya da otururken dambılı iki elinle başının arkasında tut.","Dirsekler yukarıyı göstersin, kulakların yanında kalsın.","Dirsekleri sabit tutup kolları yukarı doğru uzat.","Yavaşça baş arkasına in."],er:["Dirseklerin yanlara açılması","Belin kemerlenmesi"],br:"Uzatırken ver, inerken al.",ez:"Daha hafif dambıl.",zr:"Tek kolla yap."},
+ gogpress:{lv:"Orta",eq:"Dambıl",m:"Göğüs, ön omuz, arka kol",pr:"db",f:[{a:[60,290,180,90,90],ft:0,gr:["F","S"],ax:"P"},{a:[60,290,180,-5,90],ft:0,gr:["F","S"],ax:"P"}],st:["Bank ya da yere sırtüstü uzan, dizler bükülü, ayaklar yerde.","Dambıllar göğüs üstünde kollar düz.","Dirsekleri vücuttan yaklaşık 45 derece açıyla bükerek dambılları göğüs hizasına indir.","Göğsünle iterek yukarı it."],er:["Dirseklerin tamamen yana açılması","Dambılları sallandırmak","Kalçayı yerden kaldırmak"],br:"İnerken al, iterken ver.",ez:"Daha hafif dambıl.",zr:"Yavaş indir, altta bir saniye bekle."},
  kickback:{lv:"Orta",eq:"Dambıl",m:"Arka kol (triceps)",pr:"db",f:[{a:[280,260,35,200,270],gr:["T"],ax:"F"},{a:[280,260,35,200,190],gr:["T"],ax:"F"}],st:["Öne eğil, sırt düz; üst kolun gövdeye yapışık ve yere paralel.","Dirsek 90 derece bükülü, dambıl aşağıda.","Dirseği sabit tutarak önkolu geriye doğru uzat.","Üstte sık, yavaşça dön."],er:["Üst kolu sallamak","Belin yuvarlanması"],br:"Uzatırken ver.",ez:"Daha hafif dambıl.",zr:"Üstte iki saniye bekle."},
- hammer:{lv:"Kolay",eq:"Dambıl",m:"Biceps, ön kol",pr:"db",f:[{a:[270,270,90,270,270],gr:["T"],ax:"F"},{a:[270,270,90,270,95],gr:["T"],ax:"F"}],st:["Ayakta, dambıllar yanlarda, avuçlar vücuda dönük.","Dirsekleri gövdeye yapışık tut.","Dambılları (avuçlar hep içe bakarak) omuza doğru kaldır.","Kontrollü indir."],er:["Dirseği öne atmak","Gövdeyi geriye yatırmak"],br:"Kaldırırken ver, indirirken al.",ez:"Hafif dambıl, tek tek.",zr:"Yavaş indir."},
- dblunge:{lv:"Orta",eq:"Dambıl",m:"Ön bacak, kalça, baldır",pr:"db",f:[{a:[255,260,90,270,270],l2:[285,280],gr:["T","T2"],ax:"P"},{a:[5,268,90,270,270],l2:[250,200],ft:0,gr:["T","K2"],ax:"P"}],st:["Her elinde dambıl, kollar yanda, dik dur.","Bir adım ileri at.","İki dizi bükerek in; arka diz yere yaklaşsın, ön diz ayak ucunu geçmesin.","Ön ayağını iterek başlangıca dön, diğer bacakla tekrarla."],er:["Gövdenin öne eğilmesi","Ön dizin içe çökmesi"],br:"İnerken al, kalkarken ver.",ez:"Dambılsız yap.",zr:"Daha ağır dambıl."}};
+ hammer:{lv:"Kolay",eq:"Dambıl",m:"Biceps, ön kol",pr:"db",f:[{a:[270,270,90,270,270],gr:["T"],ax:"F"},{a:[270,270,90,270,455],gr:["T"],ax:"F"}],st:["Ayakta, dambıllar yanlarda, avuçlar vücuda dönük.","Dirsekleri gövdeye yapışık tut.","Dambılları (avuçlar hep içe bakarak) omuza doğru kaldır.","Kontrollü indir."],er:["Dirseği öne atmak","Gövdeyi geriye yatırmak"],br:"Kaldırırken ver, indirirken al.",ez:"Hafif dambıl, tek tek.",zr:"Yavaş indir."},
+ dblunge:{lv:"Orta",eq:"Dambıl",m:"Ön bacak, kalça, baldır",pr:"db",f:[{a:[255,260,90,270,270],l2:[285,280],gr:["T","T2"],ax:"P"},{a:[365,268,90,270,270],l2:[250,200],ft:0,gr:["T","K2"],ax:"P"}],st:["Her elinde dambıl, kollar yanda, dik dur.","Bir adım ileri at.","İki dizi bükerek in; arka diz yere yaklaşsın, ön diz ayak ucunu geçmesin.","Ön ayağını iterek başlangıca dön, diğer bacakla tekrarla."],er:["Gövdenin öne eğilmesi","Ön dizin içe çökmesi"],br:"İnerken al, kalkarken ver.",ez:"Dambılsız yap.",zr:"Daha ağır dambıl."}};
 Object.keys(DBX).forEach(function(k){SPD[k]=DBX[k]});
 SPD.mekik.f=[{a:[60,290,180,60,150],ft:0,gr:["P","F"],ax:"P"},{a:[60,290,150,70,160],ft:0,gr:["P","F"],ax:"P"}];
 SPD.bisiklet.f=[{a:[100,330,162,105,340],l2:[15,10],ft:0,gr:["P"],ax:"P"},{a:[15,10,162,105,340],l2:[100,330],ft:0,gr:["P"],ax:"P"}];
 SPD.legraise.f=[{a:[0,0,180,5,0],ft:0,gr:["P","S"],ax:"P"},{a:[90,90,180,5,0],ft:0,gr:["P","S"],ax:"P"}];
 SPD.superman.f=[{a:[0,0,180,180,180],ft:0,gr:["P","S"],ax:"P"},{a:[12,12,172,162,162],ft:0,gr:["P"],ax:"P"}];
-SPT.push({id:"dambil",n:"Dambıl ile tüm vücut · haftada 3 gün",d:{1:["goblet","dbpress","dbrow","hammer"],3:["rdl","gogpress","trikspres","dblunge"],5:["goblet","dbrow","onekaldir","kickback","mekik"]}});
+SPT.push({id:"halter3",n:"Halter ve plaka · haftada 3 gün",d:{1:["hlt_squat","bench","hlt_row","plank"],3:["hlt_dead","hlt_ohp","pl_goblet","mekik"],5:["hlt_squat","bench","hlt_curl","pl_front"]}},
+ {id:"dambil",n:"Dambıl ile tüm vücut · haftada 3 gün",d:{1:["goblet","dbpress","dbrow","hammer"],3:["rdl","gogpress","trikspres","dblunge"],5:["goblet","dbrow","onekaldir","kickback","mekik"]}});
 function spVid(x){return"https://www.youtube.com/results?search_query="+encodeURIComponent(x.n+" egzersiz hareketi doğru form nasıl yapılır")}
 function spInfo(id){var x=spEx(id);if(!x)return;var d=SPD[id]||{},body='';
  if(d.f)body+='<div class="fig-box">'+figSvg(id,230,true)+'</div>';
@@ -1368,7 +1536,7 @@ function spBeep(f,ms){try{if(!SPM||SP().beep===false)return;var C=window.AudioCo
 function spmAwake(on){try{if(on&&navigator.wakeLock&&!SPWL)navigator.wakeLock.request("screen").then(function(l){SPWL=l;if(l.addEventListener)l.addEventListener("release",function(){SPWL=null})}).catch(function(){});if(!on&&SPWL){SPWL.release();SPWL=null}}catch(e){}}
 document.addEventListener("visibilitychange",function(){if(SPM&&SPMO&&!document.hidden)spmAwake(true)});
 function spmSay(t){try{if(SPM&&!SPM.paused&&SP().voice)speakOut(t)}catch(e){}}
-function spmRestFor(x){var q=SPD[x.id]&&SPD[x.id].eq;return SPM&&SPM.rest?SPM.rest:q==="Dambıl"?90:x.g==="Kardiyo"?30:45}
+function spmRestFor(x){var q=SPD[x.id]&&SPD[x.id].eq;return SPM&&SPM.rest?SPM.rest:q==="Halter"?120:spWtd(x.id)?90:x.g==="Kardiyo"?30:45}
 function spmSteps(){var lg=SP().log[key(today())]||{},list=spTodayList(),st=[];list.forEach(function(e,ix){var x=spEx(e.e);if(!x)return;var s=e.s||x.s,ds=(lg.sets&&lg.sets[ix])||[];for(var j=0;j<s;j++)st.push({ix:ix,j:j,s:s,x:x,e:e,done:!!ds[j]})});return st}
 function spmQueue(kind){var gs={},ids=[];spTodayList().forEach(function(e){var x=spEx(e.e);if(x)gs[x.g]=1});var up=gs["Göğüs"]||gs["Omuz"]||gs["Kol"]||gs["Sırt"],lo=gs["Bacak"]||gs["Kardiyo"],cr=gs["Karın"]||gs["Sırt"],q=[];
  function add(id,sec,side){var x=spEx(id);if(!x)return;q.push({x:{id:x.id,n:x.n+(side?" · "+side:""),g:x.g,u:"sn",r:sec,note:x.note},r:sec})}
@@ -1380,7 +1548,7 @@ function spmDur(c){var r=c.e.r||c.x.r;return c.x.u==="dk"?r*60:r}
 function spmPhase(ph,ms){SPM.ph=ph;SPM.tot=ms||0;SPM.end=ms?Date.now()+ms:0;SPM.lastl=null;SPM.rem=0}
 function spmEnter(){var q=spmCur();if(!q.c){if(SPM.stage==="wu"){SPM.stage="main";spmEnter();return}if(SPM.stage==="cd"){spmFinal();return}spmEnd();return}var c=q.c,x=c.x,pr=spPrList(x.id),lw=SPM.lastw[x.id],ld=pr[pr.length-1];
  SPM.cw=lw?lw.w:(ld?ld.w||0:0);SPM.cr=lw?lw.r:(ld&&ld.r?ld.r:(c.e.r||x.r));
- SPM.track=x.u==="tekrar"&&((SPD[x.id]&&SPD[x.id].eq==="Dambıl")||pr.some(function(p){return p.w>0}));
+ SPM.track=x.u==="tekrar"&&(spWtd(x.id)||pr.some(function(p){return p.w>0}));
  if(x.u!=="tekrar"){spmPhase("ready",3000);spmSay(x.n+", "+spmDur(c)+(x.u==="dk"?" dakika":" saniye"))}
  else{spmPhase("work",0);spmSay(x.n+", "+(c.j+1)+". set, "+(c.e.r||x.r)+" tekrar")}
  spmPaint()}
@@ -3282,7 +3450,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("eye")+'E-ink modu<div class="mute">Siyah-beyaz ve sade; yalnız Bugün, okuma ve çalışma. Yalnız bu cihazda geçerli.</div></span><button class="btn sm'+(ei()?"":" ghost")+'" data-a="einktog">'+(ei()?"Açık":"Kapalı")+'</button></div><div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #123'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':(/Electron\//.test(navigator.userAgent)?' · bilgisayar':''))+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #124'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':(/Electron\//.test(navigator.userAgent)?' · bilgisayar':''))+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -4315,7 +4483,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("123",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("124",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 var DESK=/Electron\//.test(navigator.userAgent);
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
