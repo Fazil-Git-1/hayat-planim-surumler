@@ -3027,7 +3027,57 @@ function speakOut(t,onDone){var od0=onDone;onDone=function(){mSpeak(false);if(od
  if(onDone)setTimeout(onDone,Math.min(8000,800+t.length*55))}
 function stopSpeak(){TTS_CB=null;mSpeak(false);try{if(NB&&NB.stopSpeak)NB.stopSpeak()}catch(e){}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}}
 function micOn(on){if(on)mood("listen");else moodOff("listen");[].forEach.call(document.querySelectorAll(".chat .mic,#cho .mic"),function(b){b.classList.toggle("on",on)})}
+/* Vosk "otuz üç sübhanallah" gibi sayıları yazıyla verir; komut anlayıcı rakam bekler. */
+var TRN1={"sıfır":0,"bir":1,"iki":2,"üç":3,"dört":4,"beş":5,"altı":6,"yedi":7,"sekiz":8,"dokuz":9},TRN10={"on":10,"yirmi":20,"otuz":30,"kırk":40,"elli":50,"altmış":60,"yetmiş":70,"seksen":80,"doksan":90};
+var TRNU=/^(buçuk|lira|tl|sayfa|saat|kere|kez|defa|dakika|dk|gün|hafta|ay|yıl|set|tekrar|kilo|kg|adet|tane|bardak|sn|saniye)/;
+function trNumW(w){var m,k;if(w==="yüzde")return null;for(k in TRN1){if(w===k)return{v:TRN1[k],t:"u",s:""}}for(k in TRN10){if(w===k)return{v:TRN10[k],t:"t",s:""}}
+ if(w==="yüz")return{v:100,t:"h",s:""};if(w==="bin")return{v:1000,t:"k",s:""};if(w==="milyon")return{v:1e6,t:"m",s:""};
+ var all=Object.keys(TRN1).concat(Object.keys(TRN10),["yüz","bin"]).sort(function(a,b){return b.length-a.length});
+ for(var i=0;i<all.length;i++){var b=all[i];if(w.indexOf(b)===0&&w.length>b.length){var sf=w.slice(b.length);if(/^(y?[ae]|y?[ıiuü]|[dt][ae]|[dt][ae]n|n[ıiuü]n|[ıiuü]n|ncı|nci|ncu|ncü|ıncı|inci|uncu|üncü|lık|lik|luk|lük)$/.test(sf)){var r=trNumW(b);r.s=/^(ncı|nci|ncu|ncü|ıncı|inci|uncu|üncü)$/.test(sf)?".":sf;return r}}}
+ return null}
+function trNum(s){var w=String(s||"").trim().split(/\s+/),out=[],i=0;
+ while(i<w.length){var r=trNumW(w[i]);if(!r){out.push(w[i]);i++;continue}
+  var tot=0,grp=0,j=i,last=null,suf="",cnt=0;
+  while(j<w.length){var q=trNumW(w[j]);if(!q)break;
+   if(q.t==="u"){if(last==="u"||last==="t"&&grp%10)break;grp+=q.v}
+   else if(q.t==="t"){if(last==="u"||last==="t")break;grp+=q.v}
+   else if(q.t==="h"){grp=(grp||1)*100}
+   else if(q.t==="k"){tot+=(grp||1)*1000;grp=0}
+   else if(q.t==="m"){tot+=(grp||1)*1e6;grp=0}
+   last=q.t;cnt++;j++;if(q.s){suf=q.s;break}}
+  var val=tot+grp,nx=w[j]||"",prev=out[out.length-1]||"";
+  if(cnt===1&&w[i]==="bir"&&!TRNU.test(nx)&&prev!=="saat"){out.push(w[i]);i++;continue}
+  out.push(String(val)+suf);i=j}
+ return out.join(" ")}
+/* ===== İnternetsiz ses (Vosk, deneme): PC'de model uygulamanın içinde; telefonda istenirse bir kez indirilir ===== */
+var VOSK={m:null,p:null},VOSK_DL="https://github.com/Fazil-Git-1/hayat-planim-surumler/releases/download/vosk-tr-0.3/vosk-model.tar.gz";
+function voskCfg(){try{return JSON.parse(localStorage.getItem("hp.vosk")||"{}")||{}}catch(e){return{}}}
+function voskCfgSet(o){var c=Object.assign(voskCfg(),o);try{localStorage.setItem("hp.vosk",JSON.stringify(c))}catch(e){}return c}
+function voskUrl(){var vp=(location.search.match(/[?&]vp=(\d+)/)||[])[1];if(DESK)return vp?"http://127.0.0.1:"+vp+"/vosk-model.tar.gz":null;if(isNative())return voskCfg().uri||null;return null}
+function voskCan(){return!!voskUrl()&&!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)&&typeof WebAssembly!=="undefined"&&!!(window.AudioContext||window.webkitAudioContext)}
+function voskWant(){if(!voskCan())return false;if(DESK)return true;var c=voskCfg();return c.mode==="always"||(c.mode!=="off"&&navigator.onLine===false)}
+function voskLib(){if(window.Vosk)return Promise.resolve(window.Vosk);return new Promise(function(res,rej){var s=document.createElement("script");s.src="vendor/vosk.js";s.onload=function(){window.Vosk?res(window.Vosk):rej(new Error("kütüphane yok"))};s.onerror=function(){rej(new Error("kütüphane yüklenemedi"))};document.head.appendChild(s)})}
+function voskModel(){if(VOSK.m)return Promise.resolve(VOSK.m);if(VOSK.p)return VOSK.p;var u=voskUrl();if(!u)return Promise.reject(new Error("model yok"));toast("İnternetsiz ses modeli hazırlanıyor (ilk seferde birkaç saniye)…");
+ VOSK.p=voskLib().then(function(V){return new Promise(function(res,rej){var m,to=setTimeout(function(){try{m&&m.terminate()}catch(e){}rej(new Error("model yüklenemedi (zaman aşımı)"))},90000);try{m=new V.Model(u)}catch(e){clearTimeout(to);rej(e);return}m.on("load",function(msg){clearTimeout(to);if(msg&&msg.result)res(m);else rej(new Error("model açılamadı"))});m.on("error",function(msg){clearTimeout(to);rej(new Error(String(msg&&msg.error||"model hatası").slice(0,80)))})})}).then(function(m){VOSK.m=m;return m}).catch(function(e){VOSK.p=null;throw e});return VOSK.p}
+function voskPartial(p){var i=document.getElementById("chatin2")||document.querySelector("#cho input[type=text]");if(i&&document.activeElement!==i)i.value=trNum(p)+" …"}
+function voskListen(fin){var done=false,st=null,ctx=null,node=null,src=null,rec=null,to=null,part="";VOSK.stop=function(){end(part)};
+ var end=function(txt){if(done)return;done=true;VOSK.stop=null;clearTimeout(to);try{node&&node.disconnect();src&&src.disconnect()}catch(e){}try{st&&st.getTracks().forEach(function(t){t.stop()})}catch(e){}try{ctx&&ctx.close()}catch(e){}try{rec&&rec.remove()}catch(e){}var i=document.getElementById("chatin2");if(i&&/ …$/.test(i.value))i.value="";fin(trNum(txt||""))};
+ voskModel().then(function(m){return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,channelCount:1}}).then(function(s){if(done){s.getTracks().forEach(function(t){t.stop()});return}
+  st=s;ctx=new(window.AudioContext||window.webkitAudioContext)();rec=new m.KaldiRecognizer(ctx.sampleRate);
+  rec.on("result",function(msg){var t=msg&&msg.result&&msg.result.text;if(t&&t.trim())end(t)});
+  rec.on("partialresult",function(msg){var p=msg&&msg.result&&msg.result.partial;if(p&&p!==part){part=p;voskPartial(p)}});
+  node=ctx.createScriptProcessor(4096,1,1);node.onaudioprocess=function(ev){if(!done)try{rec.acceptWaveform(ev.inputBuffer)}catch(e){}};src=ctx.createMediaStreamSource(s);src.connect(node);node.connect(ctx.destination);
+  to=setTimeout(function(){end(part)},15000)})}).catch(function(e){var m=String(e&&e.message||e);end("");toast(/Permission|NotAllowed|denied/i.test(m)?"Mikrofon izni yok. Windows › Ayarlar › Gizlilik › Mikrofon'dan masaüstü uygulamalarına izin ver.":"İnternetsiz ses çalışmadı: "+m.slice(0,60))})}
+async function voskDownload(){if(!FS||!FS.downloadFile){toast("Bu telefonda indirme yapılamadı");return}if(VOSK.dl)return;VOSK.dl=1;toast("İnternetsiz ses modeli indiriliyor (~35 MB, bir kez)…");render();
+ try{await FS.downloadFile({url:VOSK_DL,path:"vosk-model.tar.gz",directory:"DATA"});var u=await FS.getUri({path:"vosk-model.tar.gz",directory:"DATA"});voskCfgSet({uri:Cap.convertFileSrc(u.uri),mode:voskCfg().mode||"offline",at:Date.now()});VOSK.m=null;VOSK.p=null;toast("İnternetsiz ses hazır ✓")}
+ catch(e){toast("İndirilemedi: "+String(e&&e.message||e).slice(0,60))}VOSK.dl=0;render()}
+function voskCardHtml(){var c=voskCfg(),h='<div class="card"><b>🎙 İnternetsiz konuşma <span class="badge">deneme</span></b>';
+ if(DESK)return h+'<div class="mute" style="margin:4px 0 8px">Bilgisayarda konuşma, uygulamanın içindeki Türkçe modelle (Vosk) internetsiz çalışır. Google kadar iyi duymayabilir; kısa ve net cümleler en iyisi.</div>'+(voskCan()?'<button class="btn ghost sm" data-a="vosktest">🎤 Dene</button>':'<div class="mute">Model bu kurulumda bulunamadı.</div>')+'</div>';
+ if(!isNative())return h+'<div class="mute" style="margin:4px 0 0">Tarayıcıda konuşma Chrome\'un kendi tanımasıyla (internetle) çalışır. İnternetsiz konuşma telefon ve bilgisayar uygulamasında var.</div></div>';
+ if(!c.uri)return h+'<div class="mute" style="margin:4px 0 8px">İnternet yokken de konuşabilmen için Türkçe ses modeli (Vosk, ~35 MB) bir kez indirilir. İnternet varken Google\'ın tanıması kullanılmaya devam eder; o daha iyi duyar.</div><button class="btn sm" data-a="voskdl"'+(VOSK.dl?' disabled':'')+'>'+(VOSK.dl?"İndiriliyor…":"Modeli indir (~35 MB)")+'</button></div>';
+ var md=c.mode||"offline";return h+'<div class="mute" style="margin:4px 0 8px">Model hazır. Ne zaman kullanılsın?</div><div class="chips" style="margin:0 0 8px">'+[["offline","Yalnız internet yokken"],["always","Her zaman"],["off","Hiç"]].map(function(x){return'<button class="chip'+(md===x[0]?" on":"")+'" data-a="voskmode" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</div><button class="btn ghost sm" data-a="vosktest">🎤 Dene</button></div>'}
 function listenOnce(cb){micOn(true);buzz();var fin=function(t){micOn(false);cb(String(t||"").trim())};
+ if(voskWant()){voskListen(fin);return}
  if(NB&&NB.listen){NB.listen({prompt:mName()+" dinliyor…"}).then(function(r){fin(r&&r.text)}).catch(function(){fin("");toast("Telefonda konuşma tanıma bulunamadı. Google uygulamasının yüklü olduğundan emin ol.")});return}
  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(SR){var rc=new SR();rc.lang="tr-TR";rc.interimResults=false;rc.maxAlternatives=1;rc.onresult=function(ev){fin(ev.results[0][0].transcript)};rc.onerror=function(){fin("")};try{rc.start()}catch(e){fin("")}return}
@@ -3579,7 +3629,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-maskot" style="margin-top:26px"><h2>Maskot</h2></div>';
  h+='<div class="card"><div class="row"><span class="sp"><b>'+mDef().e+' '+esc(mName())+'</b><div class="mute">Gün içinde hatırlatma yapan yol arkadaşın.</div></span></div><label class="mute" style="display:block;margin:12px 0 6px">Nerede görünsün?</label>'+modePicker()+'<label class="mute" style="display:block;margin:12px 0 0">Tasarım</label>'+mascotPicker()+'<label class="mute" style="display:block;margin:10px 0 4px">Maskotun adı</label><input type="text" id="smname" value="'+esc(mName())+'"></div>';
  var hrs=[];for(var q=0;q<24;q++)hrs.push(q);
- h+='<div class="card"><b>'+esc(mName())+' ayarları</b><div class="row" style="margin-top:10px"><span class="sp">Sesler ve titreşim<div class="mute">Cik cik, sevinç ve tepki sesleri</div></span><button class="btn ghost sm" data-a="msnd">'+(S.settings.msound===false?"Aç":"Kapat")+'</button></div><div class="row" style="margin-top:10px"><span class="sp">Konuşma sıklığı</span><select id="severy" style="width:auto">'+[[10,"10 dakikada bir"],[20,"20 dakikada bir"],[30,"30 dakikada bir"],[60,"Saatte bir"],[0,"Konuşmasın"]].map(function(o){return'<option value="'+o[0]+'"'+((S.settings.every==null?20:S.settings.every)==o[0]?" selected":"")+'>'+o[1]+'</option>'}).join("")+'</select></div><div class="row" style="margin-top:8px"><span class="sp">Sessiz saatler</span><select id="sqf" style="width:auto">'+hrs.map(function(x){return'<option value="'+x+'"'+(S.settings.quietFrom==x?" selected":"")+'>'+String(x).padStart(2,"0")+':00</option>'}).join("")+'</select><span>–</span><select id="sqt" style="width:auto">'+hrs.map(function(x){return'<option value="'+x+'"'+(S.settings.quietTo==x?" selected":"")+'>'+String(x).padStart(2,"0")+':00</option>'}).join("")+'</select></div><div class="mute" style="margin-top:6px">Sessiz saatlerde '+esc(mName())+' uyur, konuşmaz.</div></div>'+ttsCardHtml();
+ h+='<div class="card"><b>'+esc(mName())+' ayarları</b><div class="row" style="margin-top:10px"><span class="sp">Sesler ve titreşim<div class="mute">Cik cik, sevinç ve tepki sesleri</div></span><button class="btn ghost sm" data-a="msnd">'+(S.settings.msound===false?"Aç":"Kapat")+'</button></div><div class="row" style="margin-top:10px"><span class="sp">Konuşma sıklığı</span><select id="severy" style="width:auto">'+[[10,"10 dakikada bir"],[20,"20 dakikada bir"],[30,"30 dakikada bir"],[60,"Saatte bir"],[0,"Konuşmasın"]].map(function(o){return'<option value="'+o[0]+'"'+((S.settings.every==null?20:S.settings.every)==o[0]?" selected":"")+'>'+o[1]+'</option>'}).join("")+'</select></div><div class="row" style="margin-top:8px"><span class="sp">Sessiz saatler</span><select id="sqf" style="width:auto">'+hrs.map(function(x){return'<option value="'+x+'"'+(S.settings.quietFrom==x?" selected":"")+'>'+String(x).padStart(2,"0")+':00</option>'}).join("")+'</select><span>–</span><select id="sqt" style="width:auto">'+hrs.map(function(x){return'<option value="'+x+'"'+(S.settings.quietTo==x?" selected":"")+'>'+String(x).padStart(2,"0")+':00</option>'}).join("")+'</select></div><div class="mute" style="margin-top:6px">Sessiz saatlerde '+esc(mName())+' uyur, konuşmaz.</div></div>'+ttsCardHtml()+voskCardHtml();
  if(LN){h+='<div class="lh" id="sec-bildirim" style="margin-top:26px"><h2>Bildirimler</h2></div>';}
  h+=wpCardHtml();
  if(LN)h+='<div class="card"><div class="row"><span class="sp">'+Ii("bell")+'Telefon bildirimleri</span><button class="btn ghost sm" data-a="ntog">'+(S.settings.notif===false?"Aç":"Kapat")+'</button></div>'+(S.settings.notif===false?'':'<div class="row" style="margin-top:10px"><span class="sp">Sabah hatırlatması</span><input type="time" id="tmorning" value="'+(S.settings.morning||"08:00")+'" style="width:auto"></div><div class="row" style="margin-top:8px"><span class="sp">Akşam özeti</span><input type="time" id="tevening" value="'+(S.settings.evening||"21:00")+'" style="width:auto"></div><div class="mute" style="margin-top:6px">Özel günlerde saat 10:00\'da ayrıca hatırlatma gelir.</div>')+'</div>';
@@ -3592,7 +3642,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("eye")+'E-ink modu<div class="mute">Siyah-beyaz ve sade; yalnız Bugün, okuma ve çalışma. Yalnız bu cihazda geçerli.</div></span><button class="btn sm'+(ei()?"":" ghost")+'" data-a="einktog">'+(ei()?"Açık":"Kapalı")+'</button></div><div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #127'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':(/Electron\//.test(navigator.userAgent)?' · bilgisayar':''))+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #128'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':(/Electron\//.test(navigator.userAgent)?' · bilgisayar':''))+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -4335,6 +4385,9 @@ document.addEventListener("click",function(e){
  case"nlufix":nluFixGo(v);return;
  case"nlufixtxt":(function(){var F=NLUFIX;NLUFIX=null;closeAllSheets();if(F){aiFeedback.txt=1;aiFeedback(F.m.at,false)}})();return;
  case"nludel":(function(){var u=nluUser().filter(function(x){return nluFold(x[1])!==v});NLU.user=u;NLU.dirty=true;try{localStorage.setItem("hp.nlu",JSON.stringify(u))}catch(e){}render();toast("Unuttu")})();return;
+ case"voskdl":voskDownload();return;
+ case"voskmode":voskCfgSet({mode:v});render();toast(v==="off"?"İnternetsiz konuşma kapalı":v==="always"?"Konuşma hep internetsiz modelle":"İnternet yokken internetsiz modele geçer");return;
+ case"vosktest":micOn(true);voskListen(function(t){micOn(false);toast(t?"Duyduğum: “"+t+"”":"Bir şey duyamadım, tekrar dene.")});return;
  case"einktog":S.settings.eink=ei()?0:1;save();tab=ei()?"odak":"pano";setOpen=false;render();window.scrollTo(0,0);toast(ei()?"E-ink modu açık":"E-ink modu kapalı");return;
  case"openset":setOpen=true;render();window.scrollTo(0,0);return;
  case"closeset":setOpen=false;render();window.scrollTo(0,0);return;
@@ -4643,7 +4696,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("127",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("128",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 var DESK=/Electron\//.test(navigator.userAgent);
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
