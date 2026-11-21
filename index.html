@@ -412,9 +412,14 @@ body.tbopen .over{z-index:60}
  .cgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}.cgrid>.card{margin:0}
 }
 @media (min-width:1200px){
- .wkgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;align-items:start}
- .wkgrid>.card{margin:0;padding:10px 10px 12px;min-height:180px}.wkgrid .dh{flex-direction:column;align-items:flex-start;gap:0}
- .wkgrid .hn{font-size:14px}.wkgrid .dh .mute{font-size:11.5px}.wkgrid textarea{min-height:56px;font-size:13px}.wkgrid .btn{padding:6px 10px;font-size:13px}
+ body.wtab.wkw #app{max-width:min(1760px,calc(100vw - 270px));margin-left:max(234px,calc(50% - 880px + 105px))}
+ .wkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;align-items:start}
+ .wkgrid>.card{margin:0;padding:12px 12px 14px;min-height:160px;min-width:0}
+ .wkgrid .dh{flex-direction:column;align-items:flex-start;gap:0}.wkgrid .hn{font-size:14px}.wkgrid .dh .mute{font-size:11.5px}
+ .wkgrid .tmv{display:none}
+ .wkgrid .row{gap:8px;min-width:0}.wkgrid .sp{min-width:0;overflow-wrap:break-word;word-break:normal;hyphens:auto;font-size:14px;line-height:1.35}
+ .wkgrid .chk{width:22px;height:22px;flex:none}.wkgrid .tmeta{gap:4px 6px;font-size:11.5px}.wkgrid .mod-chip{max-width:100%;overflow:hidden;text-overflow:ellipsis;font-size:11px;padding:2px 7px}
+ .wkgrid textarea{min-height:52px;font-size:13px}.wkgrid .btn{padding:6px 10px;font-size:13px}
 }
 .mod-chip[style*="--mc"]{background:color-mix(in srgb,var(--mc) 15%,transparent);color:color-mix(in srgb,var(--mc) 78%,var(--ink))}
 body.eink .mod-chip{background:#fff!important;color:#000!important;border:1px solid #000}
@@ -1785,7 +1790,7 @@ function taskList(k){
  var L=peek(k),h="";
  actsOf("gun").forEach(function(x){var on=!!L.a[x.id];h+='<div class="row" style="padding:5px 0"><button class="chk'+(on?" on":"")+'" data-a="atog" data-k="'+k+'" data-id="'+x.id+'">'+(on?"✓":"")+'</button><span class="sp'+(on?" done":"")+'">'+esc(x.t)+' <span class="mute">'+x.ico+' günlük</span></span></div>'});
  bigSorted(L).forEach(function(o){var b=o.b,i=o.i;
-  if(b.moved){h+='<div class="row" style="padding:5px 0"><span class="mute" style="width:26px;text-align:center">↪</span><span class="sp done">'+esc(b.t)+'</span><span class="mute">taşındı</span></div>';return}
+  if(b.moved){h+='<div class="row tmv" style="padding:5px 0"><span class="mute" style="width:26px;text-align:center">↪</span><span class="sp done">'+esc(b.t)+'</span><span class="mute">taşındı</span></div>';return}
   var op=TOPEN===k+"|"+i,tmT=(b.tm||"")+(b.dur?(b.tm?" · ":"")+b.dur+" dk":""),mc=modChip(b,k,i);
   var meta=(b.imp?'<span class="timp">★ Önemli</span>':'')+(b.sub&&b.sub.length?'<span class="ttm">'+subCount(b).d+'/'+subCount(b).n+' adım</span>':'')+(tmT?'<span class="ttm">'+esc(tmT)+'</span>':'')+mc+(b.from?'<span>↪ önceki günden</span>':'');
   h+='<div class="trow'+(op?" open":"")+(b.imp?" imp":"")+'"><button class="chk'+(b.done?" on":"")+(b.done&&TICKED===k+"|"+i?" pop":"")+'" data-a="ttog" data-k="'+k+'" data-i="'+i+'">'+(b.done?"✓":"")+'</button><div class="tbody" data-a="texp" data-k="'+k+'" data-i="'+i+'" role="button" aria-expanded="'+(op?"true":"false")+'"><span class="ttl'+(b.done?" done":"")+'">'+esc(b.t)+'</span>'+(meta?'<span class="tmeta">'+meta+'</span>':'')+
@@ -3645,7 +3650,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("eye")+'E-ink modu<div class="mute">Siyah-beyaz ve sade; yalnız Bugün, okuma ve çalışma. Yalnız bu cihazda geçerli.</div></span><button class="btn sm'+(ei()?"":" ghost")+'" data-a="einktog">'+(ei()?"Açık":"Kapalı")+'</button></div><div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #130'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':(/Electron\//.test(navigator.userAgent)?' · bilgisayar':''))+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #131'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':(/Electron\//.test(navigator.userAgent)?' · bilgisayar':''))+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -4039,7 +4044,7 @@ function chipFade(){document.querySelectorAll("#app .chips").forEach(function(c)
 function render(){
  if(!window._eu){window._eu=1;if(/[?&]eink=1/.test(location.search)&&S.settings&&!S.settings.eink){S.settings.eink=1;try{save()}catch(e){}}}
  document.body.classList.toggle("eink",ei());
- document.body.classList.toggle("wtab",!setOpen&&(tab==="pano"||tab==="odak"||tab==="hafta"));
+ document.body.classList.toggle("wtab",!setOpen&&(tab==="pano"||tab==="odak"||tab==="hafta"));document.body.classList.toggle("wkw",!setOpen&&tab==="hafta"&&weekMode==="hafta");
  if(ei()&&(tab==="hafta"||tab==="hud"))tab="pano";
  setTimeout(chipFade,30);
  try{autoSync()}catch(e){}
@@ -4702,7 +4707,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("130",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("131",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 var DESK=/Electron\//.test(navigator.userAgent),DESKU=null;
 try{if(window.hpDesk){hpDesk.get().then(function(u){DESKU=u;deskUpdPaint()});hpDesk.on(function(u){var was=DESKU&&DESKU.st;DESKU=u;deskUpdPaint();if(u.st==="ready"&&was!=="ready"&&!u.hold)deskCountdown()})}}catch(e){}
 function deskCountdown(){var old=document.getElementById("dkcd");if(old)old.remove();var n=15,d=document.createElement("div");d.id="dkcd";d.className="dkcd";document.body.appendChild(d);
