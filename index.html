@@ -418,6 +418,9 @@ body.tbopen .over{z-index:60}
 }
 .mod-chip[style*="--mc"]{background:color-mix(in srgb,var(--mc) 15%,transparent);color:color-mix(in srgb,var(--mc) 78%,var(--ink))}
 body.eink .mod-chip{background:#fff!important;color:#000!important;border:1px solid #000}
+
+.dkcd{position:fixed;left:50%;transform:translateX(-50%);top:16px;z-index:80;display:flex;align-items:center;gap:10px;background:var(--acc);color:var(--card);padding:10px 14px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:14px}
+.dkcd .btn{padding:6px 12px}.dkcd .btn:not(.ghost){background:var(--card);color:var(--acc)}.dkcd .btn.ghost{background:transparent;color:var(--card);border:1px solid color-mix(in srgb,var(--card) 50%,transparent)}.dkcd .i{width:16px;height:16px;vertical-align:-3px}
 </style>
 </head>
 <body>
@@ -3642,7 +3645,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("eye")+'E-ink modu<div class="mute">Siyah-beyaz ve sade; yalnız Bugün, okuma ve çalışma. Yalnız bu cihazda geçerli.</div></span><button class="btn sm'+(ei()?"":" ghost")+'" data-a="einktog">'+(ei()?"Açık":"Kapalı")+'</button></div><div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #129'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':(/Electron\//.test(navigator.userAgent)?' · bilgisayar':''))+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #130'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':(/Electron\//.test(navigator.userAgent)?' · bilgisayar':''))+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -4390,6 +4393,7 @@ document.addEventListener("click",function(e){
  case"vosktest":micOn(true);voskListen(function(t){micOn(false);toast(t?"Duyduğum: “"+t+"”":"Bir şey duyamadım, tekrar dene.")});return;
  case"dkcheck":if(window.hpDesk){DESKU=Object.assign({},DESKU||{},{st:"checking"});deskUpdPaint();hpDesk.check().then(function(u){DESKU=u;deskUpdPaint()})}else toast("Bu kurulum eski; yeni sürümü bir kez elle kur.");return;
  case"dkinstall":if(window.hpDesk)hpDesk.install();return;
+ case"dkhold":(function(){var d=document.getElementById("dkcd");if(d){clearInterval(d._t);d.remove()}if(window.hpDesk&&hpDesk.postpone)hpDesk.postpone();toast("Ertelendi: uygulamayı kapattığında kurulacak.")})();return;
  case"einktog":S.settings.eink=ei()?0:1;save();tab=ei()?"odak":"pano";setOpen=false;render();window.scrollTo(0,0);toast(ei()?"E-ink modu açık":"E-ink modu kapalı");return;
  case"openset":setOpen=true;render();window.scrollTo(0,0);return;
  case"closeset":setOpen=false;render();window.scrollTo(0,0);return;
@@ -4698,13 +4702,16 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("129",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("130",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 var DESK=/Electron\//.test(navigator.userAgent),DESKU=null;
-try{if(window.hpDesk){hpDesk.get().then(function(u){DESKU=u;deskUpdPaint()});hpDesk.on(function(u){var was=DESKU&&DESKU.st;DESKU=u;deskUpdPaint();if(u.st==="ready"&&was!=="ready"&&typeof render==="function")render()})}}catch(e){}
+try{if(window.hpDesk){hpDesk.get().then(function(u){DESKU=u;deskUpdPaint()});hpDesk.on(function(u){var was=DESKU&&DESKU.st;DESKU=u;deskUpdPaint();if(u.st==="ready"&&was!=="ready"&&!u.hold)deskCountdown()})}}catch(e){}
+function deskCountdown(){var old=document.getElementById("dkcd");if(old)old.remove();var n=15,d=document.createElement("div");d.id="dkcd";d.className="dkcd";document.body.appendChild(d);
+ var paint=function(){d.innerHTML='<span>'+Ii("bell")+' Yeni sürüm #'+esc(String(DESKU&&DESKU.nv||"").split(".").pop())+' kuruluyor · <b>'+n+'</b> sn sonra yeniden başlıyor</span><button class="btn sm" data-a="dkinstall">Şimdi</button><button class="btn ghost sm" data-a="dkhold">Ertele</button>'};paint();
+ var t=setInterval(function(){n--;if(n<=0||!document.body.contains(d)){clearInterval(t);return}paint()},1000);d._t=t}
 function deskUpdTxt(){var u=DESKU;if(!u)return window.hpDesk?"Durum alınıyor…":"Bu kurulum güncelleme durumunu gösteremiyor (sürüm #127 ya da öncesi). Bir kez yeni sürümü elle kur.";
  return{idle:"Henüz denetlenmedi.",checking:"Denetleniyor…",latest:"Güncel ✓ (son denetim "+new Date(u.at).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})+")",downloading:"Yeni sürüm #"+String(u.nv||"").split(".").pop()+" iniyor… %"+(u.pct||0),ready:"Yeni sürüm #"+String(u.nv||"").split(".").pop()+" hazır. Yeniden başlatınca kurulur.",error:"Güncelleme hatası: "+(u.msg||"bilinmiyor")}[u.st]||u.st}
 function deskUpdPaint(){var e=document.getElementById("dkupd");if(e)e.textContent=deskUpdTxt();var b=document.getElementById("dkupdgo");if(b)b.hidden=!(DESKU&&DESKU.st==="ready")}
-function deskUpdCard(){if(!DESK)return"";var v=DESKU&&DESKU.ver?String(DESKU.ver).split(".").pop():"";return'<div class="card"><b>Bilgisayar uygulaması'+(v?' · sürüm #'+v:'')+'</b><div class="mute" id="dkupd" style="margin:4px 0 10px">'+esc(deskUpdTxt())+'</div><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost sm" data-a="dkcheck">Şimdi denetle</button><button class="btn sm" id="dkupdgo" data-a="dkinstall"'+(DESKU&&DESKU.st==="ready"?'':' hidden')+'>Yeniden başlat ve kur</button></div><div class="mute" style="margin-top:8px;font-size:12px">Uygulama açılışta ve 3 saatte bir kendisi bakar, arka planda indirir.</div></div>'}
+function deskUpdCard(){if(!DESK)return"";var v=DESKU&&DESKU.ver?String(DESKU.ver).split(".").pop():"";return'<div class="card"><b>Bilgisayar uygulaması'+(v?' · sürüm #'+v:'')+'</b><div class="mute" id="dkupd" style="margin:4px 0 10px">'+esc(deskUpdTxt())+'</div><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost sm" data-a="dkcheck">Şimdi denetle</button><button class="btn sm" id="dkupdgo" data-a="dkinstall"'+(DESKU&&DESKU.st==="ready"?'':' hidden')+'>Yeniden başlat ve kur</button></div><div class="mute" style="margin-top:8px;font-size:12px">Uygulama açılışta, öne geldiğinde ve yarım saatte bir kendisi bakar; inince 15 saniye içinde kendiliğinden kurulur.</div></div>'}
 function isNative(){return!!(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform())}
 async function checkUpdate(manual){
  if(DESK){if(manual)toast("Bilgisayar uygulaması kendini kendiliğinden günceller: yeni sürüm arka planda iner, hazır olunca sorar.");return}if(!isNative()||!SURUM){if(manual)toast("Güncelleme denetimi yalnızca telefon ve bilgisayar uygulamasında çalışır.");return}
