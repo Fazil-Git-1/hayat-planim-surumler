@@ -1392,7 +1392,7 @@ function ramInfo(d){var h=H(d);if(h.m===9)return{on:true,day:h.d};if(h.m===8&&h.
 function ramHtml(){var d=today(),ri=ramInfo(d);if(!ri||editing)return"";var k=key(d);S.ram=S.ram||{};var R=S.ram[k]||{};
  if(!ri.on)return'<div class="card banner"><b>🌙 Ramazan yaklaşıyor (~'+ri.left+' gün)</b><div class="mute" style="margin-top:4px">Ramazan başlayınca sahur/iftar saatleri, oruç ve teravih takibi burada görünür. Günde ~20 sayfa okursan ay içinde hatmedersin.</div></div>';
  var hl=hasLoc(),pt=hl?prayerTimes(d,S.settings.lat,S.settings.lng):[null,null,null,null,null],f2=function(t){return t?hhmm(t):"--:--"},now=new Date(),nx=!hl?null:pt[0]>now?pt[0]:pt[4]>now?pt[4]:null,left=hl?"":"Konum ekleyince vakitler görünür";
- if(nx){var m=Math.round((nx-now)/60000);left=(nx===pt[0]?"Sahura (imsaka) ":"İftara ")+Math.floor(m/60)+" sa "+(m%60)+" dk"}
+ if(nx){var m=Math.floor((nx-now)/60000);left=(nx===pt[0]?"Sahura (imsaka) ":"İftara ")+Math.floor(m/60)+" sa "+(m%60)+" dk"}
  var pg=S.hatim?S.hatim.page:0,tgt=Math.min(604,Math.ceil(604/30*ri.day));
  return'<div class="card banner ram"><div class="row" style="justify-content:space-between"><b>🌙 Ramazan '+ri.day+'. gün</b><span class="mute">'+esc(left)+'</span></div><div class="chips2" style="margin:8px 0"><button><b>'+f2(pt[0])+'</b><span class="mute">İmsak (sahur sonu)</span></button><button><b>'+f2(pt[4])+'</b><span class="mute">Akşam (iftar)</span></button></div><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm'+(R.oruc?'':' ghost')+'" data-a="ramtog" data-v="oruc">'+(R.oruc?'✓ ':'')+'Oruç</button><button class="btn sm'+(R.ter?'':' ghost')+'" data-a="ramtog" data-v="ter">'+(R.ter?'✓ ':'')+'Teravih</button></div><div class="mute" style="margin-top:8px">Hatim hedefi: bugüne kadar '+tgt+'. sayfa'+(S.hatim?' · sen '+pg+'. sayfadasın'+(pg>=tgt?" 👏":""):'')+'</div></div>'}
 function ramNotifs(){var o=[],now=new Date();if(S.settings.ramNot===false||!hasLoc())return o;
@@ -1410,7 +1410,7 @@ function wpCfg(){try{return JSON.parse(localStorage.getItem("hp_wp")||"null")||{
 function wpCan(){return!LN&&typeof Notification!=="undefined"&&"serviceWorker" in navigator&&"PushManager" in window}
 function wpKey(k){var p="=".repeat((4-k.length%4)%4),b=(k+p).replace(/-/g,"+").replace(/_/g,"/"),r=atob(b),o=new Uint8Array(r.length);for(var i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
 function wpList(){var o=[],now=new Date(),st=S.settings;for(var i=0;i<7;i++){var d=addDays(today(),i),L=peek(key(d)),m=at(d,st.morning||"08:00"),e=at(d,st.evening||"21:00");
- if(m>now)o.push({at:m.getTime(),title:mDef().e+" "+greet()+hi()+"!",body:L.big.length?"Bugün "+L.big.length+" iş planladın.":"Bugünün işlerini planlamayı unutma."});
+ if(m>now)o.push({at:m.getTime(),title:mDef().e+" "+greetAt(m)+hi()+"!",body:L.big.length?"Bugün "+L.big.length+" iş planladın.":"Bugünün işlerini planlamayı unutma."});
  if(e>now)o.push({at:e.getTime(),title:mDef().e+" Günün özeti",body:"Günü kapatma zamanı: 1 dakika sürer."});
  L.big.forEach(function(b,j){if(!b.tm||b.done||b.moved)return;var t=at(d,b.tm);if(t>now)o.push({at:t.getTime(),title:"📌 "+b.t,body:"Saat "+b.tm+" · "+mName()+" hatırlatıyor."})});
  S.habits.forEach(function(hb){if(!hb.time||!hOn(hb,key(d))||peek(key(d)).h[hb.id])return;var p=hb.time.split(":"),t=new Date(d.getFullYear(),d.getMonth(),d.getDate(),+p[0],+p[1]||0);if(t>now)o.push({at:t.getTime(),title:"⏰ "+hb.name,body:"Rutin zamanı. Yapınca işaretle ✓"})})}
@@ -2484,11 +2484,14 @@ function vkSegs(d){if(!hasLoc())return null;var pt=prayerTimes(d,S.settings.lat,
 function vkNow(){var sg=vkSegs(today());if(!sg)return null;var n=Date.now();if(n<sg[0].s.getTime()){var y=vkSegs(addDays(today(),-1));return{seg:{j:4,ad:VKA[4],s:y[4].s,e:sg[0].s},segs:sg}}for(var j=0;j<5;j++)if(n<sg[j].e.getTime())return{seg:sg[j],segs:sg};return{seg:sg[4],segs:sg}}
 function vkOfTm(tm,k){var sg=vkSegs(fromKey(k));if(!sg||!tm)return-1;var m=tmMin(tm);for(var j=4;j>=0;j--){var s=sg[j].s;if(m>=s.getHours()*60+s.getMinutes())return j}return 4}
 function taskVk(b,k){if(b.vk>=0&&b.vk<5)return b.vk;return b.tm?vkOfTm(b.tm,k):-1}
-function vkFmt(ms){var m=Math.max(0,Math.round(ms/60000));return m<60?m+" dk":Math.floor(m/60)+" sa"+(m%60?" "+(m%60)+" dk":"")}
+/* Sıradaki vakit (güneş dahil) — bildirimdeki sayaçla aynı hedef */
+var VSUF={"İmsak":"'a","Güneş":"'e","Öğle":"'ye","İkindi":"'ye","Akşam":"'a","Yatsı":"'ya"};
+function vkNext(){var nx=nextPrayer();return nx?{ad:nx.name,suf:nx.name+(VSUF[nx.name]||""),at:nx.at,ms:nx.at.getTime()-Date.now()}:null}
+function vkFmt(ms){var m=Math.max(0,Math.floor(ms/60000));return m<60?m+" dk":Math.floor(m/60)+" sa"+(m%60?" "+(m%60)+" dk":"")}
 function vkStrip(){var v=vkNow();if(!v||muaf(key(today())))return"";var c=v.seg,n=Date.now(),fr=Math.max(0,Math.min(1,(n-c.s.getTime())/Math.max(1,c.e.getTime()-c.s.getTime()))),k=key(today()),L=peek(k);
- var cnt=L.big.filter(function(b){return!b.moved&&!b.done&&taskVk(b,k)===c.j}).length,nxt=c.j<4?VKA[c.j+1]:"İmsak";
+ var cnt=L.big.filter(function(b){return!b.moved&&!b.done&&taskVk(b,k)===c.j}).length,NX=vkNext();
  var P=prayed(k),op=!!S.settings.vkOpen;
- return'<div class="vk'+(op?" open":"")+'" role="button" tabindex="0" data-a="vkopen" aria-expanded="'+op+'" aria-label="Günün vakitleri; dokun: vakit tablosu"><div class="vkbar">'+v.segs.map(function(s){var on=s.j===c.j,past=s.j<c.j;return'<span class="'+(on?"on":past?"p":"")+'"><i style="width:'+(on?Math.round(fr*100):past?100:0)+'%"></i></span>'}).join("")+'</div><div class="vkl">'+v.segs.map(function(s){return'<span'+(s.j===c.j?' class="on"':'')+'>'+s.ad+(P[VKI[s.j]]?' <i class="vok">✓</i>':'')+'</span>'}).join("")+'</div><div class="vkt"><b>'+c.ad+' vakti</b> · '+nxt+({"Öğle":"'ye","İkindi":"'ye","Akşam":"'a","Yatsı":"'ya","İmsak":"'a"}[nxt]||"")+' <b>'+vkFmt(c.e.getTime()-n)+'</b> <span class="mute">('+hhmm(c.e)+')</span>'+(cnt?' · <span class="vkc">bu vakitte '+cnt+' iş</span>':'')+'<span class="vkx" aria-hidden="true">'+(op?"⌃":"⌄")+'</span></div>'+(op?'<div class="vkpt" data-a="vknoop">'+namazHtml()+'</div>':'')+'</div>'}
+ return'<div class="vk'+(op?" open":"")+'" role="button" tabindex="0" data-a="vkopen" aria-expanded="'+op+'" aria-label="Günün vakitleri; dokun: vakit tablosu"><div class="vkbar">'+v.segs.map(function(s){var on=s.j===c.j,past=s.j<c.j;return'<span class="'+(on?"on":past?"p":"")+'"><i style="width:'+(on?Math.round(fr*100):past?100:0)+'%"></i></span>'}).join("")+'</div><div class="vkl">'+v.segs.map(function(s){return'<span'+(s.j===c.j?' class="on"':'')+'>'+s.ad+(P[VKI[s.j]]?' <i class="vok">✓</i>':'')+'</span>'}).join("")+'</div><div class="vkt"><b>'+c.ad+' vakti</b> · '+(NX?NX.suf+' <b>'+vkFmt(NX.ms)+'</b> <span class="mute">('+hhmm(NX.at)+')</span>':'')+(cnt?' · <span class="vkc">bu vakitte '+cnt+' iş</span>':'')+'<span class="vkx" aria-hidden="true">'+(op?"⌃":"⌄")+'</span></div>'+(op?'<div class="vkpt" data-a="vknoop">'+namazHtml()+'</div>':'')+'</div>'}
 function takeVk(txt){var R=[[/(?:^|\s)(öğleden önce|öğle namazından önce|sabah namazından sonra|kuşluk vakti(?:nde)?)(?=\s|$|[.,!])/i,0],[/(?:^|\s)(öğleden sonra|öğle namazından sonra|ikindiden önce|ikindi namazından önce)(?=\s|$|[.,!])/i,1],[/(?:^|\s)(ikindiden sonra|ikindi namazından sonra|ikindi vakt[iı]nde|ikindide|akşamdan önce|akşam namazından önce)(?=\s|$|[.,!])/i,2],[/(?:^|\s)(akşamdan sonra|akşam namazından sonra|iftardan sonra|yatsıdan önce|yatsı namazından önce)(?=\s|$|[.,!])/i,3],[/(?:^|\s)(yatsıdan sonra|yatsı namazından sonra)(?=\s|$|[.,!])/i,4]];
  var lw=txt.toLocaleLowerCase("tr");for(var q=0;q<R.length;q++){var m=lw.match(R[q][0]);if(m){var o=(txt.slice(0,m.index)+" "+txt.slice(m.index+m[0].length)).replace(/\s+/g," ").trim();return{vk:R[q][1],txt:o||txt}}}return{vk:-1,txt:txt}}
 function vkPick(k,i){var b=dayLog(k).big[i];if(!b)return;var cur=b.vk>=0?b.vk:-1;
@@ -3921,7 +3924,7 @@ function vAyar(){
  h+='<div class="lh" id="sec-uygulama" style="margin-top:26px"><h2>Uygulama</h2></div>'+autoSettingsHtml()+'<div class="card row"><span class="sp">'+Ii("bell")+'Sorun bildir<div class="mute">Bir şey ters gittiyse kısa rapor hazırla; son hatalar eklenir.</div></span><button class="btn ghost sm" data-a="bugrep">Yaz</button></div>'+'<div class="card row"><span class="sp">'+Ii("eye")+'E-ink modu<div class="mute">Siyah-beyaz ve sade; yalnız Bugün, okuma ve çalışma. Yalnız bu cihazda geçerli.</div></span><button class="btn sm'+(ei()?"":" ghost")+'" data-a="einktog">'+(ei()?"Açık":"Kapalı")+'</button></div>'+(ei()?'<div class="card"><b>E-ink ayarları</b><div class="mute" style="margin:4px 0 8px">Yazı boyutu ve iz bırakan ekranı temizleme.</div><div class="chips" style="margin:0 0 10px">'+[["m","Normal"],["l","Büyük"],["xl","Çok büyük"]].map(function(x){return'<button class="chip'+((S.settings.einkFs||"m")===x[0]?" on":"")+'" data-a="einkfs" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</div><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost sm" data-a="eflash">Ekranı temizle</button><button class="btn ghost sm" data-a="einkauto">'+(S.settings.einkAuto?"✓ ":"")+'Sayfa değişince temizle</button><button class="btn ghost sm" data-a="einktap">'+(S.settings.einkTap===false?"":"✓ ")+'Kenara dokununca sayfa çevir</button></div></div>':'')+'<div class="card row"><span class="sp">'+Ii("compass")+'Kısa tanıtım turu<div class="mute">Bugün, Hüdhüd, Alanlarım ve Planım\'ı 4 adımda göster</div></span><button class="btn ghost sm" data-a="tourgo">Göster</button></div><div class="card row"><span class="sp">'+Ii("gear")+'Yazı boyutu<div class="mute">Okuması zor geliyorsa büyüt</div></span><span style="display:flex;gap:6px">'+[["1","A"],["1.12","A+"],["1.25","A++"]].map(function(x){return'<button class="btn sm'+((S.settings.fs||1)==+x[0]?"":" ghost")+'" data-a="fsz" data-v="'+x[0]+'">'+x[1]+'</button>'}).join("")+'</span></div><div class="card row"><span class="sp">'+Ii("bell")+'Titreşim dili<div class="mute">İş bitince, seri olunca ve vakit yaklaşınca ayrı desen.</div></span><button class="btn ghost sm" data-a="haptog">'+(S.settings.hap===false?"Kapalı":"Açık")+'</button></div><div class="card row"><span class="sp">'+Ii("beads")+'Zikir sayacı düğmesi<div class="mute">Sol altta, her sekmede tek dokunuşla zikir sayacı.</div></span><button class="btn ghost sm" data-a="tfabtog">'+(S.settings.tfab===false?"Göster":"Gizle")+'</button></div>';
  h+='<div class="card row"><span class="sp">'+Ii("compass")+'Başlangıç rehberi<div class="mute">İlk kurulum adımlarını yeniden aç.</div></span><button class="btn ghost sm" data-a="onbrestart">Aç</button></div>';
 if(isNative())h+='<div class="card row"><span class="sp">'+Ii("refresh")+'Güncellemeler<div class="mute">Yeni sürüm çıkınca Pano\'da haber verilir.</div></span><button class="btn ghost sm" data-a="updcheck">Denetle</button></div>';
- h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #136'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':(/Electron\//.test(navigator.userAgent)?' · bilgisayar':''))+(NB?' · ekranda gezme hazır':'')+'</div>';
+ h+='<div class="mute" style="text-align:center;margin:8px 0">Uygulama sürümü: #137'+(Cap&&Cap.isNativePlatform&&Cap.isNativePlatform()?' · telefon':(/Electron\//.test(navigator.userAgent)?' · bilgisayar':''))+(NB?' · ekranda gezme hazır':'')+'</div>';
  return h}
 /* ---------- Modül: İlim, İrfan ve Medeniyet Külliyatı ---------- */
 var KUR=["Kökler, Peygamberî Strateji ve İrfan Omurgası","Devlet Aklı, Tarih Felsefesi ve İktisat Zihniyeti","Kalbin İnşası, Epistemoloji ve Modernite Eleştirisi","Küresel Makro Tarih ve Büyük Medeniyet Sentezi"];
@@ -4422,7 +4425,7 @@ setInterval(function(){try{if(!S.onboarded||document.hidden)return;var a=documen
 /* ===== PC: kenar menüsü (vakit, mini ay), Ctrl+K komut kutusu, j/k gezinme, sürükle-bırak, hızlı ekleme köprüsü ===== */
 function wideOn(){return innerWidth>=900&&!ei()}
 function sideXHtml(){if(!wideOn()||setOpen)return"";var v=vkNow(),h='<div class="sidex">';
- if(v&&!muaf(key(today()))){var c=v.seg,n=Date.now(),fr=Math.max(0,Math.min(1,(n-c.s.getTime())/Math.max(1,c.e.getTime()-c.s.getTime()))),nx=c.j<4?VKA[c.j+1]:"İmsak";h+='<div class="sx-vk"><div class="mute">'+c.ad+' vakti</div><b>'+vkFmt(c.e.getTime()-n)+'</b><span class="mute"> '+nx.toLocaleLowerCase("tr")+' '+hhmm(c.e)+'</span><div class="sx-bar"><i style="width:'+Math.round(fr*100)+'%"></i></div></div>'}
+ if(v&&!muaf(key(today()))){var c=v.seg,n=Date.now(),fr=Math.max(0,Math.min(1,(n-c.s.getTime())/Math.max(1,c.e.getTime()-c.s.getTime()))),NX=vkNext();h+='<div class="sx-vk"><div class="mute">'+c.ad+' vakti</div><b>'+(NX?vkFmt(NX.ms):"")+'</b><span class="mute"> '+(NX?NX.ad.toLocaleLowerCase("tr")+' '+hhmm(NX.at):"")+'</span><div class="sx-bar"><i style="width:'+Math.round(fr*100)+'%"></i></div></div>'}
  var t=today(),f=new Date(t.getFullYear(),t.getMonth(),1),st=(f.getDay()+6)%7,dn=new Date(t.getFullYear(),t.getMonth()+1,0).getDate(),tk=key(t);
  h+='<div class="sx-cal"><div class="sx-mh">'+GM[t.getMonth()]+' '+t.getFullYear()+'</div><div class="sx-g">'+["Pt","Sa","Ça","Pe","Cu","Ct","Pz"].map(function(x){return'<span class="w">'+x+'</span>'}).join("");
  for(var q=0;q<st;q++)h+='<span></span>';
@@ -4505,7 +4508,7 @@ setTimeout(function(){try{if(S.onboarded&&chDockOn()&&!CHO)openChat()}catch(e){}
 window.addEventListener("resize",function(){try{chDockApply()}catch(e){}});
 /* Bilgisayar uygulaması köprüsü: her yerden hızlı ekleme (Ctrl+Alt+Boşluk) ve mini pencere */
 function miniData(){var v=vkNow(),k=key(today()),L=peek(k),op=L.big.filter(function(b){return!b.moved&&!b.done}),cur=v?op.filter(function(b){return taskVk(b,k)===v.seg.j})[0]:null;
- return{vk:v?{ad:v.seg.ad,kalan:vkFmt(v.seg.e.getTime()-Date.now()),sonra:(v.seg.j<4?VKA[v.seg.j+1]:"İmsak")+" "+hhmm(v.seg.e)}:null,is:(cur||op[0]||{}).t||"",acik:op.length,odak:(typeof WM!=="undefined"&&WM&&WM.plan)?Math.max(0,Math.round((WM.plan-wmActive())/60000)):null,wm:(typeof WM!=="undefined"&&WM)?{act:WM.act,run:WM.run,plan:WM.plan,task:WM.task||"",now:Date.now()}:null}}
+ var NX=vkNext();return{vk:v&&NX?{ad:v.seg.ad,kalan:vkFmt(NX.ms),sonra:NX.ad+" "+hhmm(NX.at)}:null,is:(cur||op[0]||{}).t||"",acik:op.length,odak:(typeof WM!=="undefined"&&WM&&WM.plan)?Math.max(0,Math.round((WM.plan-wmActive())/60000)):null,wm:(typeof WM!=="undefined"&&WM)?{act:WM.act,run:WM.run,plan:WM.plan,task:WM.task||"",now:Date.now()}:null}}
 try{if(window.hpDesk&&hpDesk.onQuick){hpDesk.onQuick(function(t){var r=cmdkQuick(String(t||"").trim(),false);hpDesk.quickDone&&hpDesk.quickDone(r)});setInterval(function(){try{hpDesk.miniData(miniData())}catch(e){}},30000);setTimeout(function(){try{hpDesk.miniData(miniData())}catch(e){}},1500)}}catch(e){}
 /* ===== U: İlk açılış turu (4 adım; Ayarlar'dan yeniden gösterilebilir) ===== */
 var TOUR=null,TOURS=[
@@ -4962,9 +4965,9 @@ async function doSchedule(){
   var list=[],now=new Date();
   for(var i=0;i<14;i++){
    var d=addDays(today(),i),L=peek(key(d)),base=1000+i*10,m=at(d,st.morning||"08:00"),e=at(d,st.evening||"21:00");
-   if(m>now)list.push({id:base+1,title:mDef().e+" "+greet()+hi()+"!",body:L.big.length?"Bugün "+L.big.length+" iş planladın. Haydi başlayalım.":"Bugünün işlerini planlamayı unutma.",schedule:{at:m,allowWhileIdle:true}});
+   if(m>now)list.push({id:base+1,title:mDef().e+" "+greetAt(m)+hi()+"!",body:L.big.length?"Bugün "+L.big.length+" iş planladın. Haydi başlayalım.":"Bugünün işlerini planlamayı unutma.",schedule:{at:m,allowWhileIdle:true}});
    if(e>now){var dc=dayCounts(key(d));
-    list.push({id:base+2,title:mDef().e+" Günün özeti",body:i===0?(dc.d+"/"+dc.t+" iş, "+dc.hd+"/"+S.habits.length+" alışkanlık tamam. Gün notunu yazmayı unutma."):"Günü kapatma zamanı: 1 dakika sürer.",schedule:{at:e,allowWhileIdle:true}})}
+    list.push({id:base+2,title:mDef().e+" Günün özeti",body:"Günü kapatma zamanı: bitenlere bak, yarının 3 işini yaz. 1 dakika sürer.",schedule:{at:e,allowWhileIdle:true}})}
    if(d.getDay()===0){var rv=at(d,"20:30");if(rv>now)list.push({id:base+4,title:"📊 Haftalık rapor hazır",body:weekDiffTxt()+" Raporu aç, 3 soruyla gözden geçir.",extra:{go:"wrep"},schedule:{at:rv,allowWhileIdle:true}})}
    var sp=specials(d).filter(function(x){return x.major});
    try{var sgW=vkSegs(d);if(sgW&&!muaf(key(d)))sgW.forEach(function(g){var itsW=peek(key(d)).big.filter(function(b){return!b.done&&!b.moved&&!b.tm&&b.vk===g.j});if(itsW.length&&g.s>now)list.push({id:8700+i*5+g.j,title:"🕌 "+g.ad+" girdi · bu vakitte "+itsW.length+" iş",body:itsW.slice(0,3).map(function(b){return b.t}).join(", ")+(itsW.length>3?"…":""),schedule:{at:g.s,allowWhileIdle:true}})})}catch(e){}
@@ -5038,6 +5041,7 @@ function mascotPicker(){return'<div class="mpick">'+Object.keys(MASCOTS).map(fun
 function mName(){return(S.settings.mascotName||"").trim()||mDef().n}
 function uName(){return(S.settings.userName||"").trim()}
 function hi(sep){var n=uName();return n?(sep===undefined?", ":sep)+n:""}
+function greetAt(d){var h=d.getHours();return h<5?"Hayırlı geceler":h<11?"Günaydın":h<17?"İyi günler":h<22?"İyi akşamlar":"Hayırlı geceler"}
 function greet(){var h=new Date().getHours();return h<5?"Hayırlı geceler":h<11?"Günaydın":h<17?"İyi günler":h<22?"İyi akşamlar":"Hayırlı geceler"}
 var RANKS=[[0,"Yavru"],[10,"Çırak"],[30,"Yolcu"],[60,"Gezgin"],[100,"Haberci"],[160,"Rehber"],[250,"Kâşif"],[400,"Bilge"],[600,"Üstad"]];
 function points(){var n=0,k,x;for(k in S.log){var L=S.log[k];if(L.h)for(x in L.h)if(L.h[x])n++;if(L.a)for(x in L.a)if(L.a[x])n++;(L.big||[]).forEach(function(b){if(b.done&&!b.moved)n++})}
@@ -5141,13 +5145,24 @@ var ptBusy={};
 function ptOnline(){return S.settings.ptOnline!==false}
 function ptKey(lat,lng,y,m){return lat.toFixed(2)+","+lng.toFixed(2)+":"+y+"-"+m}
 function ptCached(date,lat,lng){var c=PTC[ptKey(lat,lng,date.getFullYear(),date.getMonth()+1)];return c&&c[date.getDate()]}
-function ptSource(){return hasLoc()&&ptOnline()&&ptCached(today(),S.settings.lat,S.settings.lng)?"Diyanet yöntemi":"yaklaşık hesap"}
+function ptSource(){if(!hasLoc()||!ptOnline()||!ptCached(today(),S.settings.lat,S.settings.lng))return"yaklaşık hesap";return DYF[key(today()).slice(0,7)]&&DYF.c===trUp(S.settings.city)?"Diyanet":"Diyanet yöntemi"}
 function fetchPT(y,m,force){if(!hasLoc()||!ptOnline())return;var k=ptKey(S.settings.lat,S.settings.lng,y,m);if((PTC[k]&&!force)||ptBusy[k])return;ptBusy[k]=1;
  fetch("https://api.aladhan.com/v1/calendar/"+y+"/"+m+"?latitude="+S.settings.lat.toFixed(4)+"&longitude="+S.settings.lng.toFixed(4)+"&method=13").then(function(r){return r.json()}).then(function(j){
   if(!j||!j.data||!j.data.length)throw 0;var o={};j.data.forEach(function(d){var t=d.timings,dd=parseInt(d.date.gregorian.date.slice(0,2),10);o[dd]=[t.Fajr,t.Sunrise,t.Dhuhr,t.Asr,t.Maghrib,t.Isha].map(function(x){return String(x).slice(0,5)})});
   PTC[k]=o;var ks=Object.keys(PTC);while(ks.length>4){delete PTC[ks.shift()]}try{localStorage.setItem("hp.pt",JSON.stringify(PTC))}catch(e){}
   render();if(typeof syncOverlay==="function")syncOverlay();scheduleNotifs();if(force)toast("Vakitler güncellendi ✓")}).catch(function(){if(force)toast("İnternete bağlanılamadı; yaklaşık hesap kullanılıyor.")}).then(function(){delete ptBusy[k]})}
-function ensurePT(force){if(!hasLoc())return;var d=today();fetchPT(d.getFullYear(),d.getMonth()+1,force);if(d.getDate()>=20){var n=new Date(d.getFullYear(),d.getMonth()+1,1);fetchPT(n.getFullYear(),n.getMonth()+1,force)}}
+/* Diyanet'in yayımladığı vakitler (ücretsiz ezanvakti.emushaf.net aynası, il merkezi). Olmazsa aladhan (Diyanet yöntemi), o da olmazsa cihazda hesap. */
+var DYB="https://ezanvakti.emushaf.net",DYF={};try{DYF=JSON.parse(localStorage.getItem("hp.dy")||"{}")}catch(e){DYF={}}
+function trUp(x){return String(x||"").toLocaleUpperCase("tr").trim()}
+function dyJson(u){return fetch(DYB+u).then(function(r){if(!r.ok)throw 0;return r.json()})}
+function fetchDy(force){if(!hasLoc()||!ptOnline()||!S.settings.city)return Promise.resolve(false);var c=trUp(S.settings.city),tk=key(today());
+ if(!force&&DYF.c===c&&DYF.day===tk&&DYF[tk.slice(0,7)])return Promise.resolve(true);if(!force&&DYF.fail===tk)return Promise.resolve(false);
+ var idP=DYF.c===c&&DYF.id?Promise.resolve(DYF.id):dyJson("/sehirler/2").then(function(a){var sh=(a||[]).filter(function(x){return trUp(x.SehirAdi)===c})[0];if(!sh)throw 0;return dyJson("/ilceler/"+sh.SehirID)}).then(function(a){var il=(a||[]).filter(function(x){return trUp(x.IlceAdi)===c})[0]||(a||[])[0];if(!il||!il.IlceID)throw 0;return String(il.IlceID)});
+ return idP.then(function(id){DYF.id=id;DYF.c=c;return dyJson("/vakitler/"+id)}).then(function(a){if(!Array.isArray(a)||!a.length)throw 0;var n=0;
+  a.forEach(function(x){var m=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(x&&x.MiladiTarihKisa||"");if(!m)return;var T=[x.Imsak,x.Gunes,x.Ogle,x.Ikindi,x.Aksam,x.Yatsi];if(!T.every(function(v){return/^\d{2}:\d{2}$/.test(v||"")}))return;var k=ptKey(S.settings.lat,S.settings.lng,+m[3],+m[2]);PTC[k]=PTC[k]||{};PTC[k][+m[1]]=T;DYF[m[3]+"-"+m[2]]=1;n++});
+  if(!n)throw 0;DYF.day=tk;delete DYF.fail;try{localStorage.setItem("hp.pt",JSON.stringify(PTC));localStorage.setItem("hp.dy",JSON.stringify(DYF))}catch(e){}return true}).catch(function(){DYF.fail=tk;try{localStorage.setItem("hp.dy",JSON.stringify(DYF))}catch(e){}return false})}
+function ensurePT(force){if(!hasLoc())return;fetchDy(force).then(function(ok){if(ok){render();try{if(typeof syncOverlay==="function")syncOverlay();prayerBarSync()}catch(e){}scheduleNotifs();if(force)toast("Vakitler güncellendi (Diyanet) ✓");return}ensurePT2(force)})}
+function ensurePT2(force){if(!hasLoc())return;var d=today();fetchPT(d.getFullYear(),d.getMonth()+1,force);if(d.getDate()>=20){var n=new Date(d.getFullYear(),d.getMonth()+1,1);fetchPT(n.getFullYear(),n.getMonth()+1,force)}}
 function prayerTimes(date,lat,lng){var c=ptOnline()&&ptCached(date,lat,lng);if(c)return c.map(function(x){var p=x.split(":");return new Date(date.getFullYear(),date.getMonth(),date.getDate(),parseInt(p[0],10),parseInt(p[1],10))});return calcTimes(date,lat,lng)}
 function calcTimes(date,lat,lng){
  var jd=julian(date.getFullYear(),date.getMonth()+1,date.getDate())-lng/(15*24),tz=-date.getTimezoneOffset()/60;
@@ -5161,8 +5176,8 @@ function calcTimes(date,lat,lng){
 function hasLoc(){return typeof S.settings.lat==="number"&&typeof S.settings.lng==="number"}
 function prayerList(){if(!hasLoc())return[];return prayerTimes(today(),S.settings.lat,S.settings.lng).map(function(d,i){return{n:PN[i],at:d.getTime()}})}
 function nextPrayer(){if(!hasLoc())return null;var now=Date.now(),t=prayerTimes(today(),S.settings.lat,S.settings.lng);
- for(var i=0;i<6;i++)if(t[i].getTime()>now)return{i:i,name:PN[i],at:t[i],mins:Math.round((t[i].getTime()-now)/60000)};
- var tm=prayerTimes(addDays(today(),1),S.settings.lat,S.settings.lng)[0];return{i:0,name:"İmsak",at:tm,mins:Math.round((tm.getTime()-now)/60000),tomorrow:true}}
+ for(var i=0;i<6;i++)if(t[i].getTime()>now)return{i:i,name:PN[i],at:t[i],mins:Math.floor((t[i].getTime()-now)/60000)};
+ var tm=prayerTimes(addDays(today(),1),S.settings.lat,S.settings.lng)[0];return{i:0,name:"İmsak",at:tm,mins:Math.floor((tm.getTime()-now)/60000),tomorrow:true}}
 function hhmm(d){return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}
 var NV=[[0,"Sabah"],[2,"Öğle"],[3,"İkindi"],[4,"Akşam"],[5,"Yatsı"]];
 function prayed(k){return(S.log[k]&&S.log[k].p)||{}}
@@ -5251,7 +5266,7 @@ async function shareBackup(){if(!FS||!SH){toast("Paylaşım bu cihazda kullanıl
 
 
 /* ---------- Uygulama içi güncelleme ---------- */
-var SURUM=parseInt("136",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
+var SURUM=parseInt("137",10)||0,UPD_REPO="Fazil-Git-1/hayat-planim-surumler",updInfo=null,updState="";
 var DESK=/Electron\//.test(navigator.userAgent),DESKU=null;
 try{if(window.hpDesk){hpDesk.get().then(function(u){DESKU=u;deskUpdPaint()});hpDesk.on(function(u){var was=DESKU&&DESKU.st;DESKU=u;deskUpdPaint();if(u.st==="ready"&&was!=="ready"&&!u.hold)deskCountdown()})}}catch(e){}
 function deskCountdown(){var old=document.getElementById("dkcd");if(old)old.remove();var n=15,d=document.createElement("div");d.id="dkcd";d.className="dkcd";document.body.appendChild(d);
